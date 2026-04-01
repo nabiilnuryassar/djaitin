@@ -8,7 +8,13 @@ import {
 import InputError from '@/components/input-error';
 import { FlashMessage } from '@/components/flash-message';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import OfficeLayout from '@/layouts/office-layout';
@@ -30,9 +36,12 @@ export default function CustomersCreate() {
 
                 <Card className="max-w-3xl">
                     <CardHeader>
-                        <CardTitle>Tambah pelanggan baru</CardTitle>
+                        <CardTitle className="[font-family:var(--font-heading)] text-xl font-semibold text-[#0F172A]">
+                            Tambah pelanggan baru
+                        </CardTitle>
                         <CardDescription>
-                            Data ini akan dipakai untuk order tailor dan riwayat ukuran.
+                            Data ini akan dipakai untuk order tailor dan riwayat
+                            ukuran.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -68,7 +77,10 @@ export default function CustomersCreate() {
                                         <InputError message={errors.notes} />
                                     </div>
                                     <div className="flex justify-end">
-                                        <Button type="submit" disabled={processing}>
+                                        <Button
+                                            type="submit"
+                                            disabled={processing}
+                                        >
                                             Simpan pelanggan
                                         </Button>
                                     </div>

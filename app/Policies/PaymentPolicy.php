@@ -10,13 +10,13 @@ class PaymentPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasAnyRole([UserRole::Kasir, UserRole::Admin])
+        return $user->hasAnyRole([UserRole::Kasir, UserRole::Admin, UserRole::Owner])
             || $user->hasRole(UserRole::Customer);
     }
 
     public function view(User $user, Payment $payment): bool
     {
-        return $user->hasAnyRole([UserRole::Kasir, UserRole::Admin])
+        return $user->hasAnyRole([UserRole::Kasir, UserRole::Admin, UserRole::Owner])
             || $payment->order?->customer?->user_id === $user->id;
     }
 

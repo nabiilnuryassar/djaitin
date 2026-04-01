@@ -10,7 +10,13 @@ import InputError from '@/components/input-error';
 import { FlashMessage } from '@/components/flash-message';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import OfficeLayout from '@/layouts/office-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -47,7 +53,11 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Pembayaran', href: paymentsIndex() },
 ];
 
-export default function PaymentsIndex({ pendingPayments, payments, can }: Props) {
+export default function PaymentsIndex({
+    pendingPayments,
+    payments,
+    can,
+}: Props) {
     return (
         <OfficeLayout breadcrumbs={breadcrumbs}>
             <Head title="Pembayaran" />
@@ -57,7 +67,9 @@ export default function PaymentsIndex({ pendingPayments, payments, can }: Props)
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Pending verification</CardTitle>
+                        <CardTitle className="[font-family:var(--font-heading)] text-xl font-semibold text-[#0F172A]">
+                            Pending verification
+                        </CardTitle>
                         <CardDescription>
                             Transfer yang masih menunggu validasi.
                         </CardDescription>
@@ -81,7 +93,9 @@ export default function PaymentsIndex({ pendingPayments, payments, can }: Props)
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Semua pembayaran</CardTitle>
+                        <CardTitle className="[font-family:var(--font-heading)] text-xl font-semibold text-[#0F172A]">
+                            Semua pembayaran
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="grid gap-3">
                         {payments.data.map((payment) => (
@@ -151,7 +165,7 @@ function PaymentCard({
                             {payment.order.order_number}
                         </Link>
                     ) : (
-                        payment.order.order_number ?? '-'
+                        (payment.order.order_number ?? '-')
                     )}
                 </p>
                 <p className="text-sm">{formatCurrency(payment.amount)}</p>
@@ -177,7 +191,10 @@ function PaymentCard({
                     </Form>
                 )}
                 {can.reject && (
-                    <Form {...rejectPayment.form(payment.id)} className="grid gap-3">
+                    <Form
+                        {...rejectPayment.form(payment.id)}
+                        className="grid gap-3"
+                    >
                         {({ errors, processing }) => (
                             <>
                                 <textarea

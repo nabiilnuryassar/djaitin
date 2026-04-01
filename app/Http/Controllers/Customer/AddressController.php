@@ -10,23 +10,14 @@ use App\Models\Customer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class AddressController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): RedirectResponse
     {
         $this->authorize('viewAny', Address::class);
 
-        $customer = $request->user()?->customer()->with('addresses')->firstOrFail();
-
-        return Inertia::render('Customer/Addresses/Index', [
-            'addresses' => $customer->addresses
-                ->sortByDesc('is_default')
-                ->values()
-                ->map(fn (Address $address): array => $this->serializeAddress($address)),
-        ]);
+        return to_route('customer.profile.edit', ['section' => 'addresses']);
     }
 
     public function store(StoreAddressRequest $request): RedirectResponse
@@ -50,7 +41,7 @@ class AddressController extends Controller
             }
         });
 
-        return to_route('customer.addresses.index')
+        return to_route('customer.profile.edit', ['section' => 'addresses'])
             ->with('success', 'Alamat berhasil ditambahkan.');
     }
 
@@ -74,7 +65,7 @@ class AddressController extends Controller
             $this->syncCustomerPrimaryAddress($customer->refresh());
         });
 
-        return to_route('customer.addresses.index')
+        return to_route('customer.profile.edit', ['section' => 'addresses'])
             ->with('success', 'Alamat berhasil diperbarui.');
     }
 
@@ -91,23 +82,8 @@ class AddressController extends Controller
             $this->syncCustomerPrimaryAddress($customer->refresh());
         });
 
-        return to_route('customer.addresses.index')
+        return to_route('customer.profile.edit', ['section' => 'addresses'])
             ->with('success', 'Alamat default berhasil diperbarui.');
-    }
-
-    protected function serializeAddress(Address $address): array
-    {
-        return [
-            'id' => $address->id,
-            'label' => $address->label,
-            'recipient_name' => $address->recipient_name,
-            'phone' => $address->phone,
-            'address_line' => $address->address_line,
-            'city' => $address->city,
-            'province' => $address->province,
-            'postal_code' => $address->postal_code,
-            'is_default' => $address->is_default,
-        ];
     }
 
     protected function syncCustomerPrimaryAddress(Customer $customer): void

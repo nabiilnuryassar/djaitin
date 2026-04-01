@@ -2,6 +2,9 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\PaymentStatus;
+use App\Enums\UserRole;
+use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -55,6 +58,15 @@ class HandleInertiaRequests extends Middleware
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
             ],
+            'unread_notifications_count' => $user?->hasRole(UserRole::Customer)
+                ? $user->unreadNotifications()->count()
+                : 0,
+            'pending_transfer_count' => $user?->hasAnyRole([UserRole::Kasir, UserRole::Admin])
+                ? Payment::query()
+                    ->where('method', 'transfer')
+                    ->where('status', PaymentStatus::PendingVerification)
+                    ->count()
+                : 0,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

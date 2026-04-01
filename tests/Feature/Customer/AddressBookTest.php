@@ -18,7 +18,7 @@ test('customer can manage address book and sync the default address back to cust
             'postal_code' => '40123',
             'is_default' => true,
         ])
-        ->assertRedirect(route('customer.addresses.index'));
+        ->assertRedirect(route('customer.profile.edit', ['section' => 'addresses']));
 
     $firstAddress = Address::query()->where('customer_id', $customer->id)->firstOrFail();
 
@@ -38,7 +38,7 @@ test('customer can manage address book and sync the default address back to cust
             'postal_code' => '40535',
             'is_default' => false,
         ])
-        ->assertRedirect(route('customer.addresses.index'));
+        ->assertRedirect(route('customer.profile.edit', ['section' => 'addresses']));
 
     $secondAddress = Address::query()
         ->where('customer_id', $customer->id)
@@ -47,7 +47,7 @@ test('customer can manage address book and sync the default address back to cust
 
     $this->actingAs($user)
         ->post(route('customer.addresses.set-default', $secondAddress))
-        ->assertRedirect(route('customer.addresses.index'));
+        ->assertRedirect(route('customer.profile.edit', ['section' => 'addresses']));
 
     expect($firstAddress->fresh()->is_default)->toBeFalse()
         ->and($secondAddress->fresh()->is_default)->toBeTrue();
@@ -55,4 +55,12 @@ test('customer can manage address book and sync the default address back to cust
     $customer->refresh();
     expect($customer->address)->toContain('Jl. Kantor 88')
         ->and($customer->address)->toContain('Cimahi');
+});
+
+test('address index redirects customer to the unified profile page', function () {
+    $user = User::factory()->customer()->create();
+
+    $this->actingAs($user)
+        ->get(route('customer.addresses.index'))
+        ->assertRedirect(route('customer.profile.edit', ['section' => 'addresses']));
 });

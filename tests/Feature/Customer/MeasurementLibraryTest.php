@@ -14,7 +14,7 @@ test('customer can create and update their own measurements', function () {
             'waist' => 74,
             'notes' => 'Measurement awal',
         ])
-        ->assertRedirect(route('customer.measurements.index'));
+        ->assertRedirect(route('customer.profile.edit', ['section' => 'measurements']));
 
     $measurement = Measurement::query()->where('customer_id', $customer->id)->firstOrFail();
 
@@ -28,8 +28,16 @@ test('customer can create and update their own measurements', function () {
             'waist' => 75,
             'notes' => 'Measurement revisi',
         ])
-        ->assertRedirect(route('customer.measurements.index'));
+        ->assertRedirect(route('customer.profile.edit', ['section' => 'measurements']));
 
     expect($measurement->fresh()->label)->toBe('Ukuran Harian Revisi')
         ->and((float) $measurement->fresh()->chest)->toBe(92.0);
+});
+
+test('measurement index redirects customer to the unified profile page', function () {
+    $user = User::factory()->customer()->create();
+
+    $this->actingAs($user)
+        ->get(route('customer.measurements.index'))
+        ->assertRedirect(route('customer.profile.edit', ['section' => 'measurements']));
 });

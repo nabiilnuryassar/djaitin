@@ -8,7 +8,13 @@ import {
 import { FlashMessage } from '@/components/flash-message';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import OfficeLayout from '@/layouts/office-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -78,7 +84,9 @@ export default function OrdersIndex({ filters, statuses, orders, can }: Props) {
                 <Card>
                     <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div>
-                            <CardTitle>Order tailor</CardTitle>
+                            <CardTitle className="[font-family:var(--font-heading)] text-xl font-semibold text-[#0F172A]">
+                                Order tailor
+                            </CardTitle>
                             <CardDescription>
                                 Filter order berdasarkan status atau pelanggan.
                             </CardDescription>
@@ -128,7 +136,8 @@ export default function OrdersIndex({ filters, statuses, orders, can }: Props) {
                         <div className="grid gap-4">
                             {orders.data.length === 0 ? (
                                 <div className="rounded-xl border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
-                                    Belum ada order yang cocok dengan filter ini.
+                                    Belum ada order yang cocok dengan filter
+                                    ini.
                                 </div>
                             ) : (
                                 orders.data.map((order) => (
@@ -155,12 +164,15 @@ export default function OrdersIndex({ filters, statuses, orders, can }: Props) {
                                                 {order.status}
                                             </Badge>
                                             <p className="mt-2">
-                                                Due date: {order.due_date ?? '-'}
+                                                Due date:{' '}
+                                                {order.due_date ?? '-'}
                                             </p>
                                         </div>
                                         <div className="text-sm md:text-right">
                                             <p className="font-medium">
-                                                {formatCurrency(order.total_amount)}
+                                                {formatCurrency(
+                                                    order.total_amount,
+                                                )}
                                             </p>
                                             <p className="text-muted-foreground">
                                                 Sisa{' '}

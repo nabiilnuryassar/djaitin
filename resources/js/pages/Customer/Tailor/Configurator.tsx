@@ -18,7 +18,13 @@ import { useEffect, useState } from 'react';
 import InputError from '@/components/input-error';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import CustomerLayout from '@/layouts/customer-layout';
@@ -149,27 +155,36 @@ export default function CustomerTailorConfigurator({
     const errorMap = form.errors as Record<string, string | undefined>;
 
     const selectedGarment = garmentModels.find(
-        (garmentModel) => garmentModel.id.toString() === form.data.garment_model_id,
+        (garmentModel) =>
+            garmentModel.id.toString() === form.data.garment_model_id,
     );
     const selectedFabric = fabrics.find(
         (fabric) => fabric.id.toString() === form.data.fabric_id,
     );
     const quantity = Math.max(toNumber(form.data.qty), 1);
-    const unitPrice = (selectedGarment?.base_price ?? 0) + (selectedFabric?.price_adjustment ?? 0);
+    const unitPrice =
+        (selectedGarment?.base_price ?? 0) +
+        (selectedFabric?.price_adjustment ?? 0);
     const subtotal = unitPrice * quantity;
     const discount = customerMeta?.is_loyalty_eligible
         ? subtotal * (discountPolicy.percent / 100)
         : 0;
     const total = Math.max(subtotal - discount, 0);
     const minimumDeposit = Math.ceil(total * 0.5);
-    const latestDraft = form.data.draft_id ? Number(form.data.draft_id) : (draft?.id ?? null);
+    const latestDraft = form.data.draft_id
+        ? Number(form.data.draft_id)
+        : (draft?.id ?? null);
     const maxAccessibleStep = isCustomer ? 6 : 5;
     const [currentStep, setCurrentStep] = useState(
         Math.min(resolveInitialStep(initialState), maxAccessibleStep),
     );
 
     useEffect(() => {
-        if (currentStep !== 6 || form.data.payment_amount !== '' || total <= 0) {
+        if (
+            currentStep !== 6 ||
+            form.data.payment_amount !== '' ||
+            total <= 0
+        ) {
             return;
         }
 
@@ -197,10 +212,14 @@ export default function CustomerTailorConfigurator({
     const submitDraft = () => {
         form.transform((data) => ({
             draft_id: data.draft_id ? Number(data.draft_id) : null,
-            garment_model_id: data.garment_model_id ? Number(data.garment_model_id) : null,
+            garment_model_id: data.garment_model_id
+                ? Number(data.garment_model_id)
+                : null,
             fabric_id: data.fabric_id ? Number(data.fabric_id) : null,
             measurement_mode: data.measurement_mode || null,
-            measurement_id: data.measurement_id ? Number(data.measurement_id) : null,
+            measurement_id: data.measurement_id
+                ? Number(data.measurement_id)
+                : null,
             manual_measurement: buildManualMeasurement(data),
             qty: data.qty ? Number(data.qty) : null,
             due_date: data.due_date || null,
@@ -217,7 +236,9 @@ export default function CustomerTailorConfigurator({
             garment_model_id: Number(data.garment_model_id),
             fabric_id: Number(data.fabric_id),
             measurement_mode: data.measurement_mode,
-            measurement_id: data.measurement_id ? Number(data.measurement_id) : null,
+            measurement_id: data.measurement_id
+                ? Number(data.measurement_id)
+                : null,
             manual_measurement: buildManualMeasurement(data),
             qty: Number(data.qty),
             due_date: data.due_date || null,
@@ -249,17 +270,24 @@ export default function CustomerTailorConfigurator({
             <div className="space-y-6">
                 <div className="flex flex-col gap-4 rounded-[2rem] bg-white p-8 shadow-[0_20px_80px_rgba(31,23,38,0.08)] md:flex-row md:items-end md:justify-between">
                     <div className="space-y-2">
-                        <p className="text-sm font-medium uppercase tracking-[0.22em] text-[#a34a2c]">
+                        <p className="text-sm font-medium tracking-[0.22em] text-[#a34a2c] uppercase">
                             Tailor Configurator
                         </p>
                         <h1 className="text-3xl font-semibold tracking-tight">
-                            Susun order tailor customer dalam 6 tahap yang lebih jelas.
+                            Susun order tailor customer dalam 6 tahap yang lebih
+                            jelas.
                         </h1>
                         <p className="max-w-2xl text-sm leading-7 text-slate-600">
-                            Preview harga di sini tetap mengikuti aturan backend. Final pricing dihitung ulang saat order disubmit.
+                            Preview harga di sini tetap mengikuti aturan
+                            backend. Final pricing dihitung ulang saat order
+                            disubmit.
                         </p>
                     </div>
-                    <Button asChild variant="outline" className="border-[#d8c8b3] bg-white/70">
+                    <Button
+                        asChild
+                        variant="outline"
+                        className="border-[#d8c8b3] bg-white/70"
+                    >
                         <Link href={customer.services.tailor()}>
                             Detail layanan
                             <ArrowRight className="size-4" />
@@ -270,17 +298,28 @@ export default function CustomerTailorConfigurator({
                 {!isCustomer && (
                     <Alert className="border-[#e6d8c7] bg-white">
                         <AlertCircle className="text-[#a34a2c]" />
-                        <AlertTitle>Guest mode berhenti di ringkasan</AlertTitle>
+                        <AlertTitle>
+                            Guest mode berhenti di ringkasan
+                        </AlertTitle>
                         <AlertDescription className="space-y-3 pt-3 text-sm leading-6">
                             <p>
-                                Kamu bisa mengeksplor konfigurasi sampai Step 5. Step pembayaran dan submit order tetap membutuhkan login customer.
+                                Kamu bisa mengeksplor konfigurasi sampai Step 5.
+                                Step pembayaran dan submit order tetap
+                                membutuhkan login customer.
                             </p>
                             <div className="flex flex-wrap gap-3">
                                 <Button asChild size="sm">
                                     <Link href={login()}>Masuk</Link>
                                 </Button>
-                                <Button asChild size="sm" variant="outline" className="border-[#d8c8b3] bg-white/70">
-                                    <Link href={register()}>Daftar Customer</Link>
+                                <Button
+                                    asChild
+                                    size="sm"
+                                    variant="outline"
+                                    className="border-[#d8c8b3] bg-white/70"
+                                >
+                                    <Link href={register()}>
+                                        Daftar Customer
+                                    </Link>
                                 </Button>
                             </div>
                         </AlertDescription>
@@ -292,7 +331,8 @@ export default function CustomerTailorConfigurator({
                         <Shirt className="text-[#a34a2c]" />
                         <AlertTitle>Diskon loyalitas aktif</AlertTitle>
                         <AlertDescription>
-                            Akun ini sudah memenuhi syarat loyalitas. Preview ringkasan memakai diskon {discountPolicy.percent}%.
+                            Akun ini sudah memenuhi syarat loyalitas. Preview
+                            ringkasan memakai diskon {discountPolicy.percent}%.
                         </AlertDescription>
                     </Alert>
                 )}
@@ -304,10 +344,11 @@ export default function CustomerTailorConfigurator({
                                 <div>
                                     <CardTitle>Wizard 6 langkah</CardTitle>
                                     <CardDescription>
-                                        Setiap tahap menjaga form tetap terbaca tanpa menumpuk semua field sekaligus.
+                                        Setiap tahap menjaga form tetap terbaca
+                                        tanpa menumpuk semua field sekaligus.
                                     </CardDescription>
                                 </div>
-                                <div className="rounded-full bg-[#f3e3d8] px-4 py-2 text-xs font-medium uppercase tracking-[0.18em] text-[#a34a2c]">
+                                <div className="rounded-full bg-[#f3e3d8] px-4 py-2 text-xs font-medium tracking-[0.18em] text-[#a34a2c] uppercase">
                                     Step {currentStep} / {steps.length}
                                 </div>
                             </div>
@@ -322,9 +363,12 @@ export default function CustomerTailorConfigurator({
 
                                 <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
                                     {steps.map((step) => {
-                                        const isActive = currentStep === step.number;
-                                        const isLocked = step.number > maxAccessibleStep;
-                                        const isDone = step.number < currentStep;
+                                        const isActive =
+                                            currentStep === step.number;
+                                        const isLocked =
+                                            step.number > maxAccessibleStep;
+                                        const isDone =
+                                            step.number < currentStep;
 
                                         return (
                                             <button
@@ -336,9 +380,13 @@ export default function CustomerTailorConfigurator({
                                                     isActive
                                                         ? 'border-[#1f1726] bg-[#1f1726] text-[#f5f1e8]'
                                                         : 'border-[#eadfce] bg-[#fcfaf6] text-[#1f1726]',
-                                                    isLocked ? 'cursor-not-allowed opacity-55' : '',
+                                                    isLocked
+                                                        ? 'cursor-not-allowed opacity-55'
+                                                        : '',
                                                 ].join(' ')}
-                                                onClick={() => setCurrentStep(step.number)}
+                                                onClick={() =>
+                                                    setCurrentStep(step.number)
+                                                }
                                             >
                                                 <div className="flex items-center justify-between gap-3">
                                                     <step.icon className="size-4" />
@@ -347,11 +395,21 @@ export default function CustomerTailorConfigurator({
                                                     ) : isDone ? (
                                                         <Check className="size-4" />
                                                     ) : (
-                                                        <span className="text-xs font-semibold">0{step.number}</span>
+                                                        <span className="text-xs font-semibold">
+                                                            0{step.number}
+                                                        </span>
                                                     )}
                                                 </div>
-                                                <p className="mt-4 text-sm font-semibold">{step.title}</p>
-                                                <p className={isActive ? 'mt-1 text-xs text-[#d8c8d7]' : 'mt-1 text-xs text-slate-500'}>
+                                                <p className="mt-4 text-sm font-semibold">
+                                                    {step.title}
+                                                </p>
+                                                <p
+                                                    className={
+                                                        isActive
+                                                            ? 'mt-1 text-xs text-[#e6dceb]'
+                                                            : 'mt-1 text-xs text-slate-600'
+                                                    }
+                                                >
                                                     {step.description}
                                                 </p>
                                             </button>
@@ -365,15 +423,21 @@ export default function CustomerTailorConfigurator({
                             {currentStep === 1 && (
                                 <div className="space-y-4">
                                     <div>
-                                        <p className="text-lg font-semibold">Step 1 — Pilih model garmen</p>
+                                        <p className="text-lg font-semibold">
+                                            Step 1 — Pilih model garmen
+                                        </p>
                                         <p className="mt-1 text-sm leading-6 text-slate-600">
-                                            Model menjadi baseline harga dan arah potongan sebelum customer masuk ke pilihan bahan.
+                                            Model menjadi baseline harga dan
+                                            arah potongan sebelum customer masuk
+                                            ke pilihan bahan.
                                         </p>
                                     </div>
 
                                     <div className="grid gap-4 md:grid-cols-2">
                                         {garmentModels.map((garmentModel) => {
-                                            const isSelected = form.data.garment_model_id === garmentModel.id.toString();
+                                            const isSelected =
+                                                form.data.garment_model_id ===
+                                                garmentModel.id.toString();
 
                                             return (
                                                 <button
@@ -385,43 +449,79 @@ export default function CustomerTailorConfigurator({
                                                             ? 'border-[#1f1726] bg-[#1f1726] text-[#f5f1e8] shadow-[0_24px_70px_rgba(31,23,38,0.14)]'
                                                             : 'border-[#eadfce] bg-[#fcfaf6] hover:border-[#cbbca6]',
                                                     ].join(' ')}
-                                                    onClick={() => form.setData('garment_model_id', garmentModel.id.toString())}
+                                                    onClick={() =>
+                                                        form.setData(
+                                                            'garment_model_id',
+                                                            garmentModel.id.toString(),
+                                                        )
+                                                    }
                                                 >
                                                     <div className="flex items-center justify-between gap-3">
-                                                        <div className={isSelected ? 'rounded-2xl bg-white/10 p-3' : 'rounded-2xl bg-[#f3e3d8] p-3 text-[#a34a2c]'}>
+                                                        <div
+                                                            className={
+                                                                isSelected
+                                                                    ? 'rounded-2xl bg-white/10 p-3'
+                                                                    : 'rounded-2xl bg-[#f3e3d8] p-3 text-[#a34a2c]'
+                                                            }
+                                                        >
                                                             <Shirt className="size-5" />
                                                         </div>
-                                                        <span className={isSelected ? 'text-sm font-medium text-[#f0d9c4]' : 'text-sm font-medium text-[#a34a2c]'}>
-                                                            {formatCurrency(garmentModel.base_price)}
+                                                        <span
+                                                            className={
+                                                                isSelected
+                                                                    ? 'text-sm font-medium text-[#f0d9c4]'
+                                                                    : 'text-sm font-medium text-[#a34a2c]'
+                                                            }
+                                                        >
+                                                            {formatCurrency(
+                                                                garmentModel.base_price,
+                                                            )}
                                                         </span>
                                                     </div>
-                                                    <p className="mt-5 text-lg font-semibold">{garmentModel.name}</p>
-                                                    <p className={isSelected ? 'mt-2 text-sm leading-6 text-[#d8c8d7]' : 'mt-2 text-sm leading-6 text-slate-600'}>
-                                                        {garmentModel.description ?? 'Model aktif siap dipakai untuk custom order.'}
+                                                    <p className="mt-5 text-lg font-semibold">
+                                                        {garmentModel.name}
+                                                    </p>
+                                                    <p
+                                                        className={
+                                                            isSelected
+                                                                ? 'mt-2 text-sm leading-6 text-[#d8c8d7]'
+                                                                : 'mt-2 text-sm leading-6 text-slate-600'
+                                                        }
+                                                    >
+                                                        {garmentModel.description ??
+                                                            'Model aktif siap dipakai untuk custom order.'}
                                                     </p>
                                                 </button>
                                             );
                                         })}
                                     </div>
-                                    <InputError message={form.errors.garment_model_id} />
+                                    <InputError
+                                        message={form.errors.garment_model_id}
+                                    />
                                 </div>
                             )}
 
                             {currentStep === 2 && (
                                 <div className="space-y-4">
                                     <div>
-                                        <p className="text-lg font-semibold">Step 2 — Pilih bahan</p>
+                                        <p className="text-lg font-semibold">
+                                            Step 2 — Pilih bahan
+                                        </p>
                                         <p className="mt-1 text-sm leading-6 text-slate-600">
-                                            Bahan mengubah karakter hasil akhir sekaligus adjustment harga per item.
+                                            Bahan mengubah karakter hasil akhir
+                                            sekaligus adjustment harga per item.
                                         </p>
                                     </div>
 
                                     <div className="grid gap-4 md:grid-cols-2">
                                         {fabrics.map((fabric) => {
-                                            const isSelected = form.data.fabric_id === fabric.id.toString();
-                                            const priceLabel = fabric.price_adjustment === 0
-                                                ? 'Tanpa adjustment'
-                                                : `${fabric.price_adjustment > 0 ? '+' : '-'}${formatCurrency(Math.abs(fabric.price_adjustment))}`;
+                                            const isSelected =
+                                                form.data.fabric_id ===
+                                                fabric.id.toString();
+                                            const priceLabel =
+                                                fabric.price_adjustment === 0
+                                                    ? 'Tanpa adjustment'
+                                                    : `${fabric.price_adjustment > 0 ? '+' : '-'}${formatCurrency(Math.abs(fabric.price_adjustment))}`;
 
                                             return (
                                                 <button
@@ -433,34 +533,66 @@ export default function CustomerTailorConfigurator({
                                                             ? 'border-[#1f1726] bg-[#1f1726] text-[#f5f1e8] shadow-[0_24px_70px_rgba(31,23,38,0.14)]'
                                                             : 'border-[#eadfce] bg-[#fcfaf6] hover:border-[#cbbca6]',
                                                     ].join(' ')}
-                                                    onClick={() => form.setData('fabric_id', fabric.id.toString())}
+                                                    onClick={() =>
+                                                        form.setData(
+                                                            'fabric_id',
+                                                            fabric.id.toString(),
+                                                        )
+                                                    }
                                                 >
                                                     <div className="flex items-center justify-between gap-3">
-                                                        <div className={isSelected ? 'rounded-2xl bg-white/10 p-3' : 'rounded-2xl bg-[#f3e3d8] p-3 text-[#a34a2c]'}>
+                                                        <div
+                                                            className={
+                                                                isSelected
+                                                                    ? 'rounded-2xl bg-white/10 p-3'
+                                                                    : 'rounded-2xl bg-[#f3e3d8] p-3 text-[#a34a2c]'
+                                                            }
+                                                        >
                                                             <Palette className="size-5" />
                                                         </div>
-                                                        <span className={isSelected ? 'text-sm font-medium text-[#f0d9c4]' : 'text-sm font-medium text-[#a34a2c]'}>
+                                                        <span
+                                                            className={
+                                                                isSelected
+                                                                    ? 'text-sm font-medium text-[#f0d9c4]'
+                                                                    : 'text-sm font-medium text-[#a34a2c]'
+                                                            }
+                                                        >
                                                             {priceLabel}
                                                         </span>
                                                     </div>
-                                                    <p className="mt-5 text-lg font-semibold">{fabric.name}</p>
-                                                    <p className={isSelected ? 'mt-2 text-sm leading-6 text-[#d8c8d7]' : 'mt-2 text-sm leading-6 text-slate-600'}>
-                                                        {fabric.description ?? 'Bahan aktif yang bisa dipakai untuk order customer.'}
+                                                    <p className="mt-5 text-lg font-semibold">
+                                                        {fabric.name}
+                                                    </p>
+                                                    <p
+                                                        className={
+                                                            isSelected
+                                                                ? 'mt-2 text-sm leading-6 text-[#d8c8d7]'
+                                                                : 'mt-2 text-sm leading-6 text-slate-600'
+                                                        }
+                                                    >
+                                                        {fabric.description ??
+                                                            'Bahan aktif yang bisa dipakai untuk order customer.'}
                                                     </p>
                                                 </button>
                                             );
                                         })}
                                     </div>
-                                    <InputError message={form.errors.fabric_id} />
+                                    <InputError
+                                        message={form.errors.fabric_id}
+                                    />
                                 </div>
                             )}
 
                             {currentStep === 3 && (
                                 <div className="space-y-5">
                                     <div>
-                                        <p className="text-lg font-semibold">Step 3 — Tentukan metode ukuran</p>
+                                        <p className="text-lg font-semibold">
+                                            Step 3 — Tentukan metode ukuran
+                                        </p>
                                         <p className="mt-1 text-sm leading-6 text-slate-600">
-                                            Customer bisa memakai ukuran tersimpan, input manual, atau menandai pengukuran offline di toko.
+                                            Customer bisa memakai ukuran
+                                            tersimpan, input manual, atau
+                                            menandai pengukuran offline di toko.
                                         </p>
                                     </div>
 
@@ -469,17 +601,20 @@ export default function CustomerTailorConfigurator({
                                             {
                                                 value: 'saved',
                                                 label: 'Ukuran tersimpan',
-                                                description: 'Pilih data measurement yang sudah ada di library.',
+                                                description:
+                                                    'Pilih data measurement yang sudah ada di library.',
                                             },
                                             {
                                                 value: 'manual',
                                                 label: 'Input manual',
-                                                description: 'Masukkan ukuran baru dan simpan saat submit final.',
+                                                description:
+                                                    'Masukkan ukuran baru dan simpan saat submit final.',
                                             },
                                             {
                                                 value: 'offline',
                                                 label: 'Ukur di toko',
-                                                description: 'Lanjutkan order tanpa measurement digital saat ini.',
+                                                description:
+                                                    'Lanjutkan order tanpa measurement digital saat ini.',
                                             },
                                         ].map((option) => (
                                             <button
@@ -487,98 +622,206 @@ export default function CustomerTailorConfigurator({
                                                 type="button"
                                                 className={[
                                                     'rounded-2xl border px-4 py-4 text-left transition',
-                                                    form.data.measurement_mode === option.value
+                                                    form.data
+                                                        .measurement_mode ===
+                                                    option.value
                                                         ? 'border-[#1f1726] bg-[#1f1726] text-[#f5f1e8]'
                                                         : 'border-[#eadfce] bg-[#fcfaf6]',
                                                 ].join(' ')}
                                                 onClick={() =>
-                                                    form.setData('measurement_mode', option.value as FormState['measurement_mode'])
+                                                    form.setData(
+                                                        'measurement_mode',
+                                                        option.value as FormState['measurement_mode'],
+                                                    )
                                                 }
                                             >
-                                                <p className="text-sm font-semibold">{option.label}</p>
-                                                <p className={form.data.measurement_mode === option.value ? 'mt-2 text-xs leading-5 text-[#d8c8d7]' : 'mt-2 text-xs leading-5 text-slate-600'}>
+                                                <p className="text-sm font-semibold">
+                                                    {option.label}
+                                                </p>
+                                                <p
+                                                    className={
+                                                        form.data
+                                                            .measurement_mode ===
+                                                        option.value
+                                                            ? 'mt-2 text-xs leading-5 text-[#d8c8d7]'
+                                                            : 'mt-2 text-xs leading-5 text-slate-600'
+                                                    }
+                                                >
                                                     {option.description}
                                                 </p>
                                             </button>
                                         ))}
                                     </div>
-                                    <InputError message={form.errors.measurement_mode} />
+                                    <InputError
+                                        message={form.errors.measurement_mode}
+                                    />
 
                                     {form.data.measurement_mode === 'saved' && (
                                         <div className="grid gap-2 rounded-[1.75rem] border border-[#eadfce] bg-[#fcfaf6] p-5">
-                                            <Label htmlFor="measurement_id">Measurement library</Label>
+                                            <Label htmlFor="measurement_id">
+                                                Measurement library
+                                            </Label>
                                             <select
                                                 id="measurement_id"
                                                 className="h-10 rounded-md border bg-transparent px-3 text-sm"
                                                 value={form.data.measurement_id}
-                                                onChange={(event) => form.setData('measurement_id', event.target.value)}
+                                                onChange={(event) =>
+                                                    form.setData(
+                                                        'measurement_id',
+                                                        event.target.value,
+                                                    )
+                                                }
                                             >
-                                                <option value="">Pilih ukuran</option>
-                                                {measurements.map((measurement) => (
-                                                    <option key={measurement.id} value={measurement.id}>
-                                                        {measurement.label}
-                                                    </option>
-                                                ))}
+                                                <option value="">
+                                                    Pilih ukuran
+                                                </option>
+                                                {measurements.map(
+                                                    (measurement) => (
+                                                        <option
+                                                            key={measurement.id}
+                                                            value={
+                                                                measurement.id
+                                                            }
+                                                        >
+                                                            {measurement.label}
+                                                        </option>
+                                                    ),
+                                                )}
                                             </select>
                                             {measurements.length === 0 && (
                                                 <p className="text-sm leading-6 text-slate-600">
-                                                    Belum ada ukuran tersimpan. Tambahkan lewat halaman{' '}
-                                                    <Link className="font-medium text-[#a34a2c]" href={customer.measurements.index()}>
+                                                    Belum ada ukuran tersimpan.
+                                                    Tambahkan lewat halaman{' '}
+                                                    <Link
+                                                        className="font-medium text-[#a34a2c]"
+                                                        href={customer.measurements.index()}
+                                                    >
                                                         measurement library
-                                                    </Link>
-                                                    {' '}atau pindah ke input manual.
+                                                    </Link>{' '}
+                                                    atau pindah ke input manual.
                                                 </p>
                                             )}
-                                            <InputError message={form.errors.measurement_id} />
+                                            <InputError
+                                                message={
+                                                    form.errors.measurement_id
+                                                }
+                                            />
                                         </div>
                                     )}
 
-                                    {form.data.measurement_mode === 'manual' && (
+                                    {form.data.measurement_mode ===
+                                        'manual' && (
                                         <div className="grid gap-4 rounded-[1.75rem] border border-[#eadfce] bg-[#fcfaf6] p-5">
                                             <div className="grid gap-2">
-                                                <Label htmlFor="manual_label">Label ukuran</Label>
+                                                <Label htmlFor="manual_label">
+                                                    Label ukuran
+                                                </Label>
                                                 <Input
                                                     id="manual_label"
-                                                    value={form.data.manual_label}
-                                                    onChange={(event) => form.setData('manual_label', event.target.value)}
+                                                    value={
+                                                        form.data.manual_label
+                                                    }
+                                                    onChange={(event) =>
+                                                        form.setData(
+                                                            'manual_label',
+                                                            event.target.value,
+                                                        )
+                                                    }
                                                     placeholder="Contoh: Kemeja kerja April"
                                                 />
-                                                <InputError message={errorMap['manual_measurement.label']} />
+                                                <InputError
+                                                    message={
+                                                        errorMap[
+                                                            'manual_measurement.label'
+                                                        ]
+                                                    }
+                                                />
                                             </div>
 
                                             <div className="grid gap-4 md:grid-cols-2">
-                                                {measurementFields.map((field) => (
-                                                    <div key={field.key} className="grid gap-2">
-                                                        <Label htmlFor={field.key}>{field.label}</Label>
-                                                        <Input
-                                                            id={field.key}
-                                                            type="number"
-                                                            step="0.01"
-                                                            min="0"
-                                                            value={form.data[field.key]}
-                                                            onChange={(event) => form.setData(field.key, event.target.value)}
-                                                        />
-                                                        <InputError message={errorMap[`manual_measurement.${field.key}`]} />
-                                                    </div>
-                                                ))}
+                                                {measurementFields.map(
+                                                    (field) => (
+                                                        <div
+                                                            key={field.key}
+                                                            className="grid gap-2"
+                                                        >
+                                                            <Label
+                                                                htmlFor={
+                                                                    field.key
+                                                                }
+                                                            >
+                                                                {field.label}
+                                                            </Label>
+                                                            <Input
+                                                                id={field.key}
+                                                                type="number"
+                                                                step="0.01"
+                                                                min="0"
+                                                                value={
+                                                                    form.data[
+                                                                        field
+                                                                            .key
+                                                                    ]
+                                                                }
+                                                                onChange={(
+                                                                    event,
+                                                                ) =>
+                                                                    form.setData(
+                                                                        field.key,
+                                                                        event
+                                                                            .target
+                                                                            .value,
+                                                                    )
+                                                                }
+                                                            />
+                                                            <InputError
+                                                                message={
+                                                                    errorMap[
+                                                                        `manual_measurement.${field.key}`
+                                                                    ]
+                                                                }
+                                                            />
+                                                        </div>
+                                                    ),
+                                                )}
                                             </div>
 
                                             <div className="grid gap-2">
-                                                <Label htmlFor="manual_notes">Catatan ukuran</Label>
+                                                <Label htmlFor="manual_notes">
+                                                    Catatan ukuran
+                                                </Label>
                                                 <textarea
                                                     id="manual_notes"
                                                     className="min-h-24 rounded-md border bg-transparent px-3 py-2 text-sm"
-                                                    value={form.data.manual_notes}
-                                                    onChange={(event) => form.setData('manual_notes', event.target.value)}
+                                                    value={
+                                                        form.data.manual_notes
+                                                    }
+                                                    onChange={(event) =>
+                                                        form.setData(
+                                                            'manual_notes',
+                                                            event.target.value,
+                                                        )
+                                                    }
                                                 />
-                                                <InputError message={errorMap['manual_measurement.notes']} />
+                                                <InputError
+                                                    message={
+                                                        errorMap[
+                                                            'manual_measurement.notes'
+                                                        ]
+                                                    }
+                                                />
                                             </div>
                                         </div>
                                     )}
 
-                                    {form.data.measurement_mode === 'offline' && (
+                                    {form.data.measurement_mode ===
+                                        'offline' && (
                                         <div className="rounded-[1.75rem] border border-dashed border-[#d8c8b3] bg-[#fcfaf6] p-5 text-sm leading-6 text-slate-600">
-                                            Measurement digital tidak akan dibuat saat ini. Order tetap bisa dilanjutkan dan office akan menandai pengukuran offline saat proses berjalan.
+                                            Measurement digital tidak akan
+                                            dibuat saat ini. Order tetap bisa
+                                            dilanjutkan dan office akan menandai
+                                            pengukuran offline saat proses
+                                            berjalan.
                                         </div>
                                     )}
                                 </div>
@@ -587,9 +830,13 @@ export default function CustomerTailorConfigurator({
                             {currentStep === 4 && (
                                 <div className="space-y-5">
                                     <div>
-                                        <p className="text-lg font-semibold">Step 4 — Isi detail order</p>
+                                        <p className="text-lg font-semibold">
+                                            Step 4 — Isi detail order
+                                        </p>
                                         <p className="mt-1 text-sm leading-6 text-slate-600">
-                                            Atur quantity, target selesai, dan catatan spesifikasi agar office menerima brief yang lebih rapi.
+                                            Atur quantity, target selesai, dan
+                                            catatan spesifikasi agar office
+                                            menerima brief yang lebih rapi.
                                         </p>
                                     </div>
 
@@ -602,7 +849,13 @@ export default function CustomerTailorConfigurator({
                                                     variant="outline"
                                                     className="border-[#d8c8b3] bg-white/70"
                                                     onClick={() =>
-                                                        form.setData('qty', Math.max(quantity - 1, 1).toString())
+                                                        form.setData(
+                                                            'qty',
+                                                            Math.max(
+                                                                quantity - 1,
+                                                                1,
+                                                            ).toString(),
+                                                        )
                                                     }
                                                 >
                                                     -
@@ -612,42 +865,74 @@ export default function CustomerTailorConfigurator({
                                                     type="number"
                                                     min="1"
                                                     value={form.data.qty}
-                                                    onChange={(event) => form.setData('qty', event.target.value)}
+                                                    onChange={(event) =>
+                                                        form.setData(
+                                                            'qty',
+                                                            event.target.value,
+                                                        )
+                                                    }
                                                 />
                                                 <Button
                                                     type="button"
                                                     variant="outline"
                                                     className="border-[#d8c8b3] bg-white/70"
-                                                    onClick={() => form.setData('qty', (quantity + 1).toString())}
+                                                    onClick={() =>
+                                                        form.setData(
+                                                            'qty',
+                                                            (
+                                                                quantity + 1
+                                                            ).toString(),
+                                                        )
+                                                    }
                                                 >
                                                     +
                                                 </Button>
                                             </div>
-                                            <InputError message={form.errors.qty} />
+                                            <InputError
+                                                message={form.errors.qty}
+                                            />
                                         </div>
 
                                         <div className="grid gap-2">
-                                            <Label htmlFor="due_date">Target selesai</Label>
+                                            <Label htmlFor="due_date">
+                                                Target selesai
+                                            </Label>
                                             <Input
                                                 id="due_date"
                                                 type="date"
                                                 value={form.data.due_date}
-                                                onChange={(event) => form.setData('due_date', event.target.value)}
+                                                onChange={(event) =>
+                                                    form.setData(
+                                                        'due_date',
+                                                        event.target.value,
+                                                    )
+                                                }
                                             />
-                                            <InputError message={form.errors.due_date} />
+                                            <InputError
+                                                message={form.errors.due_date}
+                                            />
                                         </div>
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <Label htmlFor="spec_notes">Catatan spesifikasi</Label>
+                                        <Label htmlFor="spec_notes">
+                                            Catatan spesifikasi
+                                        </Label>
                                         <textarea
                                             id="spec_notes"
                                             className="min-h-32 rounded-md border bg-transparent px-3 py-2 text-sm"
                                             value={form.data.spec_notes}
-                                            onChange={(event) => form.setData('spec_notes', event.target.value)}
+                                            onChange={(event) =>
+                                                form.setData(
+                                                    'spec_notes',
+                                                    event.target.value,
+                                                )
+                                            }
                                             placeholder="Warna, model kerah, preferensi fit, bordir, dan detail lain."
                                         />
-                                        <InputError message={form.errors.spec_notes} />
+                                        <InputError
+                                            message={form.errors.spec_notes}
+                                        />
                                     </div>
                                 </div>
                             )}
@@ -655,53 +940,108 @@ export default function CustomerTailorConfigurator({
                             {currentStep === 5 && (
                                 <div className="space-y-5">
                                     <div>
-                                        <p className="text-lg font-semibold">Step 5 — Ringkasan order</p>
+                                        <p className="text-lg font-semibold">
+                                            Step 5 — Ringkasan order
+                                        </p>
                                         <p className="mt-1 text-sm leading-6 text-slate-600">
-                                            Tahap ini membantu customer membaca total biaya sebelum pindah ke pembayaran transfer.
+                                            Tahap ini membantu customer membaca
+                                            total biaya sebelum pindah ke
+                                            pembayaran transfer.
                                         </p>
                                     </div>
 
                                     <div className="grid gap-4 md:grid-cols-2">
                                         <div className="rounded-[1.75rem] border border-[#eadfce] bg-[#fcfaf6] p-5">
-                                            <p className="text-sm font-medium uppercase tracking-[0.18em] text-slate-500">
+                                            <p className="text-sm font-medium tracking-[0.18em] text-slate-600 uppercase">
                                                 Komposisi order
                                             </p>
                                             <div className="mt-4 space-y-3 text-sm">
-                                                <SummaryLine label="Model" value={selectedGarment?.name ?? '-'} />
-                                                <SummaryLine label="Bahan" value={selectedFabric?.name ?? '-'} />
-                                                <SummaryLine label="Harga satuan" value={formatCurrency(unitPrice)} />
-                                                <SummaryLine label="Qty" value={quantity.toString()} />
-                                                <SummaryLine label="Subtotal" value={formatCurrency(subtotal)} />
+                                                <SummaryLine
+                                                    label="Model"
+                                                    value={
+                                                        selectedGarment?.name ??
+                                                        '-'
+                                                    }
+                                                />
+                                                <SummaryLine
+                                                    label="Bahan"
+                                                    value={
+                                                        selectedFabric?.name ??
+                                                        '-'
+                                                    }
+                                                />
+                                                <SummaryLine
+                                                    label="Harga satuan"
+                                                    value={formatCurrency(
+                                                        unitPrice,
+                                                    )}
+                                                />
+                                                <SummaryLine
+                                                    label="Qty"
+                                                    value={quantity.toString()}
+                                                />
+                                                <SummaryLine
+                                                    label="Subtotal"
+                                                    value={formatCurrency(
+                                                        subtotal,
+                                                    )}
+                                                />
                                                 <SummaryLine
                                                     label="Diskon loyalitas"
-                                                    value={discount > 0 ? `-${formatCurrency(discount)}` : 'Belum aktif'}
+                                                    value={
+                                                        discount > 0
+                                                            ? `-${formatCurrency(discount)}`
+                                                            : 'Belum aktif'
+                                                    }
                                                 />
                                                 <div className="border-t border-[#eadfce] pt-3">
-                                                    <SummaryLine label="Total order" strong value={formatCurrency(total)} />
+                                                    <SummaryLine
+                                                        label="Total order"
+                                                        strong
+                                                        value={formatCurrency(
+                                                            total,
+                                                        )}
+                                                    />
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div className="space-y-4 rounded-[1.75rem] bg-[#1f1726] p-5 text-[#f5f1e8]">
                                             <div>
-                                                <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#d8c8d7]">
+                                                <p className="text-sm font-medium tracking-[0.18em] text-[#d8c8d7] uppercase">
                                                     Pembayaran awal
                                                 </p>
                                                 <p className="mt-3 text-3xl font-semibold">
-                                                    {minimumDeposit > 0 ? formatCurrency(minimumDeposit) : '-'}
+                                                    {minimumDeposit > 0
+                                                        ? formatCurrency(
+                                                              minimumDeposit,
+                                                          )
+                                                        : '-'}
                                                 </p>
                                                 <p className="mt-2 text-sm leading-6 text-[#d8c8d7]">
-                                                    Informasi DP minimum 50% ditampilkan sebagai acuan customer sebelum masuk ke step pembayaran.
+                                                    Informasi DP minimum 50%
+                                                    ditampilkan sebagai acuan
+                                                    customer sebelum masuk ke
+                                                    step pembayaran.
                                                 </p>
                                             </div>
 
                                             {customerMeta?.is_loyalty_eligible ? (
                                                 <div className="rounded-2xl bg-white/8 p-4 text-sm leading-6 text-[#e7dde6]">
-                                                    Loyalty aktif setelah {customerMeta.loyalty_order_count} order tailor closed. Sistem saat ini menerapkan diskon {discountPolicy.percent}%.
+                                                    Loyalty aktif setelah{' '}
+                                                    {
+                                                        customerMeta.loyalty_order_count
+                                                    }{' '}
+                                                    order tailor closed. Sistem
+                                                    saat ini menerapkan diskon{' '}
+                                                    {discountPolicy.percent}%.
                                                 </div>
                                             ) : (
                                                 <div className="rounded-2xl bg-white/8 p-4 text-sm leading-6 text-[#e7dde6]">
-                                                    Threshold loyalitas saat ini: {discountPolicy.threshold} order tailor closed.
+                                                    Threshold loyalitas saat
+                                                    ini:{' '}
+                                                    {discountPolicy.threshold}{' '}
+                                                    order tailor closed.
                                                 </div>
                                             )}
                                         </div>
@@ -709,7 +1049,10 @@ export default function CustomerTailorConfigurator({
 
                                     {!isCustomer && (
                                         <div className="rounded-[1.75rem] border border-dashed border-[#d8c8b3] bg-[#fcfaf6] p-5 text-sm leading-6 text-slate-600">
-                                            Step pembayaran hanya tersedia setelah login customer. Konfigurasi yang sedang dibaca di sini belum bisa disimpan sebagai draft guest.
+                                            Step pembayaran hanya tersedia
+                                            setelah login customer. Konfigurasi
+                                            yang sedang dibaca di sini belum
+                                            bisa disimpan sebagai draft guest.
                                         </div>
                                     )}
                                 </div>
@@ -718,73 +1061,139 @@ export default function CustomerTailorConfigurator({
                             {currentStep === 6 && (
                                 <div className="space-y-5">
                                     <div>
-                                        <p className="text-lg font-semibold">Step 6 — Pembayaran awal</p>
+                                        <p className="text-lg font-semibold">
+                                            Step 6 — Pembayaran awal
+                                        </p>
                                         <p className="mt-1 text-sm leading-6 text-slate-600">
-                                            Portal customer saat ini hanya menerima transfer. Setelah bukti dikirim, office akan memverifikasi pembayaran.
+                                            Portal customer saat ini hanya
+                                            menerima transfer. Setelah bukti
+                                            dikirim, office akan memverifikasi
+                                            pembayaran.
                                         </p>
                                     </div>
 
                                     <div className="rounded-[1.75rem] border border-[#eadfce] bg-[#fcfaf6] p-5">
                                         <div className="flex items-center justify-between gap-3">
                                             <div>
-                                                <p className="font-medium">Metode pembayaran customer</p>
+                                                <p className="font-medium">
+                                                    Metode pembayaran customer
+                                                </p>
                                                 <p className="text-sm text-slate-600">
-                                                    Flow customer portal dibatasi ke transfer.
+                                                    Flow customer portal
+                                                    dibatasi ke transfer.
                                                 </p>
                                             </div>
-                                            <span className="rounded-full bg-[#f3e3d8] px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-[#a34a2c]">
+                                            <span className="rounded-full bg-[#f3e3d8] px-3 py-1 text-xs font-medium tracking-[0.2em] text-[#a34a2c] uppercase">
                                                 Transfer
                                             </span>
                                         </div>
 
                                         <div className="mt-5 grid gap-4 md:grid-cols-2">
                                             <div className="grid gap-2">
-                                                <Label htmlFor="payment_amount">Nominal transfer</Label>
+                                                <Label htmlFor="payment_amount">
+                                                    Nominal transfer
+                                                </Label>
                                                 <Input
                                                     id="payment_amount"
                                                     type="number"
                                                     min="1"
-                                                    value={form.data.payment_amount}
-                                                    onChange={(event) => form.setData('payment_amount', event.target.value)}
+                                                    value={
+                                                        form.data.payment_amount
+                                                    }
+                                                    onChange={(event) =>
+                                                        form.setData(
+                                                            'payment_amount',
+                                                            event.target.value,
+                                                        )
+                                                    }
                                                 />
-                                                <p className="text-xs text-slate-500">
-                                                    Acuan DP minimum saat ini {formatCurrency(minimumDeposit)}.
+                                                <p className="text-xs text-slate-600">
+                                                    Acuan DP minimum saat ini{' '}
+                                                    {formatCurrency(
+                                                        minimumDeposit,
+                                                    )}
+                                                    .
                                                 </p>
-                                                <InputError message={errorMap['payment.amount']} />
+                                                <InputError
+                                                    message={
+                                                        errorMap[
+                                                            'payment.amount'
+                                                        ]
+                                                    }
+                                                />
                                             </div>
 
                                             <div className="grid gap-2">
-                                                <Label htmlFor="payment_reference_number">Nomor referensi</Label>
+                                                <Label htmlFor="payment_reference_number">
+                                                    Nomor referensi
+                                                </Label>
                                                 <Input
                                                     id="payment_reference_number"
-                                                    value={form.data.payment_reference_number}
-                                                    onChange={(event) => form.setData('payment_reference_number', event.target.value)}
+                                                    value={
+                                                        form.data
+                                                            .payment_reference_number
+                                                    }
+                                                    onChange={(event) =>
+                                                        form.setData(
+                                                            'payment_reference_number',
+                                                            event.target.value,
+                                                        )
+                                                    }
                                                     placeholder="TRX-12345"
                                                 />
-                                                <InputError message={errorMap['payment.reference_number']} />
+                                                <InputError
+                                                    message={
+                                                        errorMap[
+                                                            'payment.reference_number'
+                                                        ]
+                                                    }
+                                                />
                                             </div>
                                         </div>
 
                                         <div className="mt-4 grid gap-2">
-                                            <Label htmlFor="proof">Bukti transfer</Label>
+                                            <Label htmlFor="proof">
+                                                Bukti transfer
+                                            </Label>
                                             <Input
                                                 id="proof"
                                                 type="file"
                                                 accept=".jpg,.jpeg,.png,.pdf"
-                                                onChange={(event) => form.setData('proof', event.target.files?.[0] ?? null)}
+                                                onChange={(event) =>
+                                                    form.setData(
+                                                        'proof',
+                                                        event.target
+                                                            .files?.[0] ?? null,
+                                                    )
+                                                }
                                             />
-                                            <InputError message={errorMap['payment.proof']} />
+                                            <InputError
+                                                message={
+                                                    errorMap['payment.proof']
+                                                }
+                                            />
                                         </div>
 
                                         <div className="mt-4 grid gap-2">
-                                            <Label htmlFor="payment_notes">Catatan pembayaran</Label>
+                                            <Label htmlFor="payment_notes">
+                                                Catatan pembayaran
+                                            </Label>
                                             <textarea
                                                 id="payment_notes"
                                                 className="min-h-24 rounded-md border bg-transparent px-3 py-2 text-sm"
                                                 value={form.data.payment_notes}
-                                                onChange={(event) => form.setData('payment_notes', event.target.value)}
+                                                onChange={(event) =>
+                                                    form.setData(
+                                                        'payment_notes',
+                                                        event.target.value,
+                                                    )
+                                                }
                                             />
-                                            <InputError message={errorMap['payment.notes']} />
+                                            <InputError
+                                                message={
+                                                    errorMap['payment.notes']
+                                                }
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -797,7 +1206,11 @@ export default function CustomerTailorConfigurator({
                                         variant="outline"
                                         className="border-[#d8c8b3] bg-white/70"
                                         disabled={currentStep === 1}
-                                        onClick={() => setCurrentStep((step) => Math.max(step - 1, 1))}
+                                        onClick={() =>
+                                            setCurrentStep((step) =>
+                                                Math.max(step - 1, 1),
+                                            )
+                                        }
                                     >
                                         <ChevronLeft className="size-4" />
                                         Kembali
@@ -821,10 +1234,18 @@ export default function CustomerTailorConfigurator({
                                     {!isCustomer && currentStep === 5 ? (
                                         <>
                                             <Button asChild>
-                                                <Link href={login()}>Masuk untuk bayar</Link>
+                                                <Link href={login()}>
+                                                    Masuk untuk bayar
+                                                </Link>
                                             </Button>
-                                            <Button asChild variant="outline" className="border-[#d8c8b3] bg-white/70">
-                                                <Link href={register()}>Daftar Customer</Link>
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                className="border-[#d8c8b3] bg-white/70"
+                                            >
+                                                <Link href={register()}>
+                                                    Daftar Customer
+                                                </Link>
                                             </Button>
                                         </>
                                     ) : currentStep < 6 ? (
@@ -832,7 +1253,12 @@ export default function CustomerTailorConfigurator({
                                             type="button"
                                             disabled={!canMoveNext}
                                             onClick={() =>
-                                                setCurrentStep((step) => Math.min(step + 1, maxAccessibleStep))
+                                                setCurrentStep((step) =>
+                                                    Math.min(
+                                                        step + 1,
+                                                        maxAccessibleStep,
+                                                    ),
+                                                )
                                             }
                                         >
                                             Lanjut
@@ -841,10 +1267,15 @@ export default function CustomerTailorConfigurator({
                                     ) : (
                                         <Button
                                             type="button"
-                                            disabled={form.processing || !canSubmitOrder}
+                                            disabled={
+                                                form.processing ||
+                                                !canSubmitOrder
+                                            }
                                             onClick={submitOrder}
                                         >
-                                            {latestDraft !== null ? 'Submit Draft' : 'Submit Order'}
+                                            {latestDraft !== null
+                                                ? 'Submit Draft'
+                                                : 'Submit Order'}
                                         </Button>
                                     )}
                                 </div>
@@ -856,12 +1287,13 @@ export default function CustomerTailorConfigurator({
                         <CardHeader>
                             <CardTitle>Ringkasan backend pricing</CardTitle>
                             <CardDescription className="text-[#d8c8d7]">
-                                Panel ini tetap terlihat di semua step agar customer tidak kehilangan konteks total biaya.
+                                Panel ini tetap terlihat di semua step agar
+                                customer tidak kehilangan konteks total biaya.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-5 text-sm">
                             <div className="rounded-2xl bg-white/8 p-4">
-                                <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#d8c8d7]">
+                                <p className="text-xs font-medium tracking-[0.18em] text-[#d8c8d7] uppercase">
                                     Step aktif
                                 </p>
                                 <p className="mt-3 text-lg font-semibold">
@@ -872,29 +1304,86 @@ export default function CustomerTailorConfigurator({
                                 </p>
                             </div>
 
-                            <SummaryLine dark label="Model" value={selectedGarment?.name ?? '-'} />
-                            <SummaryLine dark label="Bahan" value={selectedFabric?.name ?? '-'} />
-                            <SummaryLine dark label="Base price" value={formatCurrency(selectedGarment?.base_price ?? 0)} />
-                            <SummaryLine dark label="Adjustment bahan" value={formatCurrency(selectedFabric?.price_adjustment ?? 0)} />
-                            <SummaryLine dark label="Harga satuan" value={formatCurrency(unitPrice)} />
-                            <SummaryLine dark label="Qty" value={quantity.toString()} />
-                            <SummaryLine dark label="Subtotal" value={formatCurrency(subtotal)} />
+                            <SummaryLine
+                                dark
+                                label="Model"
+                                value={selectedGarment?.name ?? '-'}
+                            />
+                            <SummaryLine
+                                dark
+                                label="Bahan"
+                                value={selectedFabric?.name ?? '-'}
+                            />
+                            <SummaryLine
+                                dark
+                                label="Base price"
+                                value={formatCurrency(
+                                    selectedGarment?.base_price ?? 0,
+                                )}
+                            />
+                            <SummaryLine
+                                dark
+                                label="Adjustment bahan"
+                                value={formatCurrency(
+                                    selectedFabric?.price_adjustment ?? 0,
+                                )}
+                            />
+                            <SummaryLine
+                                dark
+                                label="Harga satuan"
+                                value={formatCurrency(unitPrice)}
+                            />
+                            <SummaryLine
+                                dark
+                                label="Qty"
+                                value={quantity.toString()}
+                            />
+                            <SummaryLine
+                                dark
+                                label="Subtotal"
+                                value={formatCurrency(subtotal)}
+                            />
                             <SummaryLine
                                 dark
                                 label="Diskon loyalitas"
-                                value={discount > 0 ? `-${formatCurrency(discount)}` : 'Belum aktif'}
+                                value={
+                                    discount > 0
+                                        ? `-${formatCurrency(discount)}`
+                                        : 'Belum aktif'
+                                }
                             />
                             <div className="border-t border-white/15 pt-4">
-                                <SummaryLine dark label="Total order" strong value={formatCurrency(total)} />
+                                <SummaryLine
+                                    dark
+                                    label="Total order"
+                                    strong
+                                    value={formatCurrency(total)}
+                                />
                             </div>
 
                             <div className="rounded-2xl bg-white/8 p-4 text-sm leading-6 text-[#e7dde6]">
-                                <p className="font-medium text-[#f5f1e8]">Catatan</p>
+                                <p className="font-medium text-[#f5f1e8]">
+                                    Catatan
+                                </p>
                                 <ul className="mt-3 space-y-2">
-                                    <li>Draft terakhir akan muncul kembali saat customer membuka halaman ini lagi.</li>
-                                    <li>Ukuran manual disimpan sebagai measurement reusable setelah submit final.</li>
-                                    <li>Portal customer saat ini menerima transfer, bukan cash.</li>
-                                    <li>Threshold loyalitas: {discountPolicy.threshold} order tailor closed.</li>
+                                    <li>
+                                        Draft terakhir akan muncul kembali saat
+                                        customer membuka halaman ini lagi.
+                                    </li>
+                                    <li>
+                                        Ukuran manual disimpan sebagai
+                                        measurement reusable setelah submit
+                                        final.
+                                    </li>
+                                    <li>
+                                        Portal customer saat ini menerima
+                                        transfer, bukan cash.
+                                    </li>
+                                    <li>
+                                        Threshold loyalitas:{' '}
+                                        {discountPolicy.threshold} order tailor
+                                        closed.
+                                    </li>
                                 </ul>
                             </div>
                         </CardContent>
@@ -908,7 +1397,14 @@ export default function CustomerTailorConfigurator({
 const measurementFields: Array<{
     key: keyof Pick<
         FormState,
-        'chest' | 'waist' | 'hips' | 'shoulder' | 'sleeve_length' | 'shirt_length' | 'inseam' | 'trouser_waist'
+        | 'chest'
+        | 'waist'
+        | 'hips'
+        | 'shoulder'
+        | 'sleeve_length'
+        | 'shirt_length'
+        | 'inseam'
+        | 'trouser_waist'
     >;
     label: string;
 }> = [
@@ -935,7 +1431,9 @@ function SummaryLine({
 }) {
     return (
         <div className="flex items-center justify-between gap-4">
-            <span className={dark ? 'text-[#d8c8d7]' : 'text-slate-600'}>{label}</span>
+            <span className={dark ? 'text-[#d8c8d7]' : 'text-slate-600'}>
+                {label}
+            </span>
             <span
                 className={
                     strong
@@ -969,8 +1467,14 @@ function createInitialState({
 
     return {
         draft_id: draftId?.toString() ?? '',
-        garment_model_id: stringValue(draftPayload.garment_model_id) ?? garmentModels[0]?.id.toString() ?? '',
-        fabric_id: stringValue(draftPayload.fabric_id) ?? fabrics[0]?.id.toString() ?? '',
+        garment_model_id:
+            stringValue(draftPayload.garment_model_id) ??
+            garmentModels[0]?.id.toString() ??
+            '',
+        fabric_id:
+            stringValue(draftPayload.fabric_id) ??
+            fabrics[0]?.id.toString() ??
+            '',
         measurement_mode: enumValue(draftPayload.measurement_mode),
         measurement_id: stringValue(draftPayload.measurement_id) ?? '',
         manual_label: stringValue(manualMeasurement.label) ?? '',
@@ -1085,7 +1589,9 @@ function stringValue(value: unknown): string | null {
 }
 
 function objectValue(value: unknown): Record<string, unknown> {
-    return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : {};
+    return typeof value === 'object' && value !== null
+        ? (value as Record<string, unknown>)
+        : {};
 }
 
 function enumValue(value: unknown): FormState['measurement_mode'] {

@@ -56,6 +56,11 @@ class User extends Authenticatable
         return $this->hasOne(Customer::class);
     }
 
+    public function cart(): HasOne
+    {
+        return $this->hasOne(Cart::class);
+    }
+
     public function auditLogs(): HasMany
     {
         return $this->hasMany(AuditLog::class);

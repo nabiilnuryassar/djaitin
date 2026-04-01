@@ -8,7 +8,13 @@ import {
 import { FlashMessage } from '@/components/flash-message';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import OfficeLayout from '@/layouts/office-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -70,14 +76,19 @@ export default function CustomersIndex({ filters, customers, can }: Props) {
                 <Card>
                     <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div>
-                            <CardTitle>Daftar pelanggan</CardTitle>
+                            <CardTitle className="[font-family:var(--font-heading)] text-xl font-semibold text-[#0F172A]">
+                                Daftar pelanggan
+                            </CardTitle>
                             <CardDescription>
-                                Cari pelanggan berdasarkan nama atau nomor telepon.
+                                Cari pelanggan berdasarkan nama atau nomor
+                                telepon.
                             </CardDescription>
                         </div>
                         {can.create && (
                             <Button asChild>
-                                <Link href={createCustomer()}>Tambah pelanggan</Link>
+                                <Link href={createCustomer()}>
+                                    Tambah pelanggan
+                                </Link>
                             </Button>
                         )}
                     </CardHeader>
@@ -98,7 +109,8 @@ export default function CustomersIndex({ filters, customers, can }: Props) {
                         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                             {customers.data.length === 0 ? (
                                 <div className="col-span-full rounded-xl border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
-                                    Tidak ada pelanggan yang cocok dengan pencarian.
+                                    Tidak ada pelanggan yang cocok dengan
+                                    pencarian.
                                 </div>
                             ) : (
                                 customers.data.map((customer) => (
@@ -113,7 +125,8 @@ export default function CustomersIndex({ filters, customers, can }: Props) {
                                                     {customer.name}
                                                 </p>
                                                 <p className="text-sm text-muted-foreground">
-                                                    {customer.phone ?? 'Nomor telepon belum diisi'}
+                                                    {customer.phone ??
+                                                        'Nomor telepon belum diisi'}
                                                 </p>
                                             </div>
                                             {customer.is_loyalty_eligible && (
@@ -121,9 +134,13 @@ export default function CustomersIndex({ filters, customers, can }: Props) {
                                             )}
                                         </div>
                                         <div className="mt-4 space-y-1 text-sm text-muted-foreground">
-                                            <p>{customer.address ?? 'Alamat belum diisi'}</p>
                                             <p>
-                                                {customer.orders_count} order tercatat, loyal count{' '}
+                                                {customer.address ??
+                                                    'Alamat belum diisi'}
+                                            </p>
+                                            <p>
+                                                {customer.orders_count} order
+                                                tercatat, loyal count{' '}
                                                 {customer.loyalty_order_count}
                                             </p>
                                         </div>

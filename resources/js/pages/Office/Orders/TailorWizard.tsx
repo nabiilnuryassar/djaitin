@@ -10,7 +10,13 @@ import { FlashMessage } from '@/components/flash-message';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import OfficeLayout from '@/layouts/office-layout';
@@ -79,12 +85,12 @@ export default function TailorWizard({
     const qty = Number(form.data.qty || 0);
     const unitPrice = Number(form.data.unit_price || 0);
     const subtotal = qty * unitPrice;
-    const discount =
-        selectedCustomer?.is_loyalty_eligible
-            ? subtotal * (discountPolicy.percent / 100)
-            : 0;
+    const discount = selectedCustomer?.is_loyalty_eligible
+        ? subtotal * (discountPolicy.percent / 100)
+        : 0;
     const total = Math.max(subtotal - discount, 0);
-    const dpRatio = total > 0 ? Number(form.data.payment_amount || 0) / total : 0;
+    const dpRatio =
+        total > 0 ? Number(form.data.payment_amount || 0) / total : 0;
     const errorMap = form.errors as Record<string, string | undefined>;
 
     const submit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -94,7 +100,9 @@ export default function TailorWizard({
             customer_id: Number(data.customer_id),
             garment_model_id: Number(data.garment_model_id),
             fabric_id: Number(data.fabric_id),
-            measurement_id: data.measurement_id ? Number(data.measurement_id) : null,
+            measurement_id: data.measurement_id
+                ? Number(data.measurement_id)
+                : null,
             qty: Number(data.qty),
             unit_price: Number(data.unit_price),
             due_date: data.due_date || null,
@@ -124,16 +132,22 @@ export default function TailorWizard({
                         <AlertTitle>Diskon loyalitas aktif</AlertTitle>
                         <AlertDescription>
                             Pelanggan ini memenuhi syarat loyalitas karena telah
-                            menutup lebih dari {discountPolicy.threshold} order tailor.
-                            Diskon {discountPolicy.percent}% akan diterapkan otomatis.
+                            menutup lebih dari {discountPolicy.threshold} order
+                            tailor. Diskon {discountPolicy.percent}% akan
+                            diterapkan otomatis.
                         </AlertDescription>
                     </Alert>
                 )}
 
-                <form onSubmit={submit} className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+                <form
+                    onSubmit={submit}
+                    className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]"
+                >
                     <Card>
                         <CardHeader>
-                            <CardTitle>Form order tailor</CardTitle>
+                            <CardTitle className="[font-family:var(--font-heading)] text-xl font-semibold text-[#0F172A]">
+                                Form order tailor
+                            </CardTitle>
                             <CardDescription>
                                 Lengkapi pelanggan, model, bahan, dan DP awal.
                             </CardDescription>
@@ -145,7 +159,10 @@ export default function TailorWizard({
                                     id="customer_id"
                                     value={form.data.customer_id}
                                     onChange={(event) => {
-                                        form.setData('customer_id', event.target.value);
+                                        form.setData(
+                                            'customer_id',
+                                            event.target.value,
+                                        );
                                         form.setData('measurement_id', '');
                                     }}
                                     className="h-10 rounded-md border bg-transparent px-3 text-sm"
@@ -164,7 +181,9 @@ export default function TailorWizard({
 
                             <div className="grid gap-2 md:grid-cols-2">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="garment_model_id">Model garmen</Label>
+                                    <Label htmlFor="garment_model_id">
+                                        Model garmen
+                                    </Label>
                                     <select
                                         id="garment_model_id"
                                         value={form.data.garment_model_id}
@@ -203,18 +222,25 @@ export default function TailorWizard({
                                         className="h-10 rounded-md border bg-transparent px-3 text-sm"
                                     >
                                         {fabrics.map((fabric) => (
-                                            <option key={fabric.id} value={fabric.id}>
+                                            <option
+                                                key={fabric.id}
+                                                value={fabric.id}
+                                            >
                                                 {fabric.name}
                                             </option>
                                         ))}
                                     </select>
-                                    <InputError message={form.errors.fabric_id} />
+                                    <InputError
+                                        message={form.errors.fabric_id}
+                                    />
                                 </div>
                             </div>
 
                             <div className="grid gap-2 md:grid-cols-3">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="measurement_id">Ukuran</Label>
+                                    <Label htmlFor="measurement_id">
+                                        Ukuran
+                                    </Label>
                                     <select
                                         id="measurement_id"
                                         value={form.data.measurement_id}
@@ -227,14 +253,16 @@ export default function TailorWizard({
                                         className="h-10 rounded-md border bg-transparent px-3 text-sm"
                                     >
                                         <option value="">Pilih ukuran</option>
-                                        {selectedMeasurements.map((measurement) => (
-                                            <option
-                                                key={measurement.id}
-                                                value={measurement.id}
-                                            >
-                                                {measurement.label}
-                                            </option>
-                                        ))}
+                                        {selectedMeasurements.map(
+                                            (measurement) => (
+                                                <option
+                                                    key={measurement.id}
+                                                    value={measurement.id}
+                                                >
+                                                    {measurement.label}
+                                                </option>
+                                            ),
+                                        )}
                                     </select>
                                     <InputError
                                         message={form.errors.measurement_id}
@@ -248,13 +276,18 @@ export default function TailorWizard({
                                         min="1"
                                         value={form.data.qty}
                                         onChange={(event) =>
-                                            form.setData('qty', event.target.value)
+                                            form.setData(
+                                                'qty',
+                                                event.target.value,
+                                            )
                                         }
                                     />
                                     <InputError message={form.errors.qty} />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="unit_price">Harga satuan</Label>
+                                    <Label htmlFor="unit_price">
+                                        Harga satuan
+                                    </Label>
                                     <Input
                                         id="unit_price"
                                         type="number"
@@ -267,7 +300,9 @@ export default function TailorWizard({
                                             )
                                         }
                                     />
-                                    <InputError message={form.errors.unit_price} />
+                                    <InputError
+                                        message={form.errors.unit_price}
+                                    />
                                 </div>
                             </div>
 
@@ -278,19 +313,27 @@ export default function TailorWizard({
                                     type="date"
                                     value={form.data.due_date}
                                     onChange={(event) =>
-                                        form.setData('due_date', event.target.value)
+                                        form.setData(
+                                            'due_date',
+                                            event.target.value,
+                                        )
                                     }
                                 />
                                 <InputError message={form.errors.due_date} />
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="spec_notes">Catatan order</Label>
+                                <Label htmlFor="spec_notes">
+                                    Catatan order
+                                </Label>
                                 <textarea
                                     id="spec_notes"
                                     value={form.data.spec_notes}
                                     onChange={(event) =>
-                                        form.setData('spec_notes', event.target.value)
+                                        form.setData(
+                                            'spec_notes',
+                                            event.target.value,
+                                        )
                                     }
                                     className="min-h-28 rounded-md border bg-transparent px-3 py-2 text-sm"
                                 />
@@ -314,12 +357,18 @@ export default function TailorWizard({
                                         className="h-10 rounded-md border bg-transparent px-3 text-sm"
                                     >
                                         <option value="cash">Cash</option>
-                                        <option value="transfer">Transfer</option>
+                                        <option value="transfer">
+                                            Transfer
+                                        </option>
                                     </select>
-                                    <InputError message={errorMap['payment.method']} />
+                                    <InputError
+                                        message={errorMap['payment.method']}
+                                    />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="payment_amount">Nominal DP</Label>
+                                    <Label htmlFor="payment_amount">
+                                        Nominal DP
+                                    </Label>
                                     <Input
                                         id="payment_amount"
                                         type="number"
@@ -332,7 +381,9 @@ export default function TailorWizard({
                                             )
                                         }
                                     />
-                                    <InputError message={errorMap['payment.amount']} />
+                                    <InputError
+                                        message={errorMap['payment.amount']}
+                                    />
                                 </div>
                             </div>
 
@@ -343,7 +394,9 @@ export default function TailorWizard({
                                     </Label>
                                     <Input
                                         id="payment_reference_number"
-                                        value={form.data.payment_reference_number}
+                                        value={
+                                            form.data.payment_reference_number
+                                        }
                                         onChange={(event) =>
                                             form.setData(
                                                 'payment_reference_number',
@@ -352,7 +405,9 @@ export default function TailorWizard({
                                         }
                                     />
                                     <InputError
-                                        message={errorMap['payment.reference_number']}
+                                        message={
+                                            errorMap['payment.reference_number']
+                                        }
                                     />
                                 </div>
                             )}
@@ -363,13 +418,16 @@ export default function TailorWizard({
                         <CardHeader>
                             <CardTitle>Ringkasan biaya</CardTitle>
                             <CardDescription>
-                                Validasi DP minimal 50% akan berlaku saat order dipindah ke
-                                status in progress.
+                                Validasi DP minimal 50% akan berlaku saat order
+                                dipindah ke status in progress.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <SummaryRow label="Subtotal" value={subtotal} />
-                            <SummaryRow label="Diskon loyalitas" value={discount} />
+                            <SummaryRow
+                                label="Diskon loyalitas"
+                                value={discount}
+                            />
                             <SummaryRow label="Total" value={total} highlight />
 
                             <div className="rounded-xl bg-muted/60 p-4">
@@ -438,10 +496,14 @@ function SummaryRow({
 }) {
     return (
         <div className="flex items-center justify-between">
-            <span className={highlight ? 'font-medium' : 'text-muted-foreground'}>
+            <span
+                className={highlight ? 'font-medium' : 'text-muted-foreground'}
+            >
                 {label}
             </span>
-            <span className={highlight ? 'text-lg font-semibold' : 'font-medium'}>
+            <span
+                className={highlight ? 'text-lg font-semibold' : 'font-medium'}
+            >
                 {formatCurrency(value)}
             </span>
         </div>

@@ -13,4 +13,14 @@ class ServiceController extends Controller
     {
         return Inertia::render('Customer/Services/Tailor');
     }
+
+    public function readyToWear(Request $request): Response
+    {
+        return Inertia::render('Customer/Services/ReadyToWear');
+    }
+
+    public function convection(Request $request): Response
+    {
+        return Inertia::render('Customer/Services/Convection');
+    }
 }

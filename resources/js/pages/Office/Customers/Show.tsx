@@ -14,7 +14,13 @@ import InputError from '@/components/input-error';
 import { FlashMessage } from '@/components/flash-message';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import OfficeLayout from '@/layouts/office-layout';
@@ -77,7 +83,9 @@ export default function CustomersShow({ customer, can }: Props) {
                     <Card>
                         <CardHeader>
                             <div className="flex items-center gap-3">
-                                <CardTitle>{customer.name}</CardTitle>
+                                <CardTitle className="[font-family:var(--font-heading)] text-xl font-semibold text-[#0F172A]">
+                                    {customer.name}
+                                </CardTitle>
                                 {customer.is_loyalty_eligible && (
                                     <Badge>Loyal</Badge>
                                 )}
@@ -95,46 +103,71 @@ export default function CustomersShow({ customer, can }: Props) {
                                     {({ errors, processing }) => (
                                         <>
                                             <div className="grid gap-2">
-                                                <Label htmlFor="name">Nama</Label>
+                                                <Label htmlFor="name">
+                                                    Nama
+                                                </Label>
                                                 <Input
                                                     id="name"
                                                     name="name"
                                                     defaultValue={customer.name}
                                                 />
-                                                <InputError message={errors.name} />
+                                                <InputError
+                                                    message={errors.name}
+                                                />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label htmlFor="phone">Telepon</Label>
+                                                <Label htmlFor="phone">
+                                                    Telepon
+                                                </Label>
                                                 <Input
                                                     id="phone"
                                                     name="phone"
-                                                    defaultValue={customer.phone ?? ''}
+                                                    defaultValue={
+                                                        customer.phone ?? ''
+                                                    }
                                                 />
-                                                <InputError message={errors.phone} />
+                                                <InputError
+                                                    message={errors.phone}
+                                                />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label htmlFor="address">Alamat</Label>
+                                                <Label htmlFor="address">
+                                                    Alamat
+                                                </Label>
                                                 <textarea
                                                     id="address"
                                                     name="address"
-                                                    defaultValue={customer.address ?? ''}
+                                                    defaultValue={
+                                                        customer.address ?? ''
+                                                    }
                                                     className="min-h-24 rounded-md border bg-transparent px-3 py-2 text-sm"
                                                 />
-                                                <InputError message={errors.address} />
+                                                <InputError
+                                                    message={errors.address}
+                                                />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label htmlFor="notes">Catatan</Label>
+                                                <Label htmlFor="notes">
+                                                    Catatan
+                                                </Label>
                                                 <textarea
                                                     id="notes"
                                                     name="notes"
-                                                    defaultValue={customer.notes ?? ''}
+                                                    defaultValue={
+                                                        customer.notes ?? ''
+                                                    }
                                                     className="min-h-24 rounded-md border bg-transparent px-3 py-2 text-sm"
                                                 />
-                                                <InputError message={errors.notes} />
+                                                <InputError
+                                                    message={errors.notes}
+                                                />
                                             </div>
                                             <div className="flex justify-between text-sm text-muted-foreground">
                                                 <span>
-                                                    Loyalty count: {customer.loyalty_order_count}
+                                                    Loyalty count:{' '}
+                                                    {
+                                                        customer.loyalty_order_count
+                                                    }
                                                 </span>
                                                 <Button
                                                     type="submit"
@@ -148,9 +181,18 @@ export default function CustomersShow({ customer, can }: Props) {
                                 </Form>
                             ) : (
                                 <div className="space-y-2 text-sm text-muted-foreground">
-                                    <p>{customer.phone ?? 'Telepon belum diisi'}</p>
-                                    <p>{customer.address ?? 'Alamat belum diisi'}</p>
-                                    <p>{customer.notes ?? 'Tidak ada catatan tambahan.'}</p>
+                                    <p>
+                                        {customer.phone ??
+                                            'Telepon belum diisi'}
+                                    </p>
+                                    <p>
+                                        {customer.address ??
+                                            'Alamat belum diisi'}
+                                    </p>
+                                    <p>
+                                        {customer.notes ??
+                                            'Tidak ada catatan tambahan.'}
+                                    </p>
                                 </div>
                             )}
                         </CardContent>
@@ -160,7 +202,8 @@ export default function CustomersShow({ customer, can }: Props) {
                         <CardHeader>
                             <CardTitle>Tambah ukuran baru</CardTitle>
                             <CardDescription>
-                                Simpan snapshot ukuran pelanggan untuk order berikutnya.
+                                Simpan snapshot ukuran pelanggan untuk order
+                                berikutnya.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -172,11 +215,20 @@ export default function CustomersShow({ customer, can }: Props) {
                                     {({ errors, processing }) => (
                                         <>
                                             <div className="grid gap-2">
-                                                <Label htmlFor="label">Label ukuran</Label>
-                                                <Input id="label" name="label" />
-                                                <InputError message={errors.label} />
+                                                <Label htmlFor="label">
+                                                    Label ukuran
+                                                </Label>
+                                                <Input
+                                                    id="label"
+                                                    name="label"
+                                                />
+                                                <InputError
+                                                    message={errors.label}
+                                                />
                                             </div>
-                                            <MeasurementFields errors={errors} />
+                                            <MeasurementFields
+                                                errors={errors}
+                                            />
                                             <div className="flex justify-end">
                                                 <Button
                                                     type="submit"
@@ -201,7 +253,8 @@ export default function CustomersShow({ customer, can }: Props) {
                     <CardHeader>
                         <CardTitle>Riwayat ukuran</CardTitle>
                         <CardDescription>
-                            Update snapshot ukuran bila ada revisi fitting terbaru.
+                            Update snapshot ukuran bila ada revisi fitting
+                            terbaru.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="grid gap-4">
@@ -228,7 +281,9 @@ export default function CustomersShow({ customer, can }: Props) {
                                                             'Ukuran tanpa label'}
                                                     </p>
                                                     <p className="text-xs text-muted-foreground">
-                                                        Dicatat {measurement.created_at ?? '-'}
+                                                        Dicatat{' '}
+                                                        {measurement.created_at ??
+                                                            '-'}
                                                     </p>
                                                 </div>
                                                 {can.manage_measurements && (
@@ -245,22 +300,30 @@ export default function CustomersShow({ customer, can }: Props) {
                                                 <MeasurementInput
                                                     label="Chest"
                                                     name="chest"
-                                                    defaultValue={measurement.chest}
+                                                    defaultValue={
+                                                        measurement.chest
+                                                    }
                                                 />
                                                 <MeasurementInput
                                                     label="Waist"
                                                     name="waist"
-                                                    defaultValue={measurement.waist}
+                                                    defaultValue={
+                                                        measurement.waist
+                                                    }
                                                 />
                                                 <MeasurementInput
                                                     label="Hips"
                                                     name="hips"
-                                                    defaultValue={measurement.hips}
+                                                    defaultValue={
+                                                        measurement.hips
+                                                    }
                                                 />
                                                 <MeasurementInput
                                                     label="Shoulder"
                                                     name="shoulder"
-                                                    defaultValue={measurement.shoulder}
+                                                    defaultValue={
+                                                        measurement.shoulder
+                                                    }
                                                 />
                                                 <MeasurementInput
                                                     label="Sleeve"
@@ -271,13 +334,17 @@ export default function CustomersShow({ customer, can }: Props) {
                                                 />
                                             </div>
                                             <div className="grid gap-2">
-                                                <Label htmlFor={`notes-${measurement.id}`}>
+                                                <Label
+                                                    htmlFor={`notes-${measurement.id}`}
+                                                >
                                                     Catatan
                                                 </Label>
                                                 <textarea
                                                     id={`notes-${measurement.id}`}
                                                     name="notes"
-                                                    defaultValue={measurement.notes ?? ''}
+                                                    defaultValue={
+                                                        measurement.notes ?? ''
+                                                    }
                                                     className="min-h-20 rounded-md border bg-transparent px-3 py-2 text-sm"
                                                 />
                                                 <InputError
@@ -338,11 +405,7 @@ export default function CustomersShow({ customer, can }: Props) {
     );
 }
 
-function MeasurementFields({
-    errors,
-}: {
-    errors: Record<string, string>;
-}) {
+function MeasurementFields({ errors }: { errors: Record<string, string> }) {
     return (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
             <MeasurementInput label="Chest" name="chest" />

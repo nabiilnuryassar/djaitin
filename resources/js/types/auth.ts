@@ -26,6 +26,8 @@ export type SharedPageProps = {
     auth: Auth;
     flash: Flash;
     sidebarOpen: boolean;
+    unread_notifications_count: number;
+    pending_transfer_count: number;
 };
 
 export type TwoFactorSetupData = {

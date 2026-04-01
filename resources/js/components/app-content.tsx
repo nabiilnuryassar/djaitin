@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { cn } from '@/lib/utils';
 import { SidebarInset } from '@/components/ui/sidebar';
 
 type Props = React.ComponentProps<'main'> & {
@@ -7,7 +8,14 @@ type Props = React.ComponentProps<'main'> & {
 
 export function AppContent({ variant = 'header', children, ...props }: Props) {
     if (variant === 'sidebar') {
-        return <SidebarInset {...props}>{children}</SidebarInset>;
+        return (
+            <SidebarInset
+                {...props}
+                className={cn('pb-24 md:pb-0', props.className)}
+            >
+                {children}
+            </SidebarInset>
+        );
     }
 
     return (

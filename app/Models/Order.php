@@ -4,14 +4,7 @@ namespace App\Models;
 
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
-use App\Models\AuditLog;
-use App\Models\Customer;
-use App\Models\Fabric;
-use App\Models\GarmentModel;
-use App\Models\Measurement;
-use App\Models\OrderItem;
-use App\Models\Shipment;
-use App\Models\User;
+use App\Enums\ProductionStage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,6 +20,7 @@ class Order extends Model
         'order_number',
         'order_type',
         'status',
+        'production_stage',
         'customer_id',
         'user_id',
         'created_by',
@@ -56,6 +50,7 @@ class Order extends Model
         return [
             'order_type' => OrderType::class,
             'status' => OrderStatus::class,
+            'production_stage' => ProductionStage::class,
             'draft_payload' => 'array',
             'due_date' => 'date',
             'subtotal' => 'decimal:2',
@@ -112,6 +107,11 @@ class Order extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(OrderAttachment::class);
     }
 
     public function payments(): HasMany

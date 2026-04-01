@@ -1,5 +1,5 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowRight, ClipboardList, Ruler, Shirt } from 'lucide-react';
+import { ArrowRight, ClipboardList, Factory, Ruler, Shirt, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import CustomerLayout from '@/layouts/customer-layout';
@@ -23,12 +23,11 @@ export default function CustomerHome() {
                             Djaitin Customer
                         </p>
                         <h1 className="max-w-3xl text-4xl font-semibold tracking-tight md:text-5xl">
-                            Pesan tailor, simpan ukuran, dan pantau pembayaran dari satu portal.
+                            Pesan tailor, belanja RTW, ajukan konveksi, dan pantau pembayaran dari satu portal.
                         </h1>
                         <p className="max-w-2xl text-base leading-7 text-slate-600">
                             Surface customer berjalan penuh di <span className="font-medium">/app</span>.
-                            Customer bisa mulai dari layanan tailor, menyimpan alamat dan ukuran pribadi,
-                            lalu memantau status order tanpa lagi bercampur dengan workflow office.
+                            Customer bisa mulai dari layanan tailor, katalog ready-to-wear, atau permintaan konveksi, lalu memantau status order tanpa lagi bercampur dengan workflow office.
                         </p>
                         <div className="flex flex-wrap gap-3">
                             {auth.user ? (
@@ -44,6 +43,16 @@ export default function CustomerHome() {
                                         <Link href={customer.services.tailor()}>
                                             Lihat Layanan Tailor
                                             <ArrowRight className="size-4" />
+                                        </Link>
+                                    </Button>
+                                    <Button asChild variant="outline">
+                                        <Link href={customer.services.rtw()}>
+                                            Lihat Ready-to-Wear
+                                        </Link>
+                                    </Button>
+                                    <Button asChild variant="outline">
+                                        <Link href={customer.services.convection()}>
+                                            Lihat Konveksi
                                         </Link>
                                     </Button>
                                     <Button asChild variant="outline">
@@ -76,11 +85,21 @@ export default function CustomerHome() {
                     </div>
                 </section>
 
-                <section className="grid gap-4 md:grid-cols-3">
+                <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
                     <FeatureCard
                         icon={Shirt}
                         title="Tailor Interaktif"
                         description="Pilih model, bahan, metode ukuran, dan unggah bukti transfer langsung dari customer portal."
+                    />
+                    <FeatureCard
+                        icon={ShoppingBag}
+                        title="Katalog RTW"
+                        description="Belanja produk siap pakai lewat katalog, keranjang, dan checkout customer."
+                    />
+                    <FeatureCard
+                        icon={Factory}
+                        title="Order Konveksi"
+                        description="Ajukan produksi massal dengan multi-item builder dan lampiran referensi desain."
                     />
                     <FeatureCard
                         icon={ClipboardList}

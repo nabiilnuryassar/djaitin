@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\User;
 
 test('cash payment is immediately verified and updates order amounts', function () {
+    /** @var \Tests\TestCase $this */
     $user = User::factory()->kasir()->create();
     $order = Order::factory()->create([
         'total_amount' => 300000,
@@ -27,6 +28,7 @@ test('cash payment is immediately verified and updates order amounts', function 
 });
 
 test('transfer payment stays pending until verified and writes audit log when verified', function () {
+    /** @var \Tests\TestCase $this */
     $kasir = User::factory()->kasir()->create();
     $admin = User::factory()->admin()->create();
     $order = Order::factory()->create([
@@ -59,6 +61,7 @@ test('transfer payment stays pending until verified and writes audit log when ve
 });
 
 test('admin can reject transfer payment with a reason', function () {
+    /** @var \Tests\TestCase $this */
     $admin = User::factory()->admin()->create();
     $order = Order::factory()->create();
     $payment = $order->payments()->create([

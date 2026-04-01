@@ -2,12 +2,16 @@
 
 namespace App\Services;
 
+use App\Enums\OrderType;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
+use App\Notifications\PaymentRejectedNotification;
+use App\Notifications\PaymentVerifiedNotification;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -15,8 +19,8 @@ class PaymentService
 {
     public function __construct(
         protected AuditLogService $auditLogService,
-    ) {
-    }
+        protected StockService $stockService,
+    ) {}
 
     /**
      * @param  array{
@@ -31,6 +35,8 @@ class PaymentService
     {
         $method = PaymentMethod::from($payload['method']);
         $amount = round((float) $payload['amount'], 2);
+        $shouldDecrementStock = $method === PaymentMethod::Cash
+            && $this->shouldDecrementStock($order);
 
         if ($amount <= 0) {
             throw ValidationException::withMessages([
@@ -44,7 +50,7 @@ class PaymentService
             ]);
         }
 
-        return DB::transaction(function () use ($order, $payload, $user, $ipAddress, $method, $amount): Payment {
+        return DB::transaction(function () use ($order, $payload, $user, $ipAddress, $method, $amount, $shouldDecrementStock): Payment {
             $payment = Payment::query()->create([
                 'payment_number' => $this->nextPaymentNumber(),
                 'order_id' => $order->id,
@@ -64,6 +70,10 @@ class PaymentService
 
             if ($payment->status === PaymentStatus::Verified) {
                 $this->updateOrderAmounts($order);
+
+                if ($shouldDecrementStock) {
+                    $this->stockService->decrementOnVerifiedPayment($order->refresh());
+                }
             }
 
             $this->auditLogService->log(
@@ -127,8 +137,10 @@ class PaymentService
     public function verifyTransfer(Payment $payment, User $user, ?string $ipAddress = null): Payment
     {
         $this->ensureTransferPending($payment);
+        $order = $payment->order()->firstOrFail();
+        $shouldDecrementStock = $this->shouldDecrementStock($order);
 
-        return DB::transaction(function () use ($payment, $user, $ipAddress): Payment {
+        $verifiedPayment = DB::transaction(function () use ($payment, $user, $ipAddress): Payment {
             $payment->update([
                 'status' => PaymentStatus::Verified,
                 'verified_by' => $user->id,
@@ -150,13 +162,26 @@ class PaymentService
 
             return $payment->refresh();
         });
+
+        if ($shouldDecrementStock) {
+            $this->stockService->decrementOnVerifiedPayment($order->refresh());
+        }
+
+        $refreshedOrder = $order->refresh();
+
+        $this->notifyCustomer(
+            $refreshedOrder,
+            new PaymentVerifiedNotification($refreshedOrder, $verifiedPayment),
+        );
+
+        return $verifiedPayment;
     }
 
     public function reject(Payment $payment, User $user, string $reason, ?string $ipAddress = null): Payment
     {
         $this->ensureTransferPending($payment);
 
-        return DB::transaction(function () use ($payment, $user, $reason, $ipAddress): Payment {
+        $rejectedPayment = DB::transaction(function () use ($payment, $user, $reason, $ipAddress): Payment {
             $payment->update([
                 'status' => PaymentStatus::Rejected,
                 'verified_by' => $user->id,
@@ -179,6 +204,17 @@ class PaymentService
 
             return $payment->refresh();
         });
+
+        $this->notifyCustomer(
+            $rejectedPayment->order()->firstOrFail(),
+            new PaymentRejectedNotification(
+                $rejectedPayment->order()->firstOrFail(),
+                $rejectedPayment,
+                $reason,
+            ),
+        );
+
+        return $rejectedPayment;
     }
 
     public function updateOrderAmounts(Order $order): Order
@@ -212,5 +248,20 @@ class PaymentService
     protected function nextPaymentNumber(): string
     {
         return 'PAY-'.now()->format('YmdHis').'-'.str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+    }
+
+    protected function shouldDecrementStock(Order $order): bool
+    {
+        return $order->order_type === OrderType::ReadyWear
+            && ! $order->payments()
+                ->where('status', PaymentStatus::Verified)
+                ->exists();
+    }
+
+    protected function notifyCustomer(Order $order, Notification $notification): void
+    {
+        $order->loadMissing('customer.user');
+
+        $order->customer?->user?->notify($notification);
     }
 }

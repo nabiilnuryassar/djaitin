@@ -14,10 +14,18 @@ import InputError from '@/components/input-error';
 import { FlashMessage } from '@/components/flash-message';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import OfficeLayout from '@/layouts/office-layout';
+import { nota as printNotaRoute, productionStage as updateProductionStageRoute } from '@/routes/office/orders';
+import { kwitansi as printReceiptRoute } from '@/routes/office/payments';
 import type { BreadcrumbItem } from '@/types';
 
 type Payment = {
@@ -31,6 +39,7 @@ type Payment = {
     notes: string | null;
     payment_date: string | null;
     verified_at: string | null;
+    can_print_receipt: boolean;
 };
 
 type Props = {
@@ -39,6 +48,7 @@ type Props = {
         order_number: string;
         status: string;
         order_type: string;
+        production_stage: string | null;
         due_date: string | null;
         spec_notes: string | null;
         subtotal: number;
@@ -72,6 +82,13 @@ type Props = {
             discount_amount: number;
             subtotal: number;
         }>;
+        shipment: {
+            id: number;
+            status: string;
+            tracking_number: string | null;
+            courier_name: string | null;
+            recipient_name: string;
+        } | null;
         payments: Payment[];
         activity: Array<{
             id: number;
@@ -85,15 +102,26 @@ type Props = {
         value: string;
         label: string;
     }>;
+    productionStages: Array<{
+        value: string;
+        label: string;
+    }>;
     can: {
         update_status: boolean;
+        update_production_stage: boolean;
         record_payment: boolean;
         verify_payment: boolean;
         reject_payment: boolean;
+        print_nota: boolean;
     };
 };
 
-export default function OrdersShow({ order, statuses, can }: Props) {
+export default function OrdersShow({
+    order,
+    statuses,
+    productionStages,
+    can,
+}: Props) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: DashboardController() },
         { title: 'Orders', href: ordersIndex() },
@@ -111,12 +139,22 @@ export default function OrdersShow({ order, statuses, can }: Props) {
                     <Card>
                         <CardHeader>
                             <div className="flex items-center gap-3">
-                                <CardTitle>{order.order_number}</CardTitle>
-                                <Badge variant="secondary">{order.status}</Badge>
-                                {order.is_loyalty_applied && <Badge>Loyalty</Badge>}
+                                <CardTitle className="[font-family:var(--font-heading)] text-xl font-semibold text-[#0F172A]">
+                                    {order.order_number}
+                                </CardTitle>
+                                <Badge variant="secondary">
+                                    {formatLabel(order.status)}
+                                </Badge>
+                                <Badge variant="outline">
+                                    {formatLabel(order.order_type)}
+                                </Badge>
+                                {order.is_loyalty_applied && (
+                                    <Badge>Loyalty</Badge>
+                                )}
                             </div>
                             <CardDescription>
-                                Detail order tailor, pembayaran, dan activity log.
+                                Detail order, pembayaran, dokumen, dan activity
+                                log.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="grid gap-5">
@@ -143,8 +181,17 @@ export default function OrdersShow({ order, statuses, can }: Props) {
                                     value={order.due_date ?? '-'}
                                 />
                                 <InfoBlock
+                                    label="Tahap produksi"
+                                    value={formatLabel(
+                                        order.production_stage ??
+                                            'belum_diatur',
+                                    )}
+                                />
+                                <InfoBlock
                                     label="Catatan"
-                                    value={order.spec_notes ?? 'Tidak ada catatan'}
+                                    value={
+                                        order.spec_notes ?? 'Tidak ada catatan'
+                                    }
                                 />
                             </div>
 
@@ -174,6 +221,24 @@ export default function OrdersShow({ order, statuses, can }: Props) {
                                 </div>
                             </div>
 
+                            {order.shipment && (
+                                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 text-sm">
+                                    <p className="font-medium text-[#0F172A]">
+                                        Informasi pengiriman
+                                    </p>
+                                    <p className="mt-2 text-slate-600">
+                                        {formatLabel(order.shipment.status)} •{' '}
+                                        {order.shipment.courier_name ??
+                                            'Kurir belum diatur'}
+                                    </p>
+                                    <p className="text-slate-500">
+                                        {order.shipment.recipient_name} •{' '}
+                                        {order.shipment.tracking_number ??
+                                            'Belum ada resi'}
+                                    </p>
+                                </div>
+                            )}
+
                             <div className="grid gap-3">
                                 {order.items.map((item) => (
                                     <div
@@ -187,7 +252,8 @@ export default function OrdersShow({ order, statuses, can }: Props) {
                                             <span>{item.qty} pcs</span>
                                         </div>
                                         <p className="mt-1 text-muted-foreground">
-                                            {formatCurrency(item.unit_price)} per item
+                                            {formatCurrency(item.unit_price)}{' '}
+                                            per item
                                         </p>
                                     </div>
                                 ))}
@@ -222,7 +288,9 @@ export default function OrdersShow({ order, statuses, can }: Props) {
                                                         </option>
                                                     ))}
                                                 </select>
-                                                <InputError message={errors.status} />
+                                                <InputError
+                                                    message={errors.status}
+                                                />
                                                 <Button
                                                     type="submit"
                                                     disabled={processing}
@@ -236,12 +304,87 @@ export default function OrdersShow({ order, statuses, can }: Props) {
                             </Card>
                         )}
 
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Dokumen & Produksi</CardTitle>
+                                <CardDescription>
+                                    Cetak nota dan update tahap produksi untuk
+                                    order konveksi.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="grid gap-4">
+                                {can.print_nota ? (
+                                    <Button asChild variant="outline">
+                                        <a
+                                            href={printNotaRoute(order.id).url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            Print nota
+                                        </a>
+                                    </Button>
+                                ) : (
+                                    <p className="text-sm text-slate-500">
+                                        Nota tersedia setelah ada pembayaran
+                                        verified.
+                                    </p>
+                                )}
+
+                                {can.update_production_stage &&
+                                    order.order_type === 'convection' && (
+                                        <Form
+                                            {...updateProductionStageRoute.form(
+                                                order.id,
+                                            )}
+                                            className="grid gap-3"
+                                        >
+                                            {({ processing }) => (
+                                                <>
+                                                    <select
+                                                        name="production_stage"
+                                                        defaultValue={
+                                                            order.production_stage ??
+                                                            'design'
+                                                        }
+                                                        className="h-10 rounded-md border bg-transparent px-3 text-sm"
+                                                    >
+                                                        {productionStages.map(
+                                                            (stage) => (
+                                                                <option
+                                                                    key={
+                                                                        stage.value
+                                                                    }
+                                                                    value={
+                                                                        stage.value
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        stage.label
+                                                                    }
+                                                                </option>
+                                                            ),
+                                                        )}
+                                                    </select>
+                                                    <Button
+                                                        type="submit"
+                                                        disabled={processing}
+                                                    >
+                                                        Update tahap produksi
+                                                    </Button>
+                                                </>
+                                            )}
+                                        </Form>
+                                    )}
+                            </CardContent>
+                        </Card>
+
                         {can.record_payment && (
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Catat pembayaran</CardTitle>
                                     <CardDescription>
-                                        Cash akan langsung verified, transfer masuk antrean verifikasi.
+                                        Cash akan langsung verified, transfer
+                                        masuk antrean verifikasi.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
@@ -252,14 +395,18 @@ export default function OrdersShow({ order, statuses, can }: Props) {
                                         {({ processing, errors }) => (
                                             <>
                                                 <div className="grid gap-2">
-                                                    <Label htmlFor="method">Metode</Label>
+                                                    <Label htmlFor="method">
+                                                        Metode
+                                                    </Label>
                                                     <select
                                                         id="method"
                                                         name="method"
                                                         className="h-10 rounded-md border bg-transparent px-3 text-sm"
                                                         defaultValue="cash"
                                                     >
-                                                        <option value="cash">Cash</option>
+                                                        <option value="cash">
+                                                            Cash
+                                                        </option>
                                                         <option value="transfer">
                                                             Transfer
                                                         </option>
@@ -342,10 +489,10 @@ export default function OrdersShow({ order, statuses, can }: Props) {
                                                 {payment.payment_number}
                                             </p>
                                             <Badge variant="secondary">
-                                                {payment.status}
+                                                {formatLabel(payment.status)}
                                             </Badge>
                                             <Badge variant="outline">
-                                                {payment.method}
+                                                {formatLabel(payment.method)}
                                             </Badge>
                                         </div>
                                         <p className="text-sm text-muted-foreground">
@@ -356,16 +503,32 @@ export default function OrdersShow({ order, statuses, can }: Props) {
                                                 Ref: {payment.reference_number}
                                             </p>
                                         )}
+                                        {payment.can_print_receipt && (
+                                            <a
+                                                href={
+                                                    printReceiptRoute(
+                                                        payment.id,
+                                                    ).url
+                                                }
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="inline-flex text-sm font-medium text-[#2563EB]"
+                                            >
+                                                Print kwitansi
+                                            </a>
+                                        )}
                                         {payment.rejection_reason && (
                                             <p className="text-sm text-destructive">
-                                                Alasan reject: {payment.rejection_reason}
+                                                Alasan reject:{' '}
+                                                {payment.rejection_reason}
                                             </p>
                                         )}
                                     </div>
 
                                     {(can.verify_payment ||
                                         can.reject_payment) &&
-                                        payment.status === 'pending_verification' && (
+                                        payment.status ===
+                                            'pending_verification' && (
                                             <div className="grid gap-3">
                                                 {can.verify_payment && (
                                                     <Form
@@ -377,7 +540,9 @@ export default function OrdersShow({ order, statuses, can }: Props) {
                                                             <Button
                                                                 type="submit"
                                                                 className="w-full"
-                                                                disabled={processing}
+                                                                disabled={
+                                                                    processing
+                                                                }
                                                             >
                                                                 Verifikasi
                                                             </Button>
@@ -391,7 +556,10 @@ export default function OrdersShow({ order, statuses, can }: Props) {
                                                         )}
                                                         className="grid gap-3"
                                                     >
-                                                        {({ errors, processing }) => (
+                                                        {({
+                                                            errors,
+                                                            processing,
+                                                        }) => (
                                                             <>
                                                                 <textarea
                                                                     name="rejection_reason"
@@ -406,9 +574,12 @@ export default function OrdersShow({ order, statuses, can }: Props) {
                                                                 <Button
                                                                     type="submit"
                                                                     variant="destructive"
-                                                                    disabled={processing}
+                                                                    disabled={
+                                                                        processing
+                                                                    }
                                                                 >
-                                                                    Tolak transfer
+                                                                    Tolak
+                                                                    transfer
                                                                 </Button>
                                                             </>
                                                         )}
@@ -447,7 +618,9 @@ export default function OrdersShow({ order, statuses, can }: Props) {
                                             </p>
                                         </div>
                                         <div className="text-right text-xs text-muted-foreground">
-                                            <p>{activity.user_name ?? 'System'}</p>
+                                            <p>
+                                                {activity.user_name ?? 'System'}
+                                            </p>
                                             <p>{activity.created_at ?? '-'}</p>
                                         </div>
                                     </div>
@@ -472,11 +645,13 @@ function InfoBlock({
 }) {
     return (
         <div className="rounded-xl border p-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">
                 {label}
             </p>
             <p className="mt-2 font-medium">{value}</p>
-            {helper && <p className="mt-1 text-sm text-muted-foreground">{helper}</p>}
+            {helper && (
+                <p className="mt-1 text-sm text-muted-foreground">{helper}</p>
+            )}
         </div>
     );
 }
@@ -492,7 +667,9 @@ function PriceRow({
 }) {
     return (
         <div className="flex items-center justify-between">
-            <span className={highlight ? 'font-medium' : 'text-muted-foreground'}>
+            <span
+                className={highlight ? 'font-medium' : 'text-muted-foreground'}
+            >
                 {label}
             </span>
             <span className={highlight ? 'font-semibold' : ''}>
@@ -508,4 +685,11 @@ function formatCurrency(value: number) {
         currency: 'IDR',
         maximumFractionDigits: 0,
     }).format(value);
+}
+
+function formatLabel(value: string): string {
+    return value
+        .split('_')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
 }

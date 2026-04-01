@@ -10,6 +10,7 @@ use App\Models\Order;
 use App\Models\User;
 
 test('loyal customer gets loyalty discount when creating tailor order', function () {
+    /** @var \Tests\TestCase $this */
     $user = User::factory()->kasir()->create();
     $customer = Customer::factory()->create();
     $measurement = Measurement::factory()->for($customer)->create();
@@ -46,6 +47,7 @@ test('loyal customer gets loyalty discount when creating tailor order', function
 });
 
 test('tailor order can not move to in progress when verified dp is below fifty percent', function () {
+    /** @var \Tests\TestCase $this */
     $user = User::factory()->admin()->create();
     $order = Order::factory()->create([
         'total_amount' => 200000,
@@ -60,6 +62,7 @@ test('tailor order can not move to in progress when verified dp is below fifty p
 });
 
 test('tailor order can not be closed when outstanding amount remains', function () {
+    /** @var \Tests\TestCase $this */
     $user = User::factory()->admin()->create();
     $order = Order::factory()->create([
         'total_amount' => 250000,
