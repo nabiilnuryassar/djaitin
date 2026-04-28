@@ -91,7 +91,9 @@ export default function AdminProductsIndex({
                             </CardTitle>
                             <p className="text-sm text-slate-600">
                                 Pantau low stock, clearance, dan update data RTW
-                                dalam tabel produk yang ringkas.
+                                dalam tabel produk yang ringkas. Untuk produk
+                                yang mulai kurang diminati, selling price bisa
+                                disesuaikan hingga mendekati base price.
                             </p>
                         </div>
                         {can.create ? (

@@ -39,6 +39,7 @@ Route::middleware(['auth', 'role:customer'])
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
         Route::post('orders/{order}/attachments', [OrderController::class, 'uploadAttachment'])->name('orders.attachments.store');
+
         Route::post('orders/tailor', [OrderController::class, 'storeTailor'])->name('orders.tailor.store');
         Route::post('orders/draft', [OrderController::class, 'saveDraft'])->name('orders.draft.store');
         Route::post('orders/{order}/submit', [OrderController::class, 'submitDraft'])->name('orders.draft.submit');

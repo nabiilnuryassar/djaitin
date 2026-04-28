@@ -5,6 +5,7 @@ namespace App\Http\Requests\Customer;
 use App\Enums\PaymentMethod;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StorePaymentRequest extends FormRequest
 {
@@ -21,6 +22,19 @@ class StorePaymentRequest extends FormRequest
             'reference_number' => ['required', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
             'proof' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+        ];
+    }
+
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                $order = $this->route('order');
+
+                if (! $order) {
+                    return;
+                }
+            },
         ];
     }
 }

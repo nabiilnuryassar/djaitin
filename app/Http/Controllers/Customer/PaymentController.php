@@ -17,8 +17,7 @@ class PaymentController extends Controller
 {
     public function __construct(
         protected PaymentService $paymentService,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): Response
     {
@@ -53,11 +52,9 @@ class PaymentController extends Controller
     {
         $this->authorize('view', $order);
 
-        $proofPath = $request->file('proof')?->store('payments/proofs', 'public');
-
         $this->paymentService->record($order, [
             ...$request->validated(),
-            'proof_image_path' => $proofPath,
+            'proof_image_path' => $request->file('proof')?->store('payments/proofs', 'public'),
         ], $request->user(), $request->ip());
 
         return back()->with('success', 'Pembayaran berhasil dikirim.');

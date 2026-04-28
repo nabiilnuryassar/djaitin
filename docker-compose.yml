@@ -1,0 +1,59 @@
+x-app: &app
+  build:
+    context: .
+    dockerfile: Dockerfile
+    target: app
+  env_file:
+    - ${DJAITIN_ENV_FILE:-.env.docker}
+  depends_on:
+    postgres:
+      condition: service_healthy
+  volumes:
+    - app-storage:/var/www/html/storage
+    - app-cache:/var/www/html/bootstrap/cache
+  restart: unless-stopped
+
+services:
+  app:
+    <<: *app
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: nginx
+    depends_on:
+      - app
+    ports:
+      - "${APP_PORT:-8000}:80"
+    volumes:
+      - app-storage:/var/www/html/storage:ro
+    restart: unless-stopped
+
+  worker:
+    <<: *app
+    command: php artisan queue:work --sleep=3 --tries=3 --timeout=90
+
+  scheduler:
+    <<: *app
+    command: sh -lc "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-djaitin}
+      POSTGRES_USER: ${DB_USERNAME:-djaitin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change_this_password}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  app-storage:
+  app-cache:
+  postgres-data:

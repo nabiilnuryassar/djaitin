@@ -154,13 +154,15 @@ Owner membutuhkan:
 - customer dapat konfigurasi tailor order
 - draft order dapat disimpan dan dilanjutkan
 - staff office dapat membuat tailor order manual
-- payment gate untuk status produksi diterapkan
+- order tailor wajib memiliki DP awal minimal 50% dari total biaya
+- payment gate untuk status produksi tetap diterapkan berdasarkan pembayaran terverifikasi
 
 ### 6.3 Ready-to-Wear Commerce
 
 - katalog RTW dengan detail produk
 - cart per customer
 - checkout pickup/delivery
+- ongkir delivery mengikuti biaya jasa kurir dari master courier tanpa markup tambahan
 - validasi stok dan size
 - stok berkurang setelah verified payment
 
@@ -197,8 +199,10 @@ Owner membutuhkan:
 
 - customer hanya dapat mengakses data miliknya sendiri
 - staff office tidak dapat mengakses portal customer sebagai customer
+- order tailor hanya dapat dicatat jika DP awal minimal 50% dari total biaya
 - order tailor baru dapat masuk `in_progress` jika pembayaran terverifikasi minimal 50%
 - order convection baru dapat masuk `in_progress` setelah pembayaran penuh terverifikasi
+- biaya pengiriman RTW berasal dari master courier dan dicatat sebagai `shipping_cost`
 - stok RTW turun hanya setelah verified payment
 - nota hanya tersedia jika order memiliki verified payment
 - kwitansi hanya tersedia untuk payment verified

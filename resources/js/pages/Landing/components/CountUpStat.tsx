@@ -50,16 +50,16 @@ export function CountUpStat({
     return (
         <div
             ref={containerRef}
-            className="rounded-[2rem] border border-white/10 bg-white/6 p-6 shadow-[0_25px_80px_rgba(0,0,0,0.22)] backdrop-blur-xl"
+            className="rounded-[2rem] border border-white/10 bg-white/8 p-6 shadow-[0_25px_80px_rgba(8,23,49,0.20)] backdrop-blur-sm"
         >
-            <p className="text-xs font-semibold tracking-[0.28em] text-[var(--landing-primary)] uppercase">
+            <p className="text-xs font-semibold tracking-[0.28em] text-[#ffd21f] uppercase">
                 {label}
             </p>
-            <p className="mt-4 [font-family:var(--landing-heading-font)] text-4xl font-bold text-white md:text-5xl">
+            <p className="mt-4 [font-family:var(--landing-heading-font)] text-5xl font-bold tracking-[0.02em] text-white md:text-6xl">
                 {displayValue}
                 {suffix}
             </p>
-            <p className="mt-3 text-sm leading-6 text-white/68">
+            <p className="mt-3 text-sm leading-7 text-white/72">
                 {description}
             </p>
         </div>

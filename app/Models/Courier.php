@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Shipment;
 
 class Courier extends Model
 {
@@ -13,12 +12,14 @@ class Courier extends Model
 
     protected $fillable = [
         'name',
+        'base_fee',
         'is_active',
     ];
 
     protected function casts(): array
     {
         return [
+            'base_fee' => 'decimal:2',
             'is_active' => 'boolean',
         ];
     }

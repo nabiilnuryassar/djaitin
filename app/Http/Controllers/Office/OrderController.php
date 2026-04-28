@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Office;
 
+use App\Enums\OrderAttachmentType;
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Enums\ProductionStage;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Office\StoreOrderAttachmentRequest;
 use App\Http\Requests\Office\StoreTailorOrderRequest;
 use App\Http\Requests\Office\UpdateOrderStatusRequest;
 use App\Http\Requests\Office\UpdateProductionStageRequest;
@@ -13,7 +15,10 @@ use App\Models\Customer;
 use App\Models\Fabric;
 use App\Models\GarmentModel;
 use App\Models\Order;
+use App\Models\OrderAttachment;
 use App\Models\Payment;
+use App\Services\AttachmentService;
+use App\Services\ConvectionOrderService;
 use App\Services\LoyaltyService;
 use App\Services\OrderStatusService;
 use App\Services\TailorOrderService;
@@ -26,8 +31,10 @@ class OrderController extends Controller
 {
     public function __construct(
         protected TailorOrderService $tailorOrderService,
+        protected ConvectionOrderService $convectionOrderService,
         protected OrderStatusService $orderStatusService,
         protected LoyaltyService $loyaltyService,
+        protected AttachmentService $attachmentService,
     ) {}
 
     public function index(Request $request): Response
@@ -39,7 +46,6 @@ class OrderController extends Controller
 
         $orders = Order::query()
             ->with(['customer:id,name', 'garmentModel:id,name'])
-            ->where('order_type', OrderType::Tailor)
             ->when($search !== '', function ($query) use ($search): void {
                 $query->where(function ($builder) use ($search): void {
                     $builder
@@ -54,6 +60,8 @@ class OrderController extends Controller
             ->through(fn (Order $order): array => [
                 'id' => $order->id,
                 'order_number' => $order->order_number,
+                'order_type' => $order->order_type->value,
+                'company_name' => $order->company_name,
                 'customer_name' => $order->customer?->name,
                 'garment_model_name' => $order->garmentModel?->name,
                 'status' => $order->status->value,
@@ -133,10 +141,12 @@ class OrderController extends Controller
             'garmentModel',
             'fabric',
             'measurement',
+
             'items',
             'payments.createdBy',
             'payments.verifiedBy',
             'shipment.courier',
+            'attachments.uploadedBy',
             'auditLogs.user',
         ]);
 
@@ -146,9 +156,11 @@ class OrderController extends Controller
                 'order_number' => $order->order_number,
                 'status' => $order->status->value,
                 'order_type' => $order->order_type->value,
+                'company_name' => $order->company_name,
                 'production_stage' => $order->production_stage?->value,
                 'due_date' => $order->due_date?->toDateString(),
                 'spec_notes' => $order->spec_notes,
+
                 'subtotal' => (float) $order->subtotal,
                 'discount_amount' => (float) $order->discount_amount,
                 'total_amount' => (float) $order->total_amount,
@@ -184,6 +196,10 @@ class OrderController extends Controller
                     'verified_at' => $payment->verified_at?->format('Y-m-d H:i'),
                     'can_print_receipt' => $payment->status === \App\Enums\PaymentStatus::Verified,
                 ])->values(),
+                'attachments' => $order->attachments
+                    ->sortByDesc('created_at')
+                    ->values()
+                    ->map(fn (OrderAttachment $attachment): array => $this->serializeAttachment($attachment)),
                 'shipment' => $order->shipment ? [
                     'id' => $order->shipment->id,
                     'status' => $order->shipment->status->value,
@@ -208,6 +224,8 @@ class OrderController extends Controller
                 'update_status' => $request->user()?->can('updateStatus', $order) ?? false,
                 'update_production_stage' => $request->user()?->can('updateStatus', $order) ?? false,
                 'record_payment' => $request->user()?->can('create', Payment::class) ?? false,
+                'upload_attachment' => $request->user()?->canAccessOffice() ?? false,
+
                 'verify_payment' => $request->user()?->hasAnyRole([
                     \App\Enums\UserRole::Kasir,
                     \App\Enums\UserRole::Admin,
@@ -216,6 +234,33 @@ class OrderController extends Controller
                 'print_nota' => $order->payments->contains(fn ($payment) => $payment->status === \App\Enums\PaymentStatus::Verified),
             ],
         ]);
+    }
+
+    public function uploadAttachment(
+        StoreOrderAttachmentRequest $request,
+        Order $order,
+    ): RedirectResponse {
+        $this->authorize('view', $order);
+
+        if ($order->order_type !== OrderType::Convection) {
+            abort(404);
+        }
+
+        $attachmentType = OrderAttachmentType::from($request->string('attachment_type')->value());
+
+        $this->attachmentService->upload(
+            $order,
+            $request->file('file'),
+            $request->user(),
+            [
+                'title' => $request->string('title')->value(),
+                'notes' => $request->string('notes')->value() ?: null,
+                'attachment_type' => $attachmentType,
+            ],
+            $request->ip(),
+        );
+
+        return back()->with('success', 'Lampiran berhasil diunggah.');
     }
 
     public function updateStatus(
@@ -252,11 +297,46 @@ class OrderController extends Controller
     protected function statusOptions(): array
     {
         return collect(OrderStatus::cases())
+            ->reject(fn (OrderStatus $status): bool => in_array($status, [
+                OrderStatus::Draft,
+                OrderStatus::AwaitingPrice,
+            ], true))
             ->map(fn (OrderStatus $status): array => [
                 'value' => $status->value,
                 'label' => str($status->value)->replace('_', ' ')->title()->value(),
             ])
             ->values()
             ->all();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function serializeAttachment(OrderAttachment $attachment): array
+    {
+        return [
+            'id' => $attachment->id,
+            'file_name' => $attachment->file_name,
+            'title' => $attachment->title ?: $attachment->file_name,
+            'notes' => $attachment->notes,
+            'attachment_type' => $attachment->attachment_type->value,
+            'attachment_type_label' => $this->attachmentTypeLabel($attachment->attachment_type),
+            'file_type' => $attachment->file_type,
+            'url' => asset('storage/'.$attachment->file_path),
+            'uploaded_by' => $attachment->uploadedBy?->name,
+            'uploaded_by_role' => $attachment->uploadedBy?->role?->value,
+            'uploaded_at' => $attachment->created_at?->format('Y-m-d H:i'),
+        ];
+    }
+
+    protected function attachmentTypeLabel(OrderAttachmentType $type): string
+    {
+        return match ($type) {
+            OrderAttachmentType::Reference => 'Referensi',
+            OrderAttachmentType::DesignProposal => 'Proposal Desain',
+            OrderAttachmentType::Revision => 'Revisi',
+            OrderAttachmentType::FinalArtwork => 'Final Artwork',
+            OrderAttachmentType::Other => 'Lainnya',
+        };
     }
 }

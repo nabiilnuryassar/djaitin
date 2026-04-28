@@ -119,7 +119,7 @@ class ProductionStarterSeeder extends Seeder
             ['key' => 'loyalty_order_threshold'],
             [
                 'value' => '5',
-                'description' => 'Jumlah closed tailor order sebelum pelanggan dianggap loyal.',
+                'description' => 'Diskon aktif setelah closed tailor order pelanggan lebih dari nilai ini.',
                 'updated_by' => $admin->id,
             ],
         );
@@ -189,17 +189,17 @@ class ProductionStarterSeeder extends Seeder
     {
         Courier::query()->updateOrCreate(
             ['name' => 'JNE'],
-            ['is_active' => true],
+            ['base_fee' => 18000, 'is_active' => true],
         );
 
         Courier::query()->updateOrCreate(
             ['name' => 'J&T Express'],
-            ['is_active' => true],
+            ['base_fee' => 20000, 'is_active' => true],
         );
 
         Courier::query()->updateOrCreate(
             ['name' => 'SiCepat'],
-            ['is_active' => true],
+            ['base_fee' => 22000, 'is_active' => true],
         );
     }
 

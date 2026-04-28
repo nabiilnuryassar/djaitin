@@ -47,7 +47,7 @@ class CourierController extends Controller
             user: $request->user(),
             action: 'courier.created',
             auditable: $courier,
-            newValues: $courier->only(['name', 'is_active']),
+            newValues: $courier->only(['name', 'base_fee', 'is_active']),
             notes: 'Master kurir ditambahkan.',
             ipAddress: $request->ip(),
         );
@@ -57,7 +57,7 @@ class CourierController extends Controller
 
     public function update(UpdateCourierRequest $request, Courier $courier): RedirectResponse
     {
-        $oldValues = $courier->only(['name', 'is_active']);
+        $oldValues = $courier->only(['name', 'base_fee', 'is_active']);
         $courier->update($request->validated());
 
         $this->auditLogService->log(
@@ -65,7 +65,7 @@ class CourierController extends Controller
             action: 'courier.updated',
             auditable: $courier,
             oldValues: $oldValues,
-            newValues: $courier->only(['name', 'is_active']),
+            newValues: $courier->only(['name', 'base_fee', 'is_active']),
             notes: 'Master kurir diperbarui.',
             ipAddress: $request->ip(),
         );

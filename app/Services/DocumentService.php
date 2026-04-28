@@ -51,6 +51,7 @@ class DocumentService
             <p><strong>No. Order:</strong> '.e($order->order_number).'</p>
             <p><strong>Pelanggan:</strong> '.e($order->customer?->name ?? '-').'</p>
             <p><strong>Tanggal Cetak:</strong> '.e(now()->format('d M Y H:i')).'</p>
+            <p><strong>Target Selesai:</strong> '.e($order->due_date?->format('d M Y') ?? '-').'</p>
 
             <table>
                 <thead>

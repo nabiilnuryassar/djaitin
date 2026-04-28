@@ -39,10 +39,10 @@ type Props = {
     couriers: Array<{
         id: number;
         name: string;
+        base_fee: number;
     }>;
     summary: {
         subtotal: number;
-        delivery_fee: number;
     };
     paymentMethods: Array<{
         value: string;
@@ -73,19 +73,43 @@ export default function CustomerCheckoutIndex({
         },
     });
 
+    const courierFee = (courierId: string) =>
+        couriers.find((courier) => courier.id.toString() === courierId)
+            ?.base_fee ?? 0;
+
     const deliveryFee =
-        form.data.delivery_type === 'delivery' ? summary.delivery_fee : 0;
+        form.data.delivery_type === 'delivery'
+            ? courierFee(form.data.courier_id)
+            : 0;
     const totalAmount = summary.subtotal + deliveryFee;
     const transferSelected = form.data.payment.method === 'transfer';
 
     const setDeliveryType = (deliveryType: 'pickup' | 'delivery') => {
         const nextDeliveryFee =
-            deliveryType === 'delivery' ? summary.delivery_fee : 0;
+            deliveryType === 'delivery' ? courierFee(form.data.courier_id) : 0;
         const nextTotalAmount = summary.subtotal + nextDeliveryFee;
 
         form.setData((data) => ({
             ...data,
             delivery_type: deliveryType,
+            payment: {
+                ...data.payment,
+                amount:
+                    data.payment.method === 'transfer'
+                        ? nextTotalAmount.toString()
+                        : data.payment.amount,
+            },
+        }));
+    };
+
+    const setCourierId = (courierId: string) => {
+        const nextDeliveryFee =
+            form.data.delivery_type === 'delivery' ? courierFee(courierId) : 0;
+        const nextTotalAmount = summary.subtotal + nextDeliveryFee;
+
+        form.setData((data) => ({
+            ...data,
+            courier_id: courierId,
             payment: {
                 ...data.payment,
                 amount:
@@ -147,7 +171,7 @@ export default function CustomerCheckoutIndex({
                     </h1>
                     <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
                         Stock tetap diverifikasi ulang di backend. Untuk delivery,
-                        alamat customer wajib tersedia dan kurir harus dipilih.
+                        ongkir mengikuti biaya master kurir tanpa markup toko.
                     </p>
                 </section>
 
@@ -174,7 +198,7 @@ export default function CustomerCheckoutIndex({
                                     active={
                                         form.data.delivery_type === 'delivery'
                                     }
-                                    description="Kirim ke alamat customer dengan ongkir flat phase 3."
+                                    description="Kirim ke alamat customer dengan biaya sesuai kurir yang dipilih."
                                     icon={MapPinHouse}
                                     label="Delivery"
                                     onClick={() => setDeliveryType('delivery')}
@@ -258,8 +282,7 @@ export default function CustomerCheckoutIndex({
                                                     className="h-11 rounded-xl border border-[#DBEAFE] bg-white px-3 text-sm text-[#0F172A]"
                                                     value={form.data.courier_id}
                                                     onChange={(event) =>
-                                                        form.setData(
-                                                            'courier_id',
+                                                        setCourierId(
                                                             event.target.value,
                                                         )
                                                     }
@@ -272,7 +295,10 @@ export default function CustomerCheckoutIndex({
                                                             key={courier.id}
                                                             value={courier.id}
                                                         >
-                                                            {courier.name}
+                                                            {courier.name} -{' '}
+                                                            {formatCurrency(
+                                                                courier.base_fee,
+                                                            )}
                                                         </option>
                                                     ))}
                                                 </select>
@@ -458,7 +484,7 @@ export default function CustomerCheckoutIndex({
                                     value={formatCurrency(summary.subtotal)}
                                 />
                                 <SummaryLine
-                                    label="Ongkir"
+                                    label="Ongkir kurir"
                                     value={formatCurrency(deliveryFee)}
                                 />
                                 <SummaryLine

@@ -16,6 +16,13 @@ class LoyaltyService
             ->value('value') ?: 20);
     }
 
+    /**
+     * Batas minimum order tailor closed untuk loyalti.
+     *
+     * Sesuai PRD: pelanggan yang telah menjahit LEBIH DARI 5 kali mendapat
+     * diskon loyalti 20%. Artinya eligible mulai order ke-6.
+     * Logika: closedTailorOrders > threshold (default 5).
+     */
     public function getOrderThreshold(): int
     {
         return (int) (DiscountPolicy::query()
@@ -23,6 +30,13 @@ class LoyaltyService
             ->value('value') ?: 5);
     }
 
+    /**
+     * Sinkronkan status loyalti customer berdasarkan jumlah order tailor closed.
+     *
+     * Menggunakan operator `>` (bukan `>=`) sehingga eligible jika
+     * jumlah order closed MELEBIHI threshold. Default threshold = 5,
+     * maka customer eligible mulai dari order ke-6.
+     */
     public function syncCustomer(Customer $customer): Customer
     {
         $closedTailorOrders = $customer->orders()

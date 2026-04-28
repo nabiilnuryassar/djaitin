@@ -1,79 +1,165 @@
-# User Manual — SIM Convection Taylor Djaitin
+# Manual Book — SIM Convection Taylor Djaitin
 
 **Versi:** MVP 1.0  
 **Bahasa Operasional:** Indonesia
+**Scope:** Customer app, office app, pembayaran, produksi, pengiriman, dan administrasi.
 
 ## 1. Gambaran Umum
 
-Sistem ini dipakai oleh dua kelompok besar:
+Djaitin adalah sistem web untuk mengelola tiga lini bisnis:
 
-- customer melalui portal `/app/*`
-- staff internal melalui portal `/office/*`
+- `Tailor`: jahit custom berdasarkan model, bahan, ukuran, dan catatan customer.
+- `Ready-to-Wear`: penjualan pakaian siap pakai dari katalog.
+- `Convection`: pesanan massal seperti seragam, jaket, kaos, topi, emblem, dan produk jahit lain.
 
-Role internal utama:
+Sistem memiliki dua area utama:
 
-- `kasir`
-- `produksi`
-- `admin`
-- `owner`
+| Area | URL | Pengguna |
+| --- | --- | --- |
+| Customer App | `/app` | Customer |
+| Office App | `/office` | Kasir, Produksi, Admin, Owner |
 
-## 2. Panduan Customer
+## 2. Role Dan Hak Akses
 
-### 2.1 Registrasi dan Login
-
-1. Buka halaman publik Djaitin.
-2. Klik `Daftar` untuk membuat akun customer.
-3. Login menggunakan email dan password.
-4. Setelah login, customer masuk ke dashboard customer.
-
-### 2.2 Melengkapi Profil
-
-1. Buka menu `Akun` atau `Profil`.
-2. Lengkapi data profil utama.
-3. Tambahkan alamat kirim pada section `Alamat`.
-4. Tambahkan ukuran badan pada section `Ukuran`.
+| Role | Akses Utama |
+| --- | --- |
+| Customer | Dashboard, tailor, katalog, pesanan, pembayaran, profil, notifikasi |
+| Kasir | Customer, order, pembayaran, pengiriman |
+| Produksi | Order dan production board |
+| Admin | Semua operasional, master data, user, produk, discount policy |
+| Owner | Dashboard, laporan, audit log, dan akses baca strategis |
 
 Catatan:
 
-- alamat default dipakai untuk checkout delivery
-- ukuran tersimpan bisa dipakai lagi untuk order berikutnya
+- Customer tidak dapat membuka `/office`.
+- Staff office tidak menggunakan portal customer untuk transaksi pribadi.
+- Akses tombol dapat berbeda tergantung role.
 
-### 2.3 Membuat Tailor Order
+## 3. Aturan Bisnis Yang Wajib Dipahami
+
+Tailor:
+
+- Order tailor wajib membayar DP awal minimal 50% dari total biaya.
+- Order tailor baru boleh masuk produksi jika pembayaran terverifikasi minimal 50%.
+- Pesanan tidak boleh ditutup jika masih ada sisa tagihan.
+- Customer loyal mendapat diskon 20% setelah lebih dari 5 order tailor closed.
+
+Ready-to-Wear:
+
+- Produk dibeli dari katalog dan stok divalidasi saat checkout.
+- Customer bisa memilih pickup atau delivery.
+- Biaya delivery mengikuti biaya jasa kurir dari master data, tanpa markup toko.
+- Stok berkurang setelah pembayaran terverifikasi.
+
+Convection:
+
+- Pesanan konveksi harus dibayar penuh sebelum diproduksi.
+- Lampiran desain/referensi dapat dikirim melalui detail order.
+- Progress produksi dipantau dari office.
+
+Pembayaran:
+
+- Cash langsung dianggap verified saat dicatat kasir.
+- Transfer masuk status pending verification sampai kasir/admin melakukan verify.
+- Kwitansi hanya dicetak untuk pembayaran yang sudah verified.
+
+## 4. Panduan Customer
+
+### 4.1 Registrasi Dan Login
+
+1. Buka website Djaitin.
+2. Pilih `Daftar` untuk membuat akun baru.
+3. Isi nama, email, dan password.
+4. Login dengan akun yang sudah dibuat.
+5. Setelah login, sistem membuka dashboard customer di `/app`.
+
+### 4.2 Dashboard Customer
+
+Dashboard menampilkan:
+
+- jumlah pesanan aktif
+- total pengeluaran
+- jumlah notifikasi
+- shortcut ke Tailor, Katalog, Convection, Pesanan, dan Pembayaran
+- histori pembayaran terbaru
+
+Gunakan dashboard sebagai titik awal melihat aktivitas terbaru.
+
+### 4.3 Mengelola Profil, Alamat, Dan Ukuran
+
+1. Buka menu `Profil`.
+2. Lengkapi data customer.
+3. Tambahkan alamat pengiriman.
+4. Tandai alamat default jika sering dipakai.
+5. Tambahkan data ukuran tubuh.
+
+Ukuran tersimpan dapat dipakai ulang untuk order tailor berikutnya.
+
+### 4.4 Membuat Order Tailor
 
 1. Buka menu `Tailor`.
-2. Lengkapi konfigurasi model, kain, ukuran, dan catatan.
-3. Simpan sebagai draft jika belum siap submit.
-4. Submit order saat data sudah final.
-5. Pantau status order dari menu `Pesanan`.
+2. Pilih identitas gaya, model, bahan, ukuran, detail, dan pembayaran.
+3. Gunakan ukuran tersimpan jika sudah pernah mengisi data ukuran.
+4. Isi catatan jika ada detail khusus.
+5. Isi pembayaran awal minimal 50% dari total biaya.
+6. Upload bukti transfer jika metode pembayaran transfer.
+7. Submit order.
 
-### 2.4 Belanja Ready-to-Wear
+Jika DP kurang dari 50%, sistem menolak order dan menampilkan helper text nominal minimum.
+
+### 4.5 Menyimpan Draft Tailor
+
+1. Isi konfigurasi tailor sampai data cukup.
+2. Pilih aksi simpan draft jika belum siap submit.
+3. Draft dapat dilanjutkan dari menu `Pesanan` atau area tailor.
+
+Gunakan draft jika customer belum yakin dengan bahan, ukuran, atau catatan.
+
+### 4.6 Belanja Ready-to-Wear
 
 1. Buka menu `Katalog`.
-2. Pilih produk dan size yang tersedia.
-3. Masukkan produk ke `Keranjang`.
-4. Masuk ke `Checkout`.
-5. Pilih `pickup` atau `delivery`.
-6. Jika delivery, pastikan alamat sudah tersedia.
-7. Selesaikan order dan lanjutkan pembayaran.
+2. Pilih produk dan ukuran.
+3. Masukkan produk ke keranjang.
+4. Buka checkout.
+5. Pilih `Pickup` atau `Delivery`.
+6. Jika delivery, pilih alamat dan kurir.
+7. Cek ringkasan subtotal, diskon, ongkir, dan total.
+8. Pilih metode pembayaran.
+9. Submit checkout.
 
-### 2.5 Request Convection
+Jika memilih delivery, ongkir berasal dari master data kurir yang dikelola admin.
 
-1. Buka layanan `Convection`.
-2. Klik tombol request konveksi.
-3. Isi kebutuhan order dan catatan spesifikasi.
-4. Submit request.
-5. Jika diminta, unggah lampiran tambahan dari detail order.
+### 4.7 Membuat Request Convection
 
-### 2.6 Pembayaran
+1. Buka menu atau layanan `Convection`.
+2. Isi nama perusahaan/instansi jika ada.
+3. Isi item, quantity, spesifikasi, dan kebutuhan desain.
+4. Upload referensi desain jika tersedia.
+5. Isi pembayaran penuh sesuai total order.
+6. Submit request.
 
-1. Buka detail order atau menu `Pembayaran`.
-2. Lihat nominal yang harus dibayar.
-3. Jika transfer, upload bukti pembayaran.
-4. Jika transfer ditolak, upload ulang bukti transfer dari menu pembayaran.
+Konveksi baru masuk produksi setelah pembayaran penuh terverifikasi.
 
-### 2.7 Notifikasi
+### 4.8 Upload Bukti Pembayaran
 
-Customer akan menerima notifikasi untuk:
+1. Buka menu `Pembayaran` atau detail order.
+2. Pilih pembayaran yang perlu dilengkapi.
+3. Isi nomor referensi transfer.
+4. Upload bukti transfer.
+5. Tunggu verifikasi kasir/admin.
+
+Jika bukti ditolak, customer dapat upload ulang dari menu pembayaran.
+
+### 4.9 Melihat Pesanan
+
+1. Buka menu `Pesanan`.
+2. Pilih order yang ingin dicek.
+3. Lihat status order, pembayaran, lampiran, dan shipment.
+4. Jika order sudah selesai dan lunas, ikuti instruksi pickup atau delivery.
+
+### 4.10 Notifikasi
+
+Customer menerima notifikasi untuk:
 
 - pembayaran diverifikasi
 - pembayaran ditolak
@@ -81,166 +167,321 @@ Customer akan menerima notifikasi untuk:
 - order siap
 - order dikirim
 
-Semua notifikasi ada di menu `Notifikasi`. Gunakan `Tandai Semua Dibaca` jika diperlukan.
+Gunakan menu `Notifikasi` untuk membaca dan menandai notifikasi.
 
-### 2.8 Melihat Status Order
+## 5. Panduan Kasir
+
+### 5.1 Login Office
+
+1. Buka `/office`.
+2. Login menggunakan akun kasir.
+3. Sistem membuka dashboard office.
+
+### 5.2 Membuat Tailor Order Manual
 
 1. Buka menu `Pesanan`.
-2. Klik salah satu order untuk melihat detail.
-3. Cek status, pembayaran, lampiran, dan shipment.
+2. Pilih aksi buat order tailor.
+3. Pilih customer.
+4. Pilih model, bahan, ukuran, jumlah, harga, dan tanggal selesai.
+5. Isi pembayaran awal minimal 50%.
+6. Simpan order.
 
-## 3. Panduan Staff Office
+Jika pembayaran awal kurang dari 50%, sistem menolak order.
 
-## 3.1 Login Internal
+### 5.3 Mencatat Pembayaran Cash
 
-1. Login menggunakan akun staff.
-2. Sistem akan mengarahkan ke dashboard office sesuai role.
+1. Buka detail order.
+2. Pilih section pembayaran.
+3. Catat payment dengan metode `Cash`.
+4. Sistem langsung menandai payment sebagai verified.
+5. Cetak kwitansi jika dibutuhkan.
 
-## 3.2 Dashboard Office
+### 5.4 Verifikasi Transfer
 
-Dashboard dipakai untuk melihat:
+1. Buka menu `Pembayaran`.
+2. Pilih payment transfer berstatus pending verification.
+3. Cek nominal, nomor referensi, dan bukti transfer.
+4. Klik `Verify` jika dana benar masuk atau bukti valid.
+5. Klik `Reject` jika bukti tidak valid, lalu isi alasan yang jelas.
 
-- ringkasan order
-- aktivitas terbaru
-- status operasional utama
+Alasan reject membantu customer mengunggah bukti yang benar.
 
-Gunakan dashboard sebagai titik masuk sebelum membuka modul detail.
+### 5.5 Mencetak Nota Dan Kwitansi
 
-## 3.3 Modul Pelanggan
+Nota:
 
-Dipakai untuk:
+- Dibuka dari detail order.
+- Tersedia jika order memiliki pembayaran verified.
+- Memuat nomor order, customer, target selesai, item, total, dibayar, dan sisa tagihan.
 
-- membuat customer baru
-- melihat data customer
-- mengelola measurement customer dari sisi office
+Kwitansi:
 
-## 3.4 Modul Pesanan
+- Dibuka dari payment verified.
+- Hanya tersedia untuk pembayaran yang sudah diterima.
 
-Dipakai untuk:
+## 6. Panduan Tim Produksi
 
-- melihat semua order
-- membuat tailor order manual dari office
-- melihat detail order
-- mencetak nota jika payment verified sudah ada
-- update status order
-- update production stage
+### 6.1 Melihat Production Board
 
-## 3.5 Modul Pembayaran
+1. Buka menu `Produksi`.
+2. Lihat order berdasarkan stage produksi.
+3. Prioritaskan order dengan due date terdekat.
+4. Perhatikan indikator overdue.
 
-Dipakai untuk:
+### 6.2 Update Stage Produksi
 
-- mencatat payment cash
-- melihat payment transfer pending
-- verifikasi payment transfer
-- reject payment transfer dengan alasan yang jelas
-- mencetak kwitansi payment verified
+1. Pilih order atau card produksi.
+2. Ubah stage sesuai kondisi lapangan.
+3. Simpan perubahan.
 
-## 3.6 Modul Produksi
+Contoh stage:
 
-Dipakai tim produksi untuk:
+- queue
+- cutting
+- sewing
+- finishing
+- quality check
+- ready
 
-- melihat order yang sedang berjalan
-- mengubah production stage
-- memperbarui status order dengan cepat
-- memantau due date dan antrian kerja
+### 6.3 Gate Produksi
 
-## 3.7 Modul Pengiriman
+Sistem menolak order masuk produksi jika:
 
-Dipakai untuk:
+- tailor belum punya pembayaran verified minimal 50%
+- convection belum lunas penuh verified
+- status order tidak valid untuk diproses
 
-- mengisi kurir
-- mengisi nomor resi
-- update status `pending`, `shipped`, `delivered`, `pickup`
+Jika tertolak, koordinasikan ke kasir/admin untuk cek pembayaran.
 
-Catatan:
+## 7. Panduan Pengiriman
 
-- saat status shipment menjadi `shipped`, customer menerima notifikasi
-- saat status shipment selesai, status order terkait ikut disesuaikan
+### 7.1 Mengelola Shipment
 
-## 3.8 Modul Laporan
+1. Buka menu `Pengiriman`.
+2. Pilih shipment yang akan diproses.
+3. Pilih kurir.
+4. Isi nomor resi jika sudah dikirim.
+5. Update status shipment.
 
-Dipakai admin/owner untuk melihat:
+Status umum:
 
-- omzet per periode
-- breakdown pembayaran
-- loyal customers
-- repeat order rate
-- SLA / overdue monitoring
+- `pending`: belum dikirim
+- `shipped`: sudah dikirim
+- `delivered`: sudah diterima
+- `pickup`: diambil customer
+
+### 7.2 Biaya Pengiriman
+
+Biaya pengiriman berasal dari master data kurir. Admin wajib menjaga biaya ini sesuai tarif jasa pengiriman yang dipakai perusahaan.
+
+## 8. Panduan Admin
+
+### 8.1 User Management
+
+Admin dapat:
+
+- membuat user internal
+- mengubah role
+- menonaktifkan user
+- memastikan akun staff sesuai tanggung jawab
+
+### 8.2 Master Data
+
+Menu admin mencakup:
+
+- garment model
+- fabric
+- courier
+
+Courier wajib memiliki biaya jasa (`base_fee`) karena dipakai checkout RTW delivery.
+
+### 8.3 Product Management
+
+Admin dapat mengelola:
+
+- SKU
+- nama produk
+- kategori
+- ukuran
+- harga pokok
+- harga jual
+- diskon nominal/persen
+- clearance flag
+- stok
+
+Gunakan clearance untuk produk yang mulai kurang diminati.
+
+### 8.4 Discount Policy
+
+Admin dapat mengubah:
+
+- threshold order tailor closed
+- persentase diskon loyalitas
+
+Default bisnis:
+
+- threshold `5`
+- diskon `20%`
+- arti threshold: diskon aktif setelah lebih dari 5 order tailor closed, yaitu mulai order ke-6.
+
+## 9. Panduan Owner
+
+Owner menggunakan sistem untuk monitoring:
+
+- omzet
+- payment breakdown
 - order funnel
+- repeat order
+- customer loyal
+- overdue order
+- audit log
 
-Export tersedia dalam:
+Owner sebaiknya tidak mengubah data operasional harian kecuali diperlukan.
 
-- PDF
-- CSV
+## 10. Laporan
 
-## 3.9 Audit Log
+1. Buka menu `Laporan`.
+2. Pilih periode.
+3. Review ringkasan omzet dan operasional.
+4. Export PDF atau CSV jika dibutuhkan.
 
-Dipakai untuk meninjau perubahan penting pada data.  
-Gunakan modul ini saat perlu tracing aksi user atau pengecekan histori perubahan.
+Gunakan laporan untuk evaluasi:
 
-## 3.10 Modul Admin
+- produk RTW yang bergerak lambat
+- order tailor berulang
+- keterlambatan produksi
+- pembayaran pending
 
-Dipakai admin/owner untuk:
+## 11. Audit Log
 
-- mengelola user internal
-- mengelola produk
-- mengelola fabric, garment model, courier
-- mengelola kebijakan discount
+Audit log mencatat perubahan penting seperti:
 
-## 4. Dokumen yang Bisa Dicetak
+- order dibuat atau diubah
+- pembayaran diverifikasi atau ditolak
+- master data berubah
+- discount policy berubah
 
-- `Nota` dari detail order
-- `Kwitansi` dari payment verified
-- `Export laporan` dari modul laporan
+Gunakan audit log untuk tracing jika ada perbedaan data atau komplain.
 
-Catatan penting:
+## 12. SOP Harian Minimum
 
-- export dokumen harus dibuka melalui browser request biasa
-- bila browser menampilkan raw text, refresh asset terbaru dan gunakan tombol export yang sudah di-hotfix
+Customer service/kasir:
 
-## 5. Troubleshooting Singkat
+- cek payment pending setiap hari
+- reject transfer dengan alasan jelas
+- pastikan DP tailor minimal 50%
+- pastikan konveksi lunas sebelum produksi
+
+Produksi:
+
+- update stage produksi setiap ada perpindahan proses
+- cek due date dan overdue order
+- tandai order ready setelah quality check selesai
+
+Shipping:
+
+- isi kurir dan resi saat order dikirim
+- update status delivered/pickup setelah selesai
+
+Admin:
+
+- cek stok RTW
+- update master courier jika tarif berubah
+- review produk clearance
+- backup data sesuai jadwal deployment
+
+Owner:
+
+- review laporan mingguan
+- pantau overdue dan bottleneck
+- evaluasi diskon loyalitas dan clearance
+
+## 13. Troubleshooting Pengguna
+
+### Customer tidak bisa submit tailor
+
+Kemungkinan:
+
+- DP kurang dari 50%
+- ukuran belum dipilih
+- bukti transfer belum diunggah
+
+Tindakan:
+
+- cek helper text di step pembayaran
+- isi nominal sesuai minimum
+- upload bukti transfer yang jelas
 
 ### Customer tidak bisa checkout delivery
 
-Penyebab umum:
+Kemungkinan:
 
-- belum punya alamat default
+- alamat belum ada
+- kurir belum dipilih
+- stok produk berubah
 
 Tindakan:
 
-- buka profile center lalu tambah/set default alamat
+- tambahkan alamat dari profil
+- pilih kurir aktif
+- refresh keranjang dan cek stok
 
 ### Payment transfer tidak bisa diverifikasi
 
-Penyebab umum:
+Kemungkinan:
 
-- status payment bukan `pending verification`
-
-Tindakan:
-
-- cek apakah payment sudah pernah diverifikasi atau ditolak
-
-### Nota atau kwitansi tidak tersedia
-
-Penyebab umum:
-
-- belum ada verified payment
+- status bukan pending verification
+- payment sudah pernah diverifikasi atau ditolak
 
 Tindakan:
 
-- selesaikan verifikasi payment lebih dulu
+- cek histori payment
+- minta customer upload ulang jika sebelumnya ditolak
 
-### Order belum bisa masuk produksi
+### Order tidak bisa masuk produksi
 
-Penyebab umum:
+Kemungkinan:
 
-- tailor belum mencapai payment minimum
-- convection belum lunas penuh
+- tailor belum verified minimal 50%
+- convection belum verified penuh
 
-## 6. SOP Penggunaan Minimum
+Tindakan:
 
-- customer wajib mengisi profil dasar, alamat, dan ukuran sebelum order kompleks
-- kasir wajib mengisi alasan saat reject payment
-- produksi wajib update production stage secara berkala
-- shipping wajib mengisi resi saat status `shipped`
-- admin/owner review report dan overdue order secara rutin
+- cek outstanding amount
+- cek daftar payment verified
+- koordinasikan ke kasir
+
+### Nota atau kwitansi tidak muncul
+
+Kemungkinan:
+
+- belum ada payment verified
+- browser memblokir download
+
+Tindakan:
+
+- verifikasi payment lebih dulu
+- coba ulang dari detail order/payment
+
+## 14. Definisi Status
+
+| Status | Arti |
+| --- | --- |
+| `pending_payment` | Order dibuat dan menunggu pembayaran/verifikasi |
+| `in_progress` | Order sedang diproses |
+| `done` | Produksi selesai |
+| `delivered` | Order sudah dikirim |
+| `pickup` | Order diambil customer |
+| `closed` | Order selesai dan administrasi lunas |
+| `cancelled` | Order dibatalkan |
+
+## 15. Checklist Training Staff
+
+- Staff bisa login sesuai role.
+- Kasir bisa membuat order tailor manual.
+- Kasir bisa verify dan reject transfer.
+- Produksi bisa update stage.
+- Shipping bisa mengisi resi.
+- Admin bisa update produk dan master courier.
+- Owner bisa membaca laporan dan audit log.
+- Semua staff memahami aturan DP tailor 50% dan full payment convection.

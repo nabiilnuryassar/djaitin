@@ -36,6 +36,7 @@ class ConvectionController extends Controller
     public function store(StoreConvectionOrderRequest $request): RedirectResponse
     {
         $payload = $request->validated();
+
         $payload['payment']['proof_image_path'] = $request->file('payment.proof')?->store('payments/proofs', 'public');
 
         $order = $this->convectionOrderService->create(
@@ -45,6 +46,6 @@ class ConvectionController extends Controller
         );
 
         return to_route('customer.orders.show', $order)
-            ->with('success', 'Permintaan konveksi berhasil dikirim.');
+            ->with('success', 'Order konveksi berhasil dibuat.');
     }
 }

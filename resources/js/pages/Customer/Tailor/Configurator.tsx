@@ -1,6 +1,7 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import {
     AlertCircle,
+    ArrowLeft,
     ArrowRight,
     Check,
     ChevronLeft,
@@ -12,7 +13,10 @@ import {
     Receipt,
     Ruler,
     Save,
+    Scissors,
+    ShieldCheck,
     Shirt,
+    Sparkles,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import InputError from '@/components/input-error';
@@ -28,6 +32,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import CustomerLayout from '@/layouts/customer-layout';
+import { cn } from '@/lib/utils';
 import customer from '@/routes/customer';
 import { login, register } from '@/routes';
 import type { User } from '@/types/auth';
@@ -74,6 +79,9 @@ type FormState = {
     draft_id: string;
     garment_model_id: string;
     fabric_id: string;
+    desired_fit: (typeof desiredFits)[number];
+    occasion: (typeof occasions)[number];
+    style_traits: string[];
     measurement_mode: 'saved' | 'manual' | 'offline';
     measurement_id: string;
     manual_label: string;
@@ -98,41 +106,45 @@ type FormState = {
 const steps = [
     {
         number: 1,
-        title: 'Model',
-        description: 'Pilih tipe garmen yang ingin dibuat.',
+        title: 'Identity',
+        description: 'Bangun identitas gaya utama.',
         icon: Shirt,
     },
     {
         number: 2,
-        title: 'Bahan',
-        description: 'Tentukan material dan adjustment harga.',
-        icon: Palette,
+        title: 'Silhouette',
+        description: 'Pilih bahan dan arah potongan.',
+        icon: Scissors,
     },
     {
         number: 3,
-        title: 'Ukuran',
-        description: 'Pakai ukuran tersimpan, manual, atau offline.',
-        icon: Ruler,
+        title: 'Fabric',
+        description: 'Tentukan metode ukuran.',
+        icon: Palette,
     },
     {
         number: 4,
-        title: 'Detail',
-        description: 'Isi qty, target selesai, dan catatan spesifikasi.',
-        icon: FileText,
+        title: 'Measures',
+        description: 'Isi detail order dan brief.',
+        icon: Ruler,
     },
     {
         number: 5,
-        title: 'Ringkasan',
-        description: 'Baca subtotal, diskon, dan info DP minimum.',
-        icon: Receipt,
+        title: 'Details',
+        description: 'Cek ringkasan dan estimasi.',
+        icon: FileText,
     },
     {
         number: 6,
-        title: 'Pembayaran',
-        description: 'Transfer awal dan unggah bukti pembayaran.',
+        title: 'Finalize',
+        description: 'Lengkapi pembayaran awal.',
         icon: CreditCard,
     },
 ] as const;
+
+const desiredFits = ['Slim', 'Regular', 'Relaxed'] as const;
+const occasions = ['Office', 'Wedding', 'Daily', 'Event', 'Uniform'] as const;
+const characterTraits = ['Wibawa', 'Kreatif', 'Efisien', 'Inovatif'] as const;
 
 export default function CustomerTailorConfigurator({
     garmentModels,
@@ -153,7 +165,10 @@ export default function CustomerTailorConfigurator({
     });
     const form = useForm<FormState>(initialState);
     const errorMap = form.errors as Record<string, string | undefined>;
-
+    const maxAccessibleStep = isCustomer ? 6 : 5;
+    const [currentStep, setCurrentStep] = useState(
+        Math.min(resolveInitialStep(initialState), maxAccessibleStep),
+    );
     const selectedGarment = garmentModels.find(
         (garmentModel) =>
             garmentModel.id.toString() === form.data.garment_model_id,
@@ -171,13 +186,18 @@ export default function CustomerTailorConfigurator({
         : 0;
     const total = Math.max(subtotal - discount, 0);
     const minimumDeposit = Math.ceil(total * 0.5);
+    const paymentAmount = toNumber(form.data.payment_amount);
+    const depositMeetsMinimum =
+        total > 0 && paymentAmount >= minimumDeposit;
     const latestDraft = form.data.draft_id
         ? Number(form.data.draft_id)
         : (draft?.id ?? null);
-    const maxAccessibleStep = isCustomer ? 6 : 5;
-    const [currentStep, setCurrentStep] = useState(
-        Math.min(resolveInitialStep(initialState), maxAccessibleStep),
-    );
+    const identityCards = buildIdentityCards(garmentModels);
+    const selectedIdentity =
+        identityCards.find(
+            (card) => card.id.toString() === form.data.garment_model_id,
+        ) ?? identityCards[0];
+    const progress = (currentStep / steps.length) * 100;
 
     useEffect(() => {
         if (
@@ -192,12 +212,15 @@ export default function CustomerTailorConfigurator({
     }, [currentStep, form, form.data.payment_amount, minimumDeposit, total]);
 
     const stepIsComplete = {
-        1: Boolean(form.data.garment_model_id),
+        1:
+            Boolean(form.data.garment_model_id) &&
+            form.data.occasion !== '' &&
+            form.data.style_traits.length > 0,
         2: Boolean(form.data.fabric_id),
         3: hasMeasurementSelection(form.data),
         4: quantity >= 1,
         5: total > 0,
-        6: paymentStepIsComplete(form.data),
+        6: paymentStepIsComplete(form.data) && depositMeetsMinimum,
     } satisfies Record<number, boolean>;
     const currentStepKey = currentStep as keyof typeof stepIsComplete;
     const canMoveNext = currentStep < 6 && stepIsComplete[currentStepKey];
@@ -207,7 +230,6 @@ export default function CustomerTailorConfigurator({
         stepIsComplete[3] &&
         stepIsComplete[4] &&
         stepIsComplete[6];
-    const progress = (currentStep / steps.length) * 100;
 
     const submitDraft = () => {
         form.transform((data) => ({
@@ -216,6 +238,11 @@ export default function CustomerTailorConfigurator({
                 ? Number(data.garment_model_id)
                 : null,
             fabric_id: data.fabric_id ? Number(data.fabric_id) : null,
+            wizard_preferences: {
+                desired_fit: data.desired_fit,
+                occasion: data.occasion,
+                style_traits: data.style_traits,
+            },
             measurement_mode: data.measurement_mode || null,
             measurement_id: data.measurement_id
                 ? Number(data.measurement_id)
@@ -235,6 +262,11 @@ export default function CustomerTailorConfigurator({
         form.transform((data) => ({
             garment_model_id: Number(data.garment_model_id),
             fabric_id: Number(data.fabric_id),
+            wizard_preferences: {
+                desired_fit: data.desired_fit,
+                occasion: data.occasion,
+                style_traits: data.style_traits,
+            },
             measurement_mode: data.measurement_mode,
             measurement_id: data.measurement_id
                 ? Number(data.measurement_id)
@@ -242,7 +274,7 @@ export default function CustomerTailorConfigurator({
             manual_measurement: buildManualMeasurement(data),
             qty: Number(data.qty),
             due_date: data.due_date || null,
-            spec_notes: data.spec_notes || null,
+            spec_notes: buildSpecNotes(data, selectedIdentity?.title ?? null),
             payment: {
                 method: 'transfer',
                 amount: Number(data.payment_amount),
@@ -268,43 +300,104 @@ export default function CustomerTailorConfigurator({
             <Head title="Konfigurasi Tailor" />
 
             <div className="space-y-6">
-                <div className="flex flex-col gap-4 rounded-[2rem] bg-white p-8 shadow-[0_20px_80px_rgba(31,23,38,0.08)] md:flex-row md:items-end md:justify-between">
-                    <div className="space-y-2">
-                        <p className="text-sm font-medium tracking-[0.22em] text-[#a34a2c] uppercase">
-                            Tailor Configurator
-                        </p>
-                        <h1 className="text-3xl font-semibold tracking-tight">
-                            Susun order tailor customer dalam 6 tahap yang lebih
-                            jelas.
-                        </h1>
-                        <p className="max-w-2xl text-sm leading-7 text-slate-600">
-                            Preview harga di sini tetap mengikuti aturan
-                            backend. Final pricing dihitung ulang saat order
-                            disubmit.
-                        </p>
+                <section className="space-y-3">
+                    <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                        <div className="space-y-3">
+                            <h1 className="[font-family:var(--font-heading)] text-4xl font-semibold tracking-tight text-[#1a243d] md:text-5xl">
+                                Bangun Gaya Tailor Anda
+                            </h1>
+                            <p className="max-w-3xl text-base leading-7 text-slate-600">
+                                Mulailah perjalanan personalisasi pakaian Anda.
+                                Pilih identitas yang mencerminkan karakter dan
+                                biarkan Djaitin menyusun detail teknisnya.
+                            </p>
+                        </div>
+                        <Button
+                            asChild
+                            variant="outline"
+                            className="h-11 rounded-full border-[#dbe4f5] bg-white px-5 text-[#1d5fd3] hover:bg-[#f3f7ff] hover:text-[#1d5fd3]"
+                        >
+                            <Link href={customer.services.tailor()}>
+                                Detail layanan
+                                <ArrowRight className="size-4" />
+                            </Link>
+                        </Button>
                     </div>
-                    <Button
-                        asChild
-                        variant="outline"
-                        className="border-[#d8c8b3] bg-white/70"
-                    >
-                        <Link href={customer.services.tailor()}>
-                            Detail layanan
-                            <ArrowRight className="size-4" />
-                        </Link>
-                    </Button>
-                </div>
+
+                    <div className="rounded-[28px] border border-[#dbe4f5] bg-white px-5 py-5 shadow-[0_24px_60px_rgba(15,23,42,0.05)]">
+                        <div className="relative">
+                            <div className="absolute top-5 right-6 left-6 hidden h-px bg-[#e8eef8] md:block" />
+                            <div
+                                className="absolute top-5 left-6 hidden h-px bg-[#1d5fd3] transition-all md:block"
+                                style={{ width: `calc(${progress}% - 1.5rem)` }}
+                            />
+                            <div className="relative grid gap-3 md:grid-cols-6">
+                                {steps.map((step) => {
+                                    const isActive =
+                                        currentStep === step.number;
+                                    const isDone = currentStep > step.number;
+                                    const isLocked =
+                                        step.number > maxAccessibleStep;
+
+                                    return (
+                                        <button
+                                            key={step.number}
+                                            type="button"
+                                            disabled={isLocked}
+                                            className="group flex flex-col items-center gap-2 text-center"
+                                            onClick={() =>
+                                                !isLocked &&
+                                                setCurrentStep(step.number)
+                                            }
+                                        >
+                                            <div
+                                                className={cn(
+                                                    'relative z-10 flex size-10 items-center justify-center rounded-full border bg-[#f3f6fb] text-slate-400 transition',
+                                                    isActive &&
+                                                        'border-[#1d5fd3] bg-[#1d5fd3] text-white shadow-[0_12px_30px_rgba(29,95,211,0.3)]',
+                                                    isDone &&
+                                                        'border-[#d9e7ff] bg-[#eaf2ff] text-[#1d5fd3]',
+                                                    isLocked && 'opacity-50',
+                                                )}
+                                            >
+                                                {isLocked ? (
+                                                    <Lock className="size-4" />
+                                                ) : isDone ? (
+                                                    <Check className="size-4" />
+                                                ) : (
+                                                    <step.icon className="size-4" />
+                                                )}
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p
+                                                    className={cn(
+                                                        'text-[11px] font-semibold tracking-[0.16em] uppercase',
+                                                        isActive
+                                                            ? 'text-[#1d5fd3]'
+                                                            : 'text-slate-400',
+                                                    )}
+                                                >
+                                                    {step.title}
+                                                </p>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
                 {!isCustomer && (
-                    <Alert className="border-[#e6d8c7] bg-white">
-                        <AlertCircle className="text-[#a34a2c]" />
+                    <Alert className="rounded-[24px] border-[#e5d8c7] bg-white">
+                        <AlertCircle className="text-[#d1781d]" />
                         <AlertTitle>
                             Guest mode berhenti di ringkasan
                         </AlertTitle>
-                        <AlertDescription className="space-y-3 pt-3 text-sm leading-6">
+                        <AlertDescription className="space-y-3 pt-3 text-sm leading-6 text-slate-600">
                             <p>
-                                Kamu bisa mengeksplor konfigurasi sampai Step 5.
-                                Step pembayaran dan submit order tetap
+                                Kamu bisa mengeksplor konfigurasi hingga step
+                                review. Step pembayaran dan submit order tetap
                                 membutuhkan login customer.
                             </p>
                             <div className="flex flex-wrap gap-3">
@@ -315,7 +408,7 @@ export default function CustomerTailorConfigurator({
                                     asChild
                                     size="sm"
                                     variant="outline"
-                                    className="border-[#d8c8b3] bg-white/70"
+                                    className="border-[#dbe4f5] bg-white text-[#1d5fd3] hover:bg-[#f3f7ff] hover:text-[#1d5fd3]"
                                 >
                                     <Link href={register()}>
                                         Daftar Customer
@@ -327,170 +420,76 @@ export default function CustomerTailorConfigurator({
                 )}
 
                 {customerMeta?.is_loyalty_eligible && (
-                    <Alert className="border-[#eed8c4] bg-[#fff6ed]">
-                        <Shirt className="text-[#a34a2c]" />
+                    <Alert className="rounded-[24px] border-[#f2e1b9] bg-[#fff9ef]">
+                        <Sparkles className="text-[#f4b21a]" />
                         <AlertTitle>Diskon loyalitas aktif</AlertTitle>
-                        <AlertDescription>
+                        <AlertDescription className="text-sm leading-6 text-slate-600">
                             Akun ini sudah memenuhi syarat loyalitas. Preview
-                            ringkasan memakai diskon {discountPolicy.percent}%.
+                            ringkasan menggunakan diskon{' '}
+                            {discountPolicy.percent}% dari total tailor aktif.
                         </AlertDescription>
                     </Alert>
                 )}
 
-                <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-                    <Card className="border-0 bg-white shadow-[0_16px_50px_rgba(31,23,38,0.06)]">
-                        <CardHeader className="space-y-5">
-                            <div className="flex items-start justify-between gap-4">
-                                <div>
-                                    <CardTitle>Wizard 6 langkah</CardTitle>
-                                    <CardDescription>
-                                        Setiap tahap menjaga form tetap terbaca
-                                        tanpa menumpuk semua field sekaligus.
-                                    </CardDescription>
-                                </div>
-                                <div className="rounded-full bg-[#f3e3d8] px-4 py-2 text-xs font-medium tracking-[0.18em] text-[#a34a2c] uppercase">
-                                    Step {currentStep} / {steps.length}
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <div className="h-2 overflow-hidden rounded-full bg-[#efe5d8]">
-                                    <div
-                                        className="h-full rounded-full bg-[#1f1726] transition-all"
-                                        style={{ width: `${progress}%` }}
-                                    />
-                                </div>
-
-                                <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
-                                    {steps.map((step) => {
-                                        const isActive =
-                                            currentStep === step.number;
-                                        const isLocked =
-                                            step.number > maxAccessibleStep;
-                                        const isDone =
-                                            step.number < currentStep;
-
-                                        return (
-                                            <button
-                                                key={step.number}
-                                                type="button"
-                                                disabled={isLocked}
-                                                className={[
-                                                    'rounded-2xl border px-4 py-4 text-left transition',
-                                                    isActive
-                                                        ? 'border-[#1f1726] bg-[#1f1726] text-[#f5f1e8]'
-                                                        : 'border-[#eadfce] bg-[#fcfaf6] text-[#1f1726]',
-                                                    isLocked
-                                                        ? 'cursor-not-allowed opacity-55'
-                                                        : '',
-                                                ].join(' ')}
-                                                onClick={() =>
-                                                    setCurrentStep(step.number)
-                                                }
-                                            >
-                                                <div className="flex items-center justify-between gap-3">
-                                                    <step.icon className="size-4" />
-                                                    {isLocked ? (
-                                                        <Lock className="size-4" />
-                                                    ) : isDone ? (
-                                                        <Check className="size-4" />
-                                                    ) : (
-                                                        <span className="text-xs font-semibold">
-                                                            0{step.number}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <p className="mt-4 text-sm font-semibold">
-                                                    {step.title}
-                                                </p>
-                                                <p
-                                                    className={
-                                                        isActive
-                                                            ? 'mt-1 text-xs text-[#e6dceb]'
-                                                            : 'mt-1 text-xs text-slate-600'
-                                                    }
-                                                >
-                                                    {step.description}
-                                                </p>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        </CardHeader>
-
-                        <CardContent className="space-y-6">
-                            {currentStep === 1 && (
-                                <div className="space-y-4">
-                                    <div>
-                                        <p className="text-lg font-semibold">
-                                            Step 1 — Pilih model garmen
-                                        </p>
-                                        <p className="mt-1 text-sm leading-6 text-slate-600">
-                                            Model menjadi baseline harga dan
-                                            arah potongan sebelum customer masuk
-                                            ke pilihan bahan.
-                                        </p>
+                <div className="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_340px]">
+                    <div className="space-y-6">
+                        {currentStep === 1 && (
+                            <>
+                                <section className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="[font-family:var(--font-heading)] text-2xl font-semibold text-[#1a243d]">
+                                            1. Pilih Identitas Gaya
+                                        </h2>
                                     </div>
-
                                     <div className="grid gap-4 md:grid-cols-2">
-                                        {garmentModels.map((garmentModel) => {
+                                        {identityCards.map((card, index) => {
                                             const isSelected =
                                                 form.data.garment_model_id ===
-                                                garmentModel.id.toString();
+                                                card.id.toString();
 
                                             return (
                                                 <button
-                                                    key={garmentModel.id}
+                                                    key={card.id}
                                                     type="button"
-                                                    className={[
-                                                        'rounded-[1.75rem] border p-5 text-left transition',
+                                                    className={cn(
+                                                        'relative rounded-[26px] border bg-white p-6 text-left shadow-[0_18px_40px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:border-[#cfdcf5]',
                                                         isSelected
-                                                            ? 'border-[#1f1726] bg-[#1f1726] text-[#f5f1e8] shadow-[0_24px_70px_rgba(31,23,38,0.14)]'
-                                                            : 'border-[#eadfce] bg-[#fcfaf6] hover:border-[#cbbca6]',
-                                                    ].join(' ')}
+                                                            ? 'border-[#1d5fd3] shadow-[0_16px_45px_rgba(29,95,211,0.18)]'
+                                                            : 'border-[#e6ecf5]',
+                                                    )}
                                                     onClick={() =>
                                                         form.setData(
                                                             'garment_model_id',
-                                                            garmentModel.id.toString(),
+                                                            card.id.toString(),
                                                         )
                                                     }
                                                 >
-                                                    <div className="flex items-center justify-between gap-3">
-                                                        <div
-                                                            className={
-                                                                isSelected
-                                                                    ? 'rounded-2xl bg-white/10 p-3'
-                                                                    : 'rounded-2xl bg-[#f3e3d8] p-3 text-[#a34a2c]'
-                                                            }
-                                                        >
-                                                            <Shirt className="size-5" />
-                                                        </div>
-                                                        <span
-                                                            className={
-                                                                isSelected
-                                                                    ? 'text-sm font-medium text-[#f0d9c4]'
-                                                                    : 'text-sm font-medium text-[#a34a2c]'
-                                                            }
-                                                        >
-                                                            {formatCurrency(
-                                                                garmentModel.base_price,
-                                                            )}
+                                                    {index === 0 && (
+                                                        <span className="absolute top-5 right-5 rounded-full bg-[#f4b21a] px-2.5 py-1 text-[10px] font-semibold tracking-[0.12em] text-white uppercase">
+                                                            Most Popular
                                                         </span>
+                                                    )}
+                                                    <div className="flex size-11 items-center justify-center rounded-full bg-[#f3f6fb] text-[#1d5fd3]">
+                                                        <card.icon className="size-5" />
                                                     </div>
-                                                    <p className="mt-5 text-lg font-semibold">
-                                                        {garmentModel.name}
+                                                    <h3 className="mt-6 text-xl font-semibold text-[#1a243d]">
+                                                        {card.title}
+                                                    </h3>
+                                                    <p className="mt-2 text-sm leading-6 text-slate-500">
+                                                        {card.description}
                                                     </p>
-                                                    <p
-                                                        className={
-                                                            isSelected
-                                                                ? 'mt-2 text-sm leading-6 text-[#d8c8d7]'
-                                                                : 'mt-2 text-sm leading-6 text-slate-600'
-                                                        }
-                                                    >
-                                                        {garmentModel.description ??
-                                                            'Model aktif siap dipakai untuk custom order.'}
-                                                    </p>
+                                                    <div className="mt-5 flex flex-wrap gap-2">
+                                                        {card.traits.map(
+                                                            (trait) => (
+                                                                <span
+                                                                    key={trait}
+                                                                    className="rounded-full bg-[#f4f7fc] px-2.5 py-1 text-[11px] font-semibold text-slate-500 uppercase"
+                                                                >
+                                                                    {trait}
+                                                                </span>
+                                                            ),
+                                                        )}
+                                                    </div>
                                                 </button>
                                             );
                                         })}
@@ -498,41 +497,149 @@ export default function CustomerTailorConfigurator({
                                     <InputError
                                         message={form.errors.garment_model_id}
                                     />
-                                </div>
-                            )}
+                                </section>
 
-                            {currentStep === 2 && (
-                                <div className="space-y-4">
-                                    <div>
-                                        <p className="text-lg font-semibold">
-                                            Step 2 — Pilih bahan
-                                        </p>
-                                        <p className="mt-1 text-sm leading-6 text-slate-600">
-                                            Bahan mengubah karakter hasil akhir
-                                            sekaligus adjustment harga per item.
-                                        </p>
+                                <ActionStrip
+                                    currentStep={currentStep}
+                                    maxAccessibleStep={maxAccessibleStep}
+                                />
+
+                                <section className="rounded-[28px] border border-[#e6ecf5] bg-white p-6 shadow-[0_18px_40px_rgba(15,23,42,0.04)]">
+                                    <h2 className="[font-family:var(--font-heading)] text-2xl font-semibold text-[#1a243d]">
+                                        2. Detail Karakter & Fit
+                                    </h2>
+                                    <div className="mt-6 grid gap-5 lg:grid-cols-2">
+                                        <PreferenceGroup title="Occasion">
+                                            <div className="flex flex-wrap gap-2">
+                                                {occasions.map((occasion) => (
+                                                    <button
+                                                        key={occasion}
+                                                        type="button"
+                                                        className={cn(
+                                                            'rounded-full border px-4 py-2 text-sm font-medium transition',
+                                                            form.data
+                                                                .occasion ===
+                                                                occasion
+                                                                ? 'border-[#1d5fd3] bg-[#eef4ff] text-[#1d5fd3]'
+                                                                : 'border-[#e6ecf5] bg-white text-slate-500 hover:bg-[#f8fbff]',
+                                                        )}
+                                                        onClick={() =>
+                                                            form.setData(
+                                                                'occasion',
+                                                                occasion,
+                                                            )
+                                                        }
+                                                    >
+                                                        {occasion}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </PreferenceGroup>
+                                        <PreferenceGroup title="Desired Fit">
+                                            <div className="flex flex-wrap gap-2">
+                                                {desiredFits.map((fit) => (
+                                                    <button
+                                                        key={fit}
+                                                        type="button"
+                                                        className={cn(
+                                                            'rounded-full px-4 py-2 text-sm font-semibold transition',
+                                                            form.data
+                                                                .desired_fit ===
+                                                                fit
+                                                                ? 'bg-[#1d5fd3] text-white shadow-[0_10px_24px_rgba(29,95,211,0.2)]'
+                                                                : 'bg-[#f4f7fc] text-slate-500 hover:bg-[#ebf1fb]',
+                                                        )}
+                                                        onClick={() =>
+                                                            form.setData(
+                                                                'desired_fit',
+                                                                fit,
+                                                            )
+                                                        }
+                                                    >
+                                                        {fit}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </PreferenceGroup>
+                                        <PreferenceGroup title="Karakter Utama">
+                                            <div className="flex flex-wrap gap-2">
+                                                {characterTraits.map(
+                                                    (trait) => {
+                                                        const isActive =
+                                                            form.data.style_traits.includes(
+                                                                trait,
+                                                            );
+
+                                                        return (
+                                                            <button
+                                                                key={trait}
+                                                                type="button"
+                                                                className={cn(
+                                                                    'rounded-full border px-4 py-2 text-sm font-medium transition',
+                                                                    isActive
+                                                                        ? 'border-[#f4b21a] bg-[#fff7e8] text-[#9f6b08]'
+                                                                        : 'border-[#e6ecf5] bg-white text-slate-500 hover:bg-[#f8fbff]',
+                                                                )}
+                                                                onClick={() =>
+                                                                    form.setData(
+                                                                        'style_traits',
+                                                                        form.data.style_traits.includes(
+                                                                            trait,
+                                                                        )
+                                                                            ? form.data.style_traits.filter(
+                                                                                  (
+                                                                                      item,
+                                                                                  ) =>
+                                                                                      item !==
+                                                                                      trait,
+                                                                              )
+                                                                            : [
+                                                                                  ...form
+                                                                                      .data
+                                                                                      .style_traits,
+                                                                                  trait,
+                                                                              ],
+                                                                    )
+                                                                }
+                                                            >
+                                                                {trait}
+                                                            </button>
+                                                        );
+                                                    },
+                                                )}
+                                            </div>
+                                        </PreferenceGroup>
                                     </div>
+                                </section>
 
-                                    <div className="grid gap-4 md:grid-cols-2">
-                                        {fabrics.map((fabric) => {
+                                <section className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="[font-family:var(--font-heading)] text-2xl font-semibold text-[#1a243d]">
+                                            3. Pratinjau Tekstur Fabric
+                                        </h2>
+                                        <Link
+                                            href={customer.catalog.index()}
+                                            className="text-sm font-semibold text-[#1d5fd3]"
+                                        >
+                                            Lihat Katalog
+                                        </Link>
+                                    </div>
+                                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                                        {fabrics.slice(0, 4).map((fabric) => {
                                             const isSelected =
                                                 form.data.fabric_id ===
                                                 fabric.id.toString();
-                                            const priceLabel =
-                                                fabric.price_adjustment === 0
-                                                    ? 'Tanpa adjustment'
-                                                    : `${fabric.price_adjustment > 0 ? '+' : '-'}${formatCurrency(Math.abs(fabric.price_adjustment))}`;
 
                                             return (
                                                 <button
                                                     key={fabric.id}
                                                     type="button"
-                                                    className={[
-                                                        'rounded-[1.75rem] border p-5 text-left transition',
+                                                    className={cn(
+                                                        'overflow-hidden rounded-[24px] border bg-white text-left shadow-[0_16px_35px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5',
                                                         isSelected
-                                                            ? 'border-[#1f1726] bg-[#1f1726] text-[#f5f1e8] shadow-[0_24px_70px_rgba(31,23,38,0.14)]'
-                                                            : 'border-[#eadfce] bg-[#fcfaf6] hover:border-[#cbbca6]',
-                                                    ].join(' ')}
+                                                            ? 'border-[#1d5fd3] ring-2 ring-[#d8e7ff]'
+                                                            : 'border-[#e6ecf5]',
+                                                    )}
                                                     onClick={() =>
                                                         form.setData(
                                                             'fabric_id',
@@ -540,39 +647,23 @@ export default function CustomerTailorConfigurator({
                                                         )
                                                     }
                                                 >
-                                                    <div className="flex items-center justify-between gap-3">
-                                                        <div
-                                                            className={
-                                                                isSelected
-                                                                    ? 'rounded-2xl bg-white/10 p-3'
-                                                                    : 'rounded-2xl bg-[#f3e3d8] p-3 text-[#a34a2c]'
-                                                            }
-                                                        >
-                                                            <Palette className="size-5" />
-                                                        </div>
-                                                        <span
-                                                            className={
-                                                                isSelected
-                                                                    ? 'text-sm font-medium text-[#f0d9c4]'
-                                                                    : 'text-sm font-medium text-[#a34a2c]'
-                                                            }
-                                                        >
-                                                            {priceLabel}
-                                                        </span>
+                                                    <div
+                                                        className={cn(
+                                                            'h-36 w-full',
+                                                            fabricSwatchClassName(
+                                                                fabric.name,
+                                                            ),
+                                                        )}
+                                                    />
+                                                    <div className="px-4 py-4">
+                                                        <p className="font-semibold text-[#1a243d]">
+                                                            {fabric.name}
+                                                        </p>
+                                                        <p className="mt-1 text-xs text-slate-500">
+                                                            {fabric.description ??
+                                                                'Material aktif untuk tailor custom.'}
+                                                        </p>
                                                     </div>
-                                                    <p className="mt-5 text-lg font-semibold">
-                                                        {fabric.name}
-                                                    </p>
-                                                    <p
-                                                        className={
-                                                            isSelected
-                                                                ? 'mt-2 text-sm leading-6 text-[#d8c8d7]'
-                                                                : 'mt-2 text-sm leading-6 text-slate-600'
-                                                        }
-                                                    >
-                                                        {fabric.description ??
-                                                            'Bahan aktif yang bisa dipakai untuk order customer.'}
-                                                    </p>
                                                 </button>
                                             );
                                         })}
@@ -580,90 +671,136 @@ export default function CustomerTailorConfigurator({
                                     <InputError
                                         message={form.errors.fabric_id}
                                     />
-                                </div>
-                            )}
+                                </section>
+                            </>
+                        )}
 
-                            {currentStep === 3 && (
-                                <div className="space-y-5">
-                                    <div>
-                                        <p className="text-lg font-semibold">
-                                            Step 3 — Tentukan metode ukuran
-                                        </p>
-                                        <p className="mt-1 text-sm leading-6 text-slate-600">
-                                            Customer bisa memakai ukuran
-                                            tersimpan, input manual, atau
-                                            menandai pengukuran offline di toko.
-                                        </p>
-                                    </div>
+                        {currentStep === 2 && (
+                            <StepCard
+                                title="Step 2. Fabric & Silhouette"
+                                description="Tentukan bahan utama untuk menegaskan jatuhnya struktur tailor Anda."
+                            >
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    {fabrics.map((fabric) => {
+                                        const isSelected =
+                                            form.data.fabric_id ===
+                                            fabric.id.toString();
 
-                                    <div className="grid gap-3 md:grid-cols-3">
-                                        {[
-                                            {
-                                                value: 'saved',
-                                                label: 'Ukuran tersimpan',
-                                                description:
-                                                    'Pilih data measurement yang sudah ada di library.',
-                                            },
-                                            {
-                                                value: 'manual',
-                                                label: 'Input manual',
-                                                description:
-                                                    'Masukkan ukuran baru dan simpan saat submit final.',
-                                            },
-                                            {
-                                                value: 'offline',
-                                                label: 'Ukur di toko',
-                                                description:
-                                                    'Lanjutkan order tanpa measurement digital saat ini.',
-                                            },
-                                        ].map((option) => (
+                                        return (
                                             <button
-                                                key={option.value}
+                                                key={fabric.id}
                                                 type="button"
-                                                className={[
-                                                    'rounded-2xl border px-4 py-4 text-left transition',
-                                                    form.data
-                                                        .measurement_mode ===
-                                                    option.value
-                                                        ? 'border-[#1f1726] bg-[#1f1726] text-[#f5f1e8]'
-                                                        : 'border-[#eadfce] bg-[#fcfaf6]',
-                                                ].join(' ')}
+                                                className={cn(
+                                                    'rounded-[24px] border bg-white p-5 text-left transition',
+                                                    isSelected
+                                                        ? 'border-[#1d5fd3] shadow-[0_16px_45px_rgba(29,95,211,0.16)]'
+                                                        : 'border-[#e6ecf5] hover:border-[#d4e1f7]',
+                                                )}
                                                 onClick={() =>
                                                     form.setData(
-                                                        'measurement_mode',
-                                                        option.value as FormState['measurement_mode'],
+                                                        'fabric_id',
+                                                        fabric.id.toString(),
                                                     )
                                                 }
                                             >
-                                                <p className="text-sm font-semibold">
-                                                    {option.label}
-                                                </p>
-                                                <p
-                                                    className={
-                                                        form.data
-                                                            .measurement_mode ===
-                                                        option.value
-                                                            ? 'mt-2 text-xs leading-5 text-[#d8c8d7]'
-                                                            : 'mt-2 text-xs leading-5 text-slate-600'
-                                                    }
-                                                >
-                                                    {option.description}
-                                                </p>
+                                                <div
+                                                    className={cn(
+                                                        'h-28 rounded-[18px]',
+                                                        fabricSwatchClassName(
+                                                            fabric.name,
+                                                        ),
+                                                    )}
+                                                />
+                                                <div className="mt-4 flex items-start justify-between gap-3">
+                                                    <div>
+                                                        <p className="font-semibold text-[#1a243d]">
+                                                            {fabric.name}
+                                                        </p>
+                                                        <p className="mt-1 text-sm text-slate-500">
+                                                            {fabric.description ??
+                                                                'Bahan aktif untuk arah tailor yang lebih tajam.'}
+                                                        </p>
+                                                    </div>
+                                                    <span className="text-sm font-semibold text-[#1d5fd3]">
+                                                        {fabric.price_adjustment ===
+                                                        0
+                                                            ? 'Base'
+                                                            : `${fabric.price_adjustment > 0 ? '+' : '-'}${formatCurrency(Math.abs(fabric.price_adjustment))}`}
+                                                    </span>
+                                                </div>
                                             </button>
-                                        ))}
-                                    </div>
-                                    <InputError
-                                        message={form.errors.measurement_mode}
-                                    />
+                                        );
+                                    })}
+                                </div>
+                                <InputError message={form.errors.fabric_id} />
+                            </StepCard>
+                        )}
 
-                                    {form.data.measurement_mode === 'saved' && (
-                                        <div className="grid gap-2 rounded-[1.75rem] border border-[#eadfce] bg-[#fcfaf6] p-5">
+                        {currentStep === 3 && (
+                            <StepCard
+                                title="Step 3. Measurement Route"
+                                description="Pilih cara Djaitin membaca proporsi tubuh agar hasil tailor lebih presisi."
+                            >
+                                <div className="grid gap-3 md:grid-cols-3">
+                                    {[
+                                        {
+                                            value: 'saved',
+                                            label: 'Ukuran Tersimpan',
+                                            description:
+                                                'Pakai profil ukuran yang sudah ada di library customer.',
+                                        },
+                                        {
+                                            value: 'manual',
+                                            label: 'Input Manual',
+                                            description:
+                                                'Masukkan ukuran baru untuk dipakai pada order ini.',
+                                        },
+                                        {
+                                            value: 'offline',
+                                            label: 'Ukur Offline',
+                                            description:
+                                                'Lanjutkan order dan finalisasi pengukuran di toko.',
+                                        },
+                                    ].map((option) => (
+                                        <button
+                                            key={option.value}
+                                            type="button"
+                                            className={cn(
+                                                'rounded-[24px] border p-5 text-left transition',
+                                                form.data.measurement_mode ===
+                                                    option.value
+                                                    ? 'border-[#1d5fd3] bg-[#f5f9ff]'
+                                                    : 'border-[#e6ecf5] bg-white',
+                                            )}
+                                            onClick={() =>
+                                                form.setData(
+                                                    'measurement_mode',
+                                                    option.value as FormState['measurement_mode'],
+                                                )
+                                            }
+                                        >
+                                            <p className="font-semibold text-[#1a243d]">
+                                                {option.label}
+                                            </p>
+                                            <p className="mt-2 text-sm leading-6 text-slate-500">
+                                                {option.description}
+                                            </p>
+                                        </button>
+                                    ))}
+                                </div>
+                                <InputError
+                                    message={form.errors.measurement_mode}
+                                />
+
+                                {form.data.measurement_mode === 'saved' && (
+                                    <div className="rounded-[24px] border border-[#e6ecf5] bg-[#f9fbff] p-5">
+                                        <div className="grid gap-2">
                                             <Label htmlFor="measurement_id">
                                                 Measurement library
                                             </Label>
                                             <select
                                                 id="measurement_id"
-                                                className="h-10 rounded-md border bg-transparent px-3 text-sm"
+                                                className="h-11 rounded-xl border border-[#dbe4f5] bg-white px-3 text-sm"
                                                 value={form.data.measurement_id}
                                                 onChange={(event) =>
                                                     form.setData(
@@ -689,12 +826,12 @@ export default function CustomerTailorConfigurator({
                                                 )}
                                             </select>
                                             {measurements.length === 0 && (
-                                                <p className="text-sm leading-6 text-slate-600">
+                                                <p className="text-sm leading-6 text-slate-500">
                                                     Belum ada ukuran tersimpan.
-                                                    Tambahkan lewat halaman{' '}
+                                                    Tambahkan lewat{' '}
                                                     <Link
-                                                        className="font-medium text-[#a34a2c]"
                                                         href={customer.measurements.index()}
+                                                        className="font-medium text-[#1d5fd3]"
                                                     >
                                                         measurement library
                                                     </Link>{' '}
@@ -707,11 +844,12 @@ export default function CustomerTailorConfigurator({
                                                 }
                                             />
                                         </div>
-                                    )}
+                                    </div>
+                                )}
 
-                                    {form.data.measurement_mode ===
-                                        'manual' && (
-                                        <div className="grid gap-4 rounded-[1.75rem] border border-[#eadfce] bg-[#fcfaf6] p-5">
+                                {form.data.measurement_mode === 'manual' && (
+                                    <div className="rounded-[24px] border border-[#e6ecf5] bg-[#f9fbff] p-5">
+                                        <div className="grid gap-4">
                                             <div className="grid gap-2">
                                                 <Label htmlFor="manual_label">
                                                     Label ukuran
@@ -737,7 +875,6 @@ export default function CustomerTailorConfigurator({
                                                     }
                                                 />
                                             </div>
-
                                             <div className="grid gap-4 md:grid-cols-2">
                                                 {measurementFields.map(
                                                     (field) => (
@@ -785,14 +922,13 @@ export default function CustomerTailorConfigurator({
                                                     ),
                                                 )}
                                             </div>
-
                                             <div className="grid gap-2">
                                                 <Label htmlFor="manual_notes">
                                                     Catatan ukuran
                                                 </Label>
                                                 <textarea
                                                     id="manual_notes"
-                                                    className="min-h-24 rounded-md border bg-transparent px-3 py-2 text-sm"
+                                                    className="min-h-24 rounded-xl border border-[#dbe4f5] bg-white px-3 py-2 text-sm"
                                                     value={
                                                         form.data.manual_notes
                                                     }
@@ -812,399 +948,367 @@ export default function CustomerTailorConfigurator({
                                                 />
                                             </div>
                                         </div>
-                                    )}
-
-                                    {form.data.measurement_mode ===
-                                        'offline' && (
-                                        <div className="rounded-[1.75rem] border border-dashed border-[#d8c8b3] bg-[#fcfaf6] p-5 text-sm leading-6 text-slate-600">
-                                            Measurement digital tidak akan
-                                            dibuat saat ini. Order tetap bisa
-                                            dilanjutkan dan office akan menandai
-                                            pengukuran offline saat proses
-                                            berjalan.
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {currentStep === 4 && (
-                                <div className="space-y-5">
-                                    <div>
-                                        <p className="text-lg font-semibold">
-                                            Step 4 — Isi detail order
-                                        </p>
-                                        <p className="mt-1 text-sm leading-6 text-slate-600">
-                                            Atur quantity, target selesai, dan
-                                            catatan spesifikasi agar office
-                                            menerima brief yang lebih rapi.
-                                        </p>
                                     </div>
+                                )}
 
-                                    <div className="grid gap-5 md:grid-cols-2">
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="qty">Qty</Label>
-                                            <div className="flex items-center gap-3">
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    className="border-[#d8c8b3] bg-white/70"
-                                                    onClick={() =>
-                                                        form.setData(
-                                                            'qty',
-                                                            Math.max(
-                                                                quantity - 1,
-                                                                1,
-                                                            ).toString(),
-                                                        )
-                                                    }
-                                                >
-                                                    -
-                                                </Button>
-                                                <Input
-                                                    id="qty"
-                                                    type="number"
-                                                    min="1"
-                                                    value={form.data.qty}
-                                                    onChange={(event) =>
-                                                        form.setData(
-                                                            'qty',
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    className="border-[#d8c8b3] bg-white/70"
-                                                    onClick={() =>
-                                                        form.setData(
-                                                            'qty',
-                                                            (
-                                                                quantity + 1
-                                                            ).toString(),
-                                                        )
-                                                    }
-                                                >
-                                                    +
-                                                </Button>
-                                            </div>
-                                            <InputError
-                                                message={form.errors.qty}
-                                            />
-                                        </div>
+                                {form.data.measurement_mode === 'offline' && (
+                                    <div className="rounded-[24px] border border-dashed border-[#dbe4f5] bg-[#f9fbff] p-5 text-sm leading-6 text-slate-500">
+                                        Measurement digital tidak dibuat saat
+                                        ini. Djaitin akan menandai pengukuran
+                                        offline saat order diproses oleh tim.
+                                    </div>
+                                )}
+                            </StepCard>
+                        )}
 
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="due_date">
-                                                Target selesai
-                                            </Label>
+                        {currentStep === 4 && (
+                            <StepCard
+                                title="Step 4. Detail Order"
+                                description="Isi kuantitas, target selesai, dan brief personal agar tim office menerima arahan yang lebih jelas."
+                            >
+                                <div className="grid gap-5 md:grid-cols-2">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="qty">Qty</Label>
+                                        <div className="flex items-center gap-3">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="border-[#dbe4f5] bg-white"
+                                                onClick={() =>
+                                                    form.setData(
+                                                        'qty',
+                                                        Math.max(
+                                                            quantity - 1,
+                                                            1,
+                                                        ).toString(),
+                                                    )
+                                                }
+                                            >
+                                                -
+                                            </Button>
                                             <Input
-                                                id="due_date"
-                                                type="date"
-                                                value={form.data.due_date}
+                                                id="qty"
+                                                type="number"
+                                                min="1"
+                                                value={form.data.qty}
                                                 onChange={(event) =>
                                                     form.setData(
-                                                        'due_date',
+                                                        'qty',
                                                         event.target.value,
                                                     )
                                                 }
                                             />
-                                            <InputError
-                                                message={form.errors.due_date}
-                                            />
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="border-[#dbe4f5] bg-white"
+                                                onClick={() =>
+                                                    form.setData(
+                                                        'qty',
+                                                        (
+                                                            quantity + 1
+                                                        ).toString(),
+                                                    )
+                                                }
+                                            >
+                                                +
+                                            </Button>
                                         </div>
+                                        <InputError message={form.errors.qty} />
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <Label htmlFor="spec_notes">
-                                            Catatan spesifikasi
+                                        <Label htmlFor="due_date">
+                                            Target selesai
                                         </Label>
-                                        <textarea
-                                            id="spec_notes"
-                                            className="min-h-32 rounded-md border bg-transparent px-3 py-2 text-sm"
-                                            value={form.data.spec_notes}
+                                        <Input
+                                            id="due_date"
+                                            type="date"
+                                            value={form.data.due_date}
                                             onChange={(event) =>
                                                 form.setData(
-                                                    'spec_notes',
+                                                    'due_date',
                                                     event.target.value,
                                                 )
                                             }
-                                            placeholder="Warna, model kerah, preferensi fit, bordir, dan detail lain."
                                         />
                                         <InputError
-                                            message={form.errors.spec_notes}
+                                            message={form.errors.due_date}
                                         />
                                     </div>
                                 </div>
-                            )}
 
-                            {currentStep === 5 && (
-                                <div className="space-y-5">
-                                    <div>
-                                        <p className="text-lg font-semibold">
-                                            Step 5 — Ringkasan order
-                                        </p>
-                                        <p className="mt-1 text-sm leading-6 text-slate-600">
-                                            Tahap ini membantu customer membaca
-                                            total biaya sebelum pindah ke
-                                            pembayaran transfer.
-                                        </p>
-                                    </div>
-
-                                    <div className="grid gap-4 md:grid-cols-2">
-                                        <div className="rounded-[1.75rem] border border-[#eadfce] bg-[#fcfaf6] p-5">
-                                            <p className="text-sm font-medium tracking-[0.18em] text-slate-600 uppercase">
-                                                Komposisi order
-                                            </p>
-                                            <div className="mt-4 space-y-3 text-sm">
-                                                <SummaryLine
-                                                    label="Model"
-                                                    value={
-                                                        selectedGarment?.name ??
-                                                        '-'
-                                                    }
-                                                />
-                                                <SummaryLine
-                                                    label="Bahan"
-                                                    value={
-                                                        selectedFabric?.name ??
-                                                        '-'
-                                                    }
-                                                />
-                                                <SummaryLine
-                                                    label="Harga satuan"
-                                                    value={formatCurrency(
-                                                        unitPrice,
-                                                    )}
-                                                />
-                                                <SummaryLine
-                                                    label="Qty"
-                                                    value={quantity.toString()}
-                                                />
-                                                <SummaryLine
-                                                    label="Subtotal"
-                                                    value={formatCurrency(
-                                                        subtotal,
-                                                    )}
-                                                />
-                                                <SummaryLine
-                                                    label="Diskon loyalitas"
-                                                    value={
-                                                        discount > 0
-                                                            ? `-${formatCurrency(discount)}`
-                                                            : 'Belum aktif'
-                                                    }
-                                                />
-                                                <div className="border-t border-[#eadfce] pt-3">
-                                                    <SummaryLine
-                                                        label="Total order"
-                                                        strong
-                                                        value={formatCurrency(
-                                                            total,
-                                                        )}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-4 rounded-[1.75rem] bg-[#1f1726] p-5 text-[#f5f1e8]">
-                                            <div>
-                                                <p className="text-sm font-medium tracking-[0.18em] text-[#d8c8d7] uppercase">
-                                                    Pembayaran awal
-                                                </p>
-                                                <p className="mt-3 text-3xl font-semibold">
-                                                    {minimumDeposit > 0
-                                                        ? formatCurrency(
-                                                              minimumDeposit,
-                                                          )
-                                                        : '-'}
-                                                </p>
-                                                <p className="mt-2 text-sm leading-6 text-[#d8c8d7]">
-                                                    Informasi DP minimum 50%
-                                                    ditampilkan sebagai acuan
-                                                    customer sebelum masuk ke
-                                                    step pembayaran.
-                                                </p>
-                                            </div>
-
-                                            {customerMeta?.is_loyalty_eligible ? (
-                                                <div className="rounded-2xl bg-white/8 p-4 text-sm leading-6 text-[#e7dde6]">
-                                                    Loyalty aktif setelah{' '}
-                                                    {
-                                                        customerMeta.loyalty_order_count
-                                                    }{' '}
-                                                    order tailor closed. Sistem
-                                                    saat ini menerapkan diskon{' '}
-                                                    {discountPolicy.percent}%.
-                                                </div>
-                                            ) : (
-                                                <div className="rounded-2xl bg-white/8 p-4 text-sm leading-6 text-[#e7dde6]">
-                                                    Threshold loyalitas saat
-                                                    ini:{' '}
-                                                    {discountPolicy.threshold}{' '}
-                                                    order tailor closed.
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {!isCustomer && (
-                                        <div className="rounded-[1.75rem] border border-dashed border-[#d8c8b3] bg-[#fcfaf6] p-5 text-sm leading-6 text-slate-600">
-                                            Step pembayaran hanya tersedia
-                                            setelah login customer. Konfigurasi
-                                            yang sedang dibaca di sini belum
-                                            bisa disimpan sebagai draft guest.
-                                        </div>
-                                    )}
+                                <div className="grid gap-2">
+                                    <Label htmlFor="spec_notes">
+                                        Catatan spesifikasi
+                                    </Label>
+                                    <textarea
+                                        id="spec_notes"
+                                        className="min-h-36 rounded-xl border border-[#dbe4f5] bg-white px-3 py-2 text-sm"
+                                        value={form.data.spec_notes}
+                                        onChange={(event) =>
+                                            form.setData(
+                                                'spec_notes',
+                                                event.target.value,
+                                            )
+                                        }
+                                        placeholder="Warna, model kerah, preferensi fit, bordir, dan detail lain."
+                                    />
+                                    <InputError
+                                        message={form.errors.spec_notes}
+                                    />
                                 </div>
-                            )}
+                            </StepCard>
+                        )}
 
-                            {currentStep === 6 && (
-                                <div className="space-y-5">
-                                    <div>
-                                        <p className="text-lg font-semibold">
-                                            Step 6 — Pembayaran awal
+                        {currentStep === 5 && (
+                            <StepCard
+                                title="Step 5. Review & Ringkasan"
+                                description="Baca ulang seluruh komposisi order sebelum masuk ke pembayaran transfer."
+                            >
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    <div className="rounded-[24px] border border-[#e6ecf5] bg-[#f9fbff] p-5">
+                                        <p className="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase">
+                                            Komposisi Order
                                         </p>
-                                        <p className="mt-1 text-sm leading-6 text-slate-600">
-                                            Portal customer saat ini hanya
-                                            menerima transfer. Setelah bukti
-                                            dikirim, office akan memverifikasi
-                                            pembayaran.
-                                        </p>
+                                        <div className="mt-4 space-y-3 text-sm">
+                                            <SummaryLine
+                                                label="Identity"
+                                                value={
+                                                    selectedIdentity?.title ??
+                                                    '-'
+                                                }
+                                            />
+                                            <SummaryLine
+                                                label="Bahan"
+                                                value={
+                                                    selectedFabric?.name ?? '-'
+                                                }
+                                            />
+                                            <SummaryLine
+                                                label="Desired fit"
+                                                value={form.data.desired_fit}
+                                            />
+                                            <SummaryLine
+                                                label="Occasion"
+                                                value={form.data.occasion}
+                                            />
+                                            <SummaryLine
+                                                label="Trait"
+                                                value={
+                                                    form.data.style_traits.join(
+                                                        ', ',
+                                                    ) || '-'
+                                                }
+                                            />
+                                            <SummaryLine
+                                                label="Harga satuan"
+                                                value={formatCurrency(
+                                                    unitPrice,
+                                                )}
+                                            />
+                                            <SummaryLine
+                                                label="Qty"
+                                                value={quantity.toString()}
+                                            />
+                                            <SummaryLine
+                                                label="Subtotal"
+                                                value={formatCurrency(subtotal)}
+                                            />
+                                            <SummaryLine
+                                                label="Diskon loyalitas"
+                                                value={
+                                                    discount > 0
+                                                        ? `-${formatCurrency(discount)}`
+                                                        : 'Belum aktif'
+                                                }
+                                            />
+                                            <div className="border-t border-[#e6ecf5] pt-3">
+                                                <SummaryLine
+                                                    label="Total order"
+                                                    value={formatCurrency(
+                                                        total,
+                                                    )}
+                                                    strong
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div className="rounded-[1.75rem] border border-[#eadfce] bg-[#fcfaf6] p-5">
-                                        <div className="flex items-center justify-between gap-3">
-                                            <div>
-                                                <p className="font-medium">
-                                                    Metode pembayaran customer
-                                                </p>
-                                                <p className="text-sm text-slate-600">
-                                                    Flow customer portal
-                                                    dibatasi ke transfer.
-                                                </p>
-                                            </div>
-                                            <span className="rounded-full bg-[#f3e3d8] px-3 py-1 text-xs font-medium tracking-[0.2em] text-[#a34a2c] uppercase">
-                                                Transfer
-                                            </span>
+                                    <div className="rounded-[24px] bg-[linear-gradient(180deg,#1d5fd3_0%,#1748a5_100%)] p-5 text-white">
+                                        <p className="text-xs font-semibold tracking-[0.16em] text-white/70 uppercase">
+                                            Pembayaran Awal
+                                        </p>
+                                        <p className="mt-4 [font-family:var(--font-heading)] text-4xl font-semibold">
+                                            {minimumDeposit > 0
+                                                ? formatCurrency(minimumDeposit)
+                                                : '-'}
+                                        </p>
+                                        <p className="mt-3 text-sm leading-6 text-white/80">
+                                            Sistem menampilkan acuan DP minimum
+                                            50% agar customer punya ekspektasi
+                                            yang jelas sebelum unggah bukti
+                                            transfer.
+                                        </p>
+                                        <div className="mt-6 rounded-2xl bg-white/10 p-4 text-sm leading-6 text-white/80">
+                                            {customerMeta?.is_loyalty_eligible
+                                                ? `Loyalty aktif setelah ${customerMeta.loyalty_order_count} order tailor closed.`
+                                                : `Diskon loyalitas aktif setelah lebih dari ${discountPolicy.threshold} order tailor closed.`}
                                         </div>
+                                    </div>
+                                </div>
 
-                                        <div className="mt-5 grid gap-4 md:grid-cols-2">
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="payment_amount">
-                                                    Nominal transfer
-                                                </Label>
-                                                <Input
-                                                    id="payment_amount"
-                                                    type="number"
-                                                    min="1"
-                                                    value={
-                                                        form.data.payment_amount
-                                                    }
-                                                    onChange={(event) =>
-                                                        form.setData(
-                                                            'payment_amount',
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                />
-                                                <p className="text-xs text-slate-600">
-                                                    Acuan DP minimum saat ini{' '}
-                                                    {formatCurrency(
-                                                        minimumDeposit,
-                                                    )}
-                                                    .
-                                                </p>
-                                                <InputError
-                                                    message={
-                                                        errorMap[
-                                                            'payment.amount'
-                                                        ]
-                                                    }
-                                                />
-                                            </div>
+                                {!isCustomer && (
+                                    <div className="rounded-[24px] border border-dashed border-[#dbe4f5] bg-[#f9fbff] p-5 text-sm leading-6 text-slate-500">
+                                        Step pembayaran hanya tersedia setelah
+                                        login customer. Konfigurasi guest belum
+                                        bisa disimpan sebagai draft.
+                                    </div>
+                                )}
+                            </StepCard>
+                        )}
 
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="payment_reference_number">
-                                                    Nomor referensi
-                                                </Label>
-                                                <Input
-                                                    id="payment_reference_number"
-                                                    value={
-                                                        form.data
-                                                            .payment_reference_number
-                                                    }
-                                                    onChange={(event) =>
-                                                        form.setData(
-                                                            'payment_reference_number',
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                    placeholder="TRX-12345"
-                                                />
-                                                <InputError
-                                                    message={
-                                                        errorMap[
-                                                            'payment.reference_number'
-                                                        ]
-                                                    }
-                                                />
-                                            </div>
+                        {currentStep === 6 && (
+                            <StepCard
+                                title="Step 6. Finalize Pembayaran"
+                                description="Portal customer saat ini hanya menerima transfer. Setelah bukti dikirim, office akan memverifikasi pembayaran."
+                            >
+                                <div className="rounded-[24px] border border-[#e6ecf5] bg-[#f9fbff] p-5">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div>
+                                            <p className="font-semibold text-[#1a243d]">
+                                                Metode pembayaran customer
+                                            </p>
+                                            <p className="text-sm text-slate-500">
+                                                Flow customer portal dibatasi ke
+                                                transfer.
+                                            </p>
                                         </div>
+                                        <span className="rounded-full bg-[#1d5fd3] px-3 py-1 text-[11px] font-semibold tracking-[0.12em] text-white uppercase">
+                                            Transfer
+                                        </span>
+                                    </div>
 
-                                        <div className="mt-4 grid gap-2">
-                                            <Label htmlFor="proof">
-                                                Bukti transfer
+                                    <div className="mt-5 grid gap-4 md:grid-cols-2">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="payment_amount">
+                                                Nominal transfer
                                             </Label>
                                             <Input
-                                                id="proof"
-                                                type="file"
-                                                accept=".jpg,.jpeg,.png,.pdf"
+                                                id="payment_amount"
+                                                type="number"
+                                                min={minimumDeposit}
+                                                value={form.data.payment_amount}
                                                 onChange={(event) =>
                                                     form.setData(
-                                                        'proof',
-                                                        event.target
-                                                            .files?.[0] ?? null,
-                                                    )
-                                                }
-                                            />
-                                            <InputError
-                                                message={
-                                                    errorMap['payment.proof']
-                                                }
-                                            />
-                                        </div>
-
-                                        <div className="mt-4 grid gap-2">
-                                            <Label htmlFor="payment_notes">
-                                                Catatan pembayaran
-                                            </Label>
-                                            <textarea
-                                                id="payment_notes"
-                                                className="min-h-24 rounded-md border bg-transparent px-3 py-2 text-sm"
-                                                value={form.data.payment_notes}
-                                                onChange={(event) =>
-                                                    form.setData(
-                                                        'payment_notes',
+                                                        'payment_amount',
                                                         event.target.value,
                                                     )
                                                 }
                                             />
+                                            <p
+                                                className={
+                                                    depositMeetsMinimum
+                                                        ? 'text-xs text-emerald-700'
+                                                        : 'text-xs text-[#9F1239]'
+                                                }
+                                            >
+                                                DP wajib minimal 50% dari total:{' '}
+                                                {formatCurrency(minimumDeposit)}
+                                                .
+                                            </p>
                                             <InputError
                                                 message={
-                                                    errorMap['payment.notes']
+                                                    errorMap['payment.amount']
+                                                }
+                                            />
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="payment_reference_number">
+                                                Nomor referensi transfer
+                                            </Label>
+                                            <Input
+                                                id="payment_reference_number"
+                                                value={
+                                                    form.data
+                                                        .payment_reference_number
+                                                }
+                                                onChange={(event) =>
+                                                    form.setData(
+                                                        'payment_reference_number',
+                                                        event.target.value,
+                                                    )
+                                                }
+                                                placeholder="Contoh: TRX-12345 atau nomor transaksi bank"
+                                            />
+                                            <p className="text-xs text-slate-500">
+                                                Isi dengan nomor transaksi dari
+                                                bank, mobile banking, atau
+                                                e-wallet yang muncul setelah
+                                                transfer berhasil.
+                                            </p>
+                                            <InputError
+                                                message={
+                                                    errorMap[
+                                                        'payment.reference_number'
+                                                    ]
                                                 }
                                             />
                                         </div>
                                     </div>
-                                </div>
-                            )}
 
-                            <div className="flex flex-col gap-3 border-t border-[#f0e6da] pt-6 md:flex-row md:items-center md:justify-between">
+                                    <div className="mt-4 grid gap-2">
+                                        <Label htmlFor="proof">
+                                            Bukti transfer
+                                        </Label>
+                                        <Input
+                                            id="proof"
+                                            type="file"
+                                            accept=".jpg,.jpeg,.png,.pdf"
+                                            onChange={(event) =>
+                                                form.setData(
+                                                    'proof',
+                                                    event.target.files?.[0] ??
+                                                        null,
+                                                )
+                                            }
+                                        />
+                                        <InputError
+                                            message={errorMap['payment.proof']}
+                                        />
+                                    </div>
+
+                                    <div className="mt-4 grid gap-2">
+                                        <Label htmlFor="payment_notes">
+                                            Catatan pembayaran
+                                        </Label>
+                                        <textarea
+                                            id="payment_notes"
+                                            className="min-h-24 rounded-xl border border-[#dbe4f5] bg-white px-3 py-2 text-sm"
+                                            value={form.data.payment_notes}
+                                            onChange={(event) =>
+                                                form.setData(
+                                                    'payment_notes',
+                                                    event.target.value,
+                                                )
+                                            }
+                                        />
+                                        <InputError
+                                            message={errorMap['payment.notes']}
+                                        />
+                                    </div>
+                                </div>
+                            </StepCard>
+                        )}
+
+                        <div className="sticky bottom-4 z-10 rounded-[28px] border border-[#e6ecf5] bg-white/94 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur">
+                            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                                 <div className="flex flex-wrap gap-3">
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        className="border-[#d8c8b3] bg-white/70"
+                                        className="rounded-full border-[#dbe4f5] bg-white"
                                         disabled={currentStep === 1}
                                         onClick={() =>
                                             setCurrentStep((step) =>
@@ -1213,14 +1317,13 @@ export default function CustomerTailorConfigurator({
                                         }
                                     >
                                         <ChevronLeft className="size-4" />
-                                        Kembali
+                                        Back
                                     </Button>
-
                                     {isCustomer && (
                                         <Button
                                             type="button"
                                             variant="outline"
-                                            className="border-[#d8c8b3] bg-white/70"
+                                            className="rounded-full border-[#dbe4f5] bg-white text-[#1d5fd3] hover:bg-[#f3f7ff] hover:text-[#1d5fd3]"
                                             disabled={form.processing}
                                             onClick={submitDraft}
                                         >
@@ -1228,6 +1331,10 @@ export default function CustomerTailorConfigurator({
                                             Simpan Draft
                                         </Button>
                                     )}
+                                </div>
+
+                                <div className="text-sm font-medium text-slate-500">
+                                    Step {currentStep} dari {steps.length}
                                 </div>
 
                                 <div className="flex flex-wrap gap-3">
@@ -1241,7 +1348,7 @@ export default function CustomerTailorConfigurator({
                                             <Button
                                                 asChild
                                                 variant="outline"
-                                                className="border-[#d8c8b3] bg-white/70"
+                                                className="rounded-full border-[#dbe4f5] bg-white text-[#1d5fd3] hover:bg-[#f3f7ff] hover:text-[#1d5fd3]"
                                             >
                                                 <Link href={register()}>
                                                     Daftar Customer
@@ -1251,6 +1358,7 @@ export default function CustomerTailorConfigurator({
                                     ) : currentStep < 6 ? (
                                         <Button
                                             type="button"
+                                            className="rounded-full bg-[#1d5fd3] px-5 text-white hover:bg-[#174fb7]"
                                             disabled={!canMoveNext}
                                             onClick={() =>
                                                 setCurrentStep((step) =>
@@ -1261,12 +1369,15 @@ export default function CustomerTailorConfigurator({
                                                 )
                                             }
                                         >
-                                            Lanjut
+                                            {currentStep === 1
+                                                ? 'Lanjut ke Silhouette & Fit'
+                                                : 'Lanjut'}
                                             <ChevronRight className="size-4" />
                                         </Button>
                                     ) : (
                                         <Button
                                             type="button"
+                                            className="rounded-full bg-[#1d5fd3] px-5 text-white hover:bg-[#174fb7]"
                                             disabled={
                                                 form.processing ||
                                                 !canSubmitOrder
@@ -1280,117 +1391,230 @@ export default function CustomerTailorConfigurator({
                                     )}
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
 
-                    <Card className="border-0 bg-[#1f1726] text-[#f5f1e8] shadow-[0_20px_80px_rgba(31,23,38,0.18)]">
-                        <CardHeader>
-                            <CardTitle>Ringkasan backend pricing</CardTitle>
-                            <CardDescription className="text-[#d8c8d7]">
-                                Panel ini tetap terlihat di semua step agar
-                                customer tidak kehilangan konteks total biaya.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-5 text-sm">
-                            <div className="rounded-2xl bg-white/8 p-4">
-                                <p className="text-xs font-medium tracking-[0.18em] text-[#d8c8d7] uppercase">
-                                    Step aktif
-                                </p>
-                                <p className="mt-3 text-lg font-semibold">
-                                    {steps[currentStep - 1].title}
-                                </p>
-                                <p className="mt-2 leading-6 text-[#d8c8d7]">
-                                    {steps[currentStep - 1].description}
-                                </p>
-                            </div>
+                    <aside className="space-y-4 xl:sticky xl:top-28 xl:self-start">
+                        <Card className="overflow-hidden rounded-[28px] border-[#e6ecf5] bg-white shadow-[0_22px_50px_rgba(15,23,42,0.06)]">
+                            <CardHeader className="flex flex-row items-center justify-between gap-3">
+                                <div>
+                                    <CardTitle className="[font-family:var(--font-heading)] text-2xl font-semibold text-[#1a243d]">
+                                        Profil Tailor Anda
+                                    </CardTitle>
+                                </div>
+                                <span className="rounded-full bg-[#fff2d6] px-2.5 py-1 text-[11px] font-semibold text-[#c48a10]">
+                                    98% Match
+                                </span>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="rounded-[24px] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.15),_transparent_35%),linear-gradient(180deg,#3f4e67_0%,#253346_100%)] p-4">
+                                    <div className="relative flex h-64 items-end justify-center overflow-hidden rounded-[22px] border border-white/10 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.08),_transparent_48%)]">
+                                        <div className="absolute inset-6 rounded-full border border-white/10" />
+                                        <div className="absolute inset-10 rounded-full border border-white/8" />
+                                        <div className="relative flex h-52 w-32 flex-col items-center">
+                                            <div className="h-10 w-10 rounded-full bg-[#f0e2cc]" />
+                                            <div className="relative mt-2 h-36 w-24 rounded-t-[34px] rounded-b-[18px] bg-[linear-gradient(180deg,#2f5c8a_0%,#183657_100%)]">
+                                                <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-white/25" />
+                                                <div className="absolute top-6 right-0 left-0 h-10 bg-[linear-gradient(135deg,transparent_44%,#b93a3a_44%,#b93a3a_58%,transparent_58%)] opacity-85" />
+                                            </div>
+                                            <div className="mt-2 flex gap-3">
+                                                <div className="h-16 w-4 rounded-full bg-[#173657]" />
+                                                <div className="h-16 w-4 rounded-full bg-[#173657]" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="mt-3 rounded-2xl bg-[#1d5fd3] px-3 py-2 text-white">
+                                        <p className="text-[10px] font-semibold tracking-[0.14em] text-white/70 uppercase">
+                                            Live Preview
+                                        </p>
+                                        <p className="mt-1 text-sm font-medium">
+                                            {selectedIdentity?.title ??
+                                                'Executive Sharp'}{' '}
+                                            x {form.data.desired_fit} Fit
+                                        </p>
+                                    </div>
+                                </div>
 
-                            <SummaryLine
-                                dark
-                                label="Model"
-                                value={selectedGarment?.name ?? '-'}
-                            />
-                            <SummaryLine
-                                dark
-                                label="Bahan"
-                                value={selectedFabric?.name ?? '-'}
-                            />
-                            <SummaryLine
-                                dark
-                                label="Base price"
-                                value={formatCurrency(
-                                    selectedGarment?.base_price ?? 0,
-                                )}
-                            />
-                            <SummaryLine
-                                dark
-                                label="Adjustment bahan"
-                                value={formatCurrency(
-                                    selectedFabric?.price_adjustment ?? 0,
-                                )}
-                            />
-                            <SummaryLine
-                                dark
-                                label="Harga satuan"
-                                value={formatCurrency(unitPrice)}
-                            />
-                            <SummaryLine
-                                dark
-                                label="Qty"
-                                value={quantity.toString()}
-                            />
-                            <SummaryLine
-                                dark
-                                label="Subtotal"
-                                value={formatCurrency(subtotal)}
-                            />
-                            <SummaryLine
-                                dark
-                                label="Diskon loyalitas"
-                                value={
-                                    discount > 0
-                                        ? `-${formatCurrency(discount)}`
-                                        : 'Belum aktif'
-                                }
-                            />
-                            <div className="border-t border-white/15 pt-4">
-                                <SummaryLine
-                                    dark
-                                    label="Total order"
-                                    strong
-                                    value={formatCurrency(total)}
-                                />
-                            </div>
+                                <Button
+                                    type="button"
+                                    className="h-11 w-full rounded-full bg-[#1d5fd3] text-white hover:bg-[#174fb7]"
+                                    disabled={currentStep >= maxAccessibleStep}
+                                    onClick={() =>
+                                        setCurrentStep((step) =>
+                                            Math.min(
+                                                step + 1,
+                                                maxAccessibleStep,
+                                            ),
+                                        )
+                                    }
+                                >
+                                    {currentStep === 1
+                                        ? 'Lanjut ke Silhouette & Fit'
+                                        : 'Lanjut ke Step Berikutnya'}
+                                    <ArrowRight className="size-4" />
+                                </Button>
 
-                            <div className="rounded-2xl bg-white/8 p-4 text-sm leading-6 text-[#e7dde6]">
-                                <p className="font-medium text-[#f5f1e8]">
-                                    Catatan
-                                </p>
-                                <ul className="mt-3 space-y-2">
-                                    <li>
-                                        Draft terakhir akan muncul kembali saat
-                                        customer membuka halaman ini lagi.
-                                    </li>
-                                    <li>
-                                        Ukuran manual disimpan sebagai
-                                        measurement reusable setelah submit
-                                        final.
-                                    </li>
-                                    <li>
-                                        Portal customer saat ini menerima
-                                        transfer, bukan cash.
-                                    </li>
-                                    <li>
-                                        Threshold loyalitas:{' '}
-                                        {discountPolicy.threshold} order tailor
-                                        closed.
-                                    </li>
-                                </ul>
-                            </div>
-                        </CardContent>
-                    </Card>
+                                <div className="space-y-3 rounded-[24px] bg-[#f7f9fd] p-4">
+                                    <SummaryLine
+                                        label="Bahan Utama"
+                                        value={
+                                            selectedFabric?.name ??
+                                            'Royal Navy Merino'
+                                        }
+                                    />
+                                    <SummaryLine
+                                        label="Silhouette"
+                                        value={selectedIdentity?.title ?? '-'}
+                                    />
+                                    <SummaryLine
+                                        label="Fit"
+                                        value={form.data.desired_fit}
+                                    />
+                                    <SummaryLine
+                                        label="Occasion"
+                                        value={form.data.occasion}
+                                    />
+                                    <SummaryLine
+                                        label="Karakter"
+                                        value={
+                                            form.data.style_traits.join(', ') ||
+                                            '-'
+                                        }
+                                    />
+                                </div>
+
+                                <div className="rounded-[24px] border border-[#dce8fb] bg-[#f5f9ff] p-4">
+                                    <div className="flex items-start gap-3">
+                                        <div className="mt-0.5 flex size-9 items-center justify-center rounded-xl bg-[#1d5fd3] text-white">
+                                            <ShieldCheck className="size-4" />
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold text-[#1d5fd3]">
+                                                Rekomendasi Djaitin
+                                            </p>
+                                            <p className="mt-2 text-sm leading-6 text-slate-500">
+                                                Djaitin merekomendasikan{' '}
+                                                {selectedFabric?.name ??
+                                                    'Wool Blend'}{' '}
+                                                dengan layer yang rapi agar
+                                                struktur tetap tegas pada gaya{' '}
+                                                {selectedIdentity?.title ??
+                                                    'Executive Sharp'}
+                                                .
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="rounded-[24px] bg-[#eef3fb] p-4 text-center">
+                                    <p className="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase">
+                                        Estimasi Pengerjaan
+                                    </p>
+                                    <p className="mt-2 [font-family:var(--font-heading)] text-3xl font-semibold text-[#1a243d]">
+                                        14 - 21 Hari Kerja
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </aside>
                 </div>
             </div>
         </CustomerLayout>
+    );
+}
+
+function StepCard({
+    title,
+    description,
+    children,
+}: {
+    title: string;
+    description: string;
+    children: React.ReactNode;
+}) {
+    return (
+        <section className="space-y-4 rounded-[28px] border border-[#e6ecf5] bg-white p-6 shadow-[0_18px_40px_rgba(15,23,42,0.04)]">
+            <div>
+                <h2 className="[font-family:var(--font-heading)] text-2xl font-semibold text-[#1a243d]">
+                    {title}
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                    {description}
+                </p>
+            </div>
+            <div className="space-y-5">{children}</div>
+        </section>
+    );
+}
+
+function PreferenceGroup({
+    title,
+    children,
+}: {
+    title: string;
+    children: React.ReactNode;
+}) {
+    return (
+        <div className="rounded-[24px] bg-[#f4f7fc] p-5">
+            <p className="text-[11px] font-semibold tracking-[0.16em] text-slate-400 uppercase">
+                {title}
+            </p>
+            <div className="mt-4">{children}</div>
+        </div>
+    );
+}
+
+function ActionStrip({
+    currentStep,
+    maxAccessibleStep,
+}: {
+    currentStep: number;
+    maxAccessibleStep: number;
+}) {
+    return (
+        <div className="rounded-[24px] border border-[#edf2fb] bg-white/90 px-4 py-3 shadow-[0_10px_30px_rgba(15,23,42,0.04)] backdrop-blur">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center gap-2 text-sm text-slate-400">
+                    <ArrowLeft className="size-4" />
+                    Back
+                </div>
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                    <span className="rounded-full bg-[#edf4ff] px-3 py-1 text-[11px] font-semibold text-[#1d5fd3] uppercase">
+                        Step {currentStep}
+                    </span>
+                    <span className="rounded-full bg-[#f4f7fc] px-3 py-1 text-[11px] font-semibold text-slate-400 uppercase">
+                        Max {maxAccessibleStep}
+                    </span>
+                </div>
+                <div className="text-sm font-medium text-slate-400">
+                    Progress terjaga
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function SummaryLine({
+    label,
+    value,
+    strong = false,
+}: {
+    label: string;
+    value: string;
+    strong?: boolean;
+}) {
+    return (
+        <div className="flex items-center justify-between gap-4">
+            <span className="text-sm text-slate-500">{label}</span>
+            <span
+                className={cn(
+                    'text-right text-sm font-medium text-[#1a243d]',
+                    strong && 'text-base font-semibold',
+                )}
+            >
+                {value}
+            </span>
+        </div>
     );
 }
 
@@ -1418,37 +1642,46 @@ const measurementFields: Array<{
     { key: 'trouser_waist', label: 'Pinggang celana' },
 ];
 
-function SummaryLine({
-    label,
-    value,
-    strong = false,
-    dark = false,
-}: {
-    label: string;
-    value: string;
-    strong?: boolean;
-    dark?: boolean;
-}) {
-    return (
-        <div className="flex items-center justify-between gap-4">
-            <span className={dark ? 'text-[#d8c8d7]' : 'text-slate-600'}>
-                {label}
-            </span>
-            <span
-                className={
-                    strong
-                        ? dark
-                            ? 'text-lg font-semibold text-[#f5f1e8]'
-                            : 'text-lg font-semibold text-[#1f1726]'
-                        : dark
-                          ? 'font-medium text-[#f5f1e8]'
-                          : 'font-medium text-[#1f1726]'
-                }
-            >
-                {value}
-            </span>
-        </div>
-    );
+function buildIdentityCards(garmentModels: GarmentModelOption[]) {
+    const fallbacks = [
+        {
+            title: 'Executive Sharp',
+            description:
+                'Dirancang untuk otoritas dan presisi profesional di ruang rapat.',
+            traits: ['Power', 'Formal', 'Modern'],
+            icon: ShieldCheck,
+        },
+        {
+            title: 'Smart Casual',
+            description:
+                'Keseimbangan sempurna antara relaksasi dan profesionalisme modern.',
+            traits: ['Fluid', 'Creative', 'Versatile'],
+            icon: Sparkles,
+        },
+        {
+            title: 'Heritage Formal',
+            description:
+                'Penghormatan terhadap tradisi dengan siluet berwibawa.',
+            traits: ['Classic', 'Tailored', 'Elegant'],
+            icon: Scissors,
+        },
+        {
+            title: 'Minimalist Avant',
+            description:
+                'Garis-garis bersih dan struktur futuristik untuk tampilan tegas.',
+            traits: ['Clean', 'Sharp', 'Confident'],
+            icon: Ruler,
+        },
+    ];
+
+    return garmentModels.slice(0, 4).map((garmentModel, index) => ({
+        id: garmentModel.id,
+        title: fallbacks[index]?.title ?? garmentModel.name,
+        description:
+            garmentModel.description ?? fallbacks[index]?.description ?? '',
+        traits: fallbacks[index]?.traits ?? ['Tailor', 'Custom', 'Premium'],
+        icon: fallbacks[index]?.icon ?? Shirt,
+    }));
 }
 
 function createInitialState({
@@ -1464,6 +1697,7 @@ function createInitialState({
 }): FormState {
     const manualMeasurement = objectValue(draftPayload.manual_measurement);
     const payment = objectValue(draftPayload.payment);
+    const wizardPreferences = objectValue(draftPayload.wizard_preferences);
 
     return {
         draft_id: draftId?.toString() ?? '',
@@ -1475,6 +1709,9 @@ function createInitialState({
             stringValue(draftPayload.fabric_id) ??
             fabrics[0]?.id.toString() ??
             '',
+        desired_fit: fitValue(wizardPreferences.desired_fit),
+        occasion: occasionValue(wizardPreferences.occasion),
+        style_traits: traitValues(wizardPreferences.style_traits),
         measurement_mode: enumValue(draftPayload.measurement_mode),
         measurement_id: stringValue(draftPayload.measurement_id) ?? '',
         manual_label: stringValue(manualMeasurement.label) ?? '',
@@ -1516,6 +1753,24 @@ function buildManualMeasurement(data: FormState) {
     };
 }
 
+function buildSpecNotes(
+    data: FormState,
+    identityLabel: string | null = null,
+): string | null {
+    const wizardLines = [
+        `Identity: ${(identityLabel ?? data.garment_model_id) || '-'}`,
+        `Desired fit: ${data.desired_fit}`,
+        `Occasion: ${data.occasion}`,
+        `Traits: ${data.style_traits.join(', ') || '-'}`,
+    ];
+
+    const customNotes = data.spec_notes.trim();
+
+    return [...wizardLines, customNotes]
+        .filter((line) => line !== '')
+        .join('\n');
+}
+
 function hasMeasurementSelection(data: FormState): boolean {
     if (data.measurement_mode === 'saved') {
         return data.measurement_id !== '';
@@ -1553,7 +1808,11 @@ function resolveInitialStep(data: FormState): number {
         return 3;
     }
 
-    if (data.garment_model_id !== '') {
+    if (
+        data.garment_model_id !== '' &&
+        data.occasion !== '' &&
+        data.style_traits.length > 0
+    ) {
         return 2;
     }
 
@@ -1600,4 +1859,50 @@ function enumValue(value: unknown): FormState['measurement_mode'] {
     }
 
     return 'saved';
+}
+
+function fitValue(value: unknown): FormState['desired_fit'] {
+    return desiredFits.includes(value as FormState['desired_fit'])
+        ? (value as FormState['desired_fit'])
+        : 'Slim';
+}
+
+function occasionValue(value: unknown): FormState['occasion'] {
+    return occasions.includes(value as FormState['occasion'])
+        ? (value as FormState['occasion'])
+        : 'Office';
+}
+
+function traitValues(value: unknown): string[] {
+    if (!Array.isArray(value)) {
+        return ['Wibawa'];
+    }
+
+    const sanitized = value.filter((item): item is string =>
+        characterTraits.includes(item as (typeof characterTraits)[number]),
+    );
+
+    return sanitized.length > 0 ? sanitized : ['Wibawa'];
+}
+
+function fabricSwatchClassName(name: string): string {
+    const key = name.toLowerCase();
+
+    if (key.includes('navy') || key.includes('royal')) {
+        return 'bg-[radial-gradient(circle_at_left,_#f06d7b_0,_#f06d7b_18%,_#111e44_19%,_#0b122f_72%)]';
+    }
+
+    if (
+        key.includes('linen') ||
+        key.includes('sand') ||
+        key.includes('cream')
+    ) {
+        return 'bg-[linear-gradient(135deg,_#e8dbba_0%,_#d7c49b_100%)]';
+    }
+
+    if (key.includes('velvet') || key.includes('black')) {
+        return 'bg-[radial-gradient(circle_at_top_left,_#444_0,_#161616_45%,_#020202_100%)]';
+    }
+
+    return 'bg-[linear-gradient(135deg,_#171b2b_0%,_#2a334e_50%,_#101522_100%)]';
 }

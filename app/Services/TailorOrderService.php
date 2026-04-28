@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class TailorOrderService
 {
@@ -16,8 +17,7 @@ class TailorOrderService
         protected LoyaltyService $loyaltyService,
         protected PaymentService $paymentService,
         protected AuditLogService $auditLogService,
-    ) {
-    }
+    ) {}
 
     /**
      * @param  array{
@@ -42,8 +42,7 @@ class TailorOrderService
         User $user,
         ?string $ipAddress = null,
         ?User $submittedBy = null,
-    ): Order
-    {
+    ): Order {
         return DB::transaction(function () use ($payload, $user, $ipAddress, $submittedBy): Order {
             $customer = Customer::query()->findOrFail($payload['customer_id']);
             $customer = $this->loyaltyService->syncCustomer($customer);
@@ -53,6 +52,10 @@ class TailorOrderService
             $subtotal = round($qty * $unitPrice, 2);
             $discountAmount = $this->loyaltyService->calculateDiscount($customer, $subtotal);
             $totalAmount = round($subtotal - $discountAmount, 2);
+            $this->validateMinimumDownPayment(
+                round((float) $payload['payment']['amount'], 2),
+                $totalAmount,
+            );
 
             $order = Order::query()->create([
                 'order_number' => $this->nextOrderNumber(),
@@ -107,5 +110,16 @@ class TailorOrderService
     protected function nextOrderNumber(): string
     {
         return 'ORD-'.now()->format('YmdHis').'-'.str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+    }
+
+    protected function validateMinimumDownPayment(float $paymentAmount, float $totalAmount): void
+    {
+        $minimumDownPayment = round($totalAmount * 0.5, 2);
+
+        if ($paymentAmount < $minimumDownPayment) {
+            throw ValidationException::withMessages([
+                'payment.amount' => 'Order tailor wajib membayar DP minimal 50% dari total biaya.',
+            ]);
+        }
     }
 }

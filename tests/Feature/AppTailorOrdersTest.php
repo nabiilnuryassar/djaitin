@@ -61,6 +61,33 @@ test('tailor order can not move to in progress when verified dp is below fifty p
     ])->assertSessionHasErrors('status');
 });
 
+test('office tailor order can not be created below minimum fifty percent down payment', function () {
+    /** @var \Tests\TestCase $this */
+    $user = User::factory()->kasir()->create();
+    $customer = Customer::factory()->create();
+    $measurement = Measurement::factory()->for($customer)->create();
+    $garmentModel = GarmentModel::factory()->create();
+    $fabric = Fabric::factory()->create();
+
+    $this->actingAs($user)->post(route('office.orders.tailor.store'), [
+        'customer_id' => $customer->id,
+        'garment_model_id' => $garmentModel->id,
+        'fabric_id' => $fabric->id,
+        'measurement_id' => $measurement->id,
+        'qty' => 1,
+        'unit_price' => 200000,
+        'payment' => [
+            'method' => 'cash',
+            'amount' => 90000,
+        ],
+    ])->assertSessionHasErrors('payment.amount');
+
+    expect(Order::query()
+        ->where('customer_id', $customer->id)
+        ->where('order_type', OrderType::Tailor)
+        ->count())->toBe(0);
+});
+
 test('tailor order can not be closed when outstanding amount remains', function () {
     /** @var \Tests\TestCase $this */
     $user = User::factory()->admin()->create();

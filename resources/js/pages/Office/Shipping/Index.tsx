@@ -22,6 +22,7 @@ type Props = {
             recipient_address: string;
             courier_id: number | null;
             courier_name: string | null;
+            shipping_cost: number;
             notes: string | null;
             shipped_at: string | null;
             delivered_at: string | null;
@@ -33,7 +34,7 @@ type Props = {
             };
         }>;
     };
-    couriers: Array<{ id: number; name: string }>;
+    couriers: Array<{ id: number; name: string; base_fee: number }>;
     statuses: Array<{ value: string; label: string }>;
     can: {
         update: boolean;
@@ -146,6 +147,12 @@ export default function ShippingIndex({
                                                     {shipment.tracking_number ??
                                                         'Belum ada resi'}
                                                 </p>
+                                                <p className="text-sm text-slate-500">
+                                                    Ongkir:{' '}
+                                                    {formatCurrency(
+                                                        shipment.shipping_cost,
+                                                    )}
+                                                </p>
                                                 <p className="text-sm leading-6 text-slate-500">
                                                     {shipment.recipient_address}
                                                 </p>
@@ -181,7 +188,11 @@ export default function ShippingIndex({
                                                                 >
                                                                     {
                                                                         courier.name
-                                                                    }
+                                                                    }{' '}
+                                                                    -{' '}
+                                                                    {formatCurrency(
+                                                                        courier.base_fee,
+                                                                    )}
                                                                 </option>
                                                             ),
                                                         )}
@@ -267,4 +278,12 @@ function formatLabel(value: string): string {
         .split('_')
         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
         .join(' ');
+}
+
+function formatCurrency(value: number): string {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        maximumFractionDigits: 0,
+    }).format(value);
 }

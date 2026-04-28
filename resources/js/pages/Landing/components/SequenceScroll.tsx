@@ -200,6 +200,18 @@ export function SequenceScroll({
     });
 
     const activeCue = cues[activeCueIndex];
+    const copyPositionClass =
+        activeCue.align === 'center'
+            ? 'mx-auto text-center'
+            : activeCue.align === 'left'
+              ? 'mr-auto text-left'
+              : 'ml-auto text-right';
+    const copyJustifyClass =
+        activeCue.align === 'center'
+            ? 'justify-center'
+            : activeCue.align === 'left'
+              ? 'justify-start'
+              : 'justify-end';
     const orderedFrames = [...frameSources].sort(
         (left, right) => getFrameNumber(left) - getFrameNumber(right),
     );
@@ -219,58 +231,53 @@ export function SequenceScroll({
                         className="absolute inset-0 h-full w-full bg-[var(--landing-sidebar)]"
                         ref={canvasRef}
                     />
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(0,0,0,0.15),transparent_22%),linear-gradient(180deg,rgba(2,1,6,0.28),rgba(2,1,6,0.58)_48%,rgba(2,1,6,0.88)_100%)]" />
                 </motion.div>
-                <div className="absolute inset-x-0 bottom-0 h-52 bg-gradient-to-t from-[var(--landing-shell)] via-[var(--landing-sidebar)]/90 to-transparent" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,210,31,0.18),transparent_25%),linear-gradient(180deg,rgba(247,247,245,0.12)_0%,rgba(247,247,245,0)_24%,rgba(247,247,245,0.28)_100%)]" />
                 <motion.div
                     className="relative z-10 flex h-full items-center px-6 pt-28 pb-20 md:px-10"
                     style={{ y: heroCopyParallax }}
                 >
-                    <div className="mx-auto w-full max-w-7xl">
+                    <div className="mx-auto w-full max-w-6xl">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 animate={{ opacity: 1, x: 0, y: 0 }}
-                                className={`max-w-2xl rounded-[2rem] border border-white/12 bg-black/32 p-7 shadow-[0_35px_100px_rgba(0,0,0,0.38)] backdrop-blur-md md:p-10 ${
-                                    activeCue.align === 'center'
-                                        ? 'mx-auto text-center'
-                                        : activeCue.align === 'right'
-                                          ? 'ml-auto text-right'
-                                          : 'text-left'
-                                }`}
+                                className={`max-w-lg rounded-[1.8rem] border border-[#123c78]/10 bg-white/72 p-5 text-[#123c78] shadow-[0_18px_60px_rgba(18,60,120,0.08)] backdrop-blur-[6px] md:p-7 ${copyPositionClass}`}
                                 exit={{
                                     opacity: 0,
-                                    x: activeCue.align === 'right' ? 24 : -24,
-                                    y: -12,
+                                    x:
+                                        activeCue.align === 'center'
+                                            ? 0
+                                            : activeCue.align === 'left'
+                                              ? -28
+                                              : 28,
                                 }}
                                 initial={{
                                     opacity: 0,
-                                    x: activeCue.align === 'right' ? 24 : -24,
-                                    y: 18,
+                                    x:
+                                        activeCue.align === 'center'
+                                            ? 0
+                                            : activeCue.align === 'left'
+                                              ? 28
+                                              : -28,
                                 }}
                                 key={activeCue.title}
-                                transition={{ duration: 0.4, ease: 'easeOut' }}
+                                transition={{ duration: 0.32, ease: 'easeOut' }}
                             >
-                                <p className="text-xs font-semibold tracking-[0.28em] text-[var(--landing-accent)]/92 uppercase">
+                                <p className="text-xs font-semibold tracking-[0.28em] text-[#3b73b9] uppercase">
                                     {activeCue.eyebrow}
                                 </p>
-                                <h1 className="mt-5 [font-family:var(--landing-heading-font)] text-4xl leading-tight font-bold text-white drop-shadow-[0_10px_35px_rgba(0,0,0,0.5)] md:text-6xl md:leading-[1.04]">
+                                <h1 className="mt-4 [font-family:var(--landing-heading-font)] text-3xl leading-[0.98] font-bold tracking-[0.02em] text-[#123c78] uppercase md:text-5xl">
                                     {activeCue.title}
                                 </h1>
-                                <p className="mt-5 text-base leading-7 text-white/84 md:text-lg">
+                                <p className="mt-4 text-[1rem] leading-7 text-[#123c78]/74">
                                     {activeCue.description}
                                 </p>
                                 <div
-                                    className={`mt-6 flex flex-wrap gap-2 ${
-                                        activeCue.align === 'center'
-                                            ? 'justify-center'
-                                            : activeCue.align === 'right'
-                                              ? 'justify-end'
-                                              : 'justify-start'
-                                    }`}
+                                    className={`mt-5 flex flex-wrap gap-2 ${copyJustifyClass}`}
                                 >
                                     {activeCue.badges.map((badge) => (
                                         <Badge
-                                            className="rounded-full border border-white/18 bg-black/40 px-3 py-1 text-white"
+                                            className="rounded-full border border-[#123c78]/10 bg-[#f7f7f7] px-3 py-1 text-[#123c78]/72"
                                             key={badge}
                                             variant="secondary"
                                         >
@@ -280,25 +287,19 @@ export function SequenceScroll({
                                 </div>
                                 {activeCueIndex === cues.length - 1 ? (
                                     <div
-                                        className={`mt-8 flex flex-wrap gap-3 ${
-                                            activeCue.align === 'center'
-                                                ? 'justify-center'
-                                                : activeCue.align === 'right'
-                                                  ? 'justify-end'
-                                                  : 'justify-start'
-                                        }`}
+                                        className={`mt-6 flex flex-wrap gap-3 ${copyJustifyClass}`}
                                     >
                                         <MagneticButton
                                             onClick={onPrimaryAction}
                                         >
-                                            Jadwalkan Demo
+                                            Explore Services
                                         </MagneticButton>
                                         <MagneticButton
-                                            className="border-white/18 bg-white/14 text-white hover:bg-white/20"
+                                            className="border-[#123c78]/10 bg-white/88 text-[#123c78] hover:bg-white"
                                             onClick={onSecondaryAction}
                                             variant="secondary"
                                         >
-                                            Lihat Modul
+                                            About Djaitin
                                         </MagneticButton>
                                     </div>
                                 ) : null}
@@ -307,47 +308,75 @@ export function SequenceScroll({
                     </div>
                 </motion.div>
                 <div className="absolute inset-x-0 bottom-8 z-10 px-6 md:px-10">
-                    <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3">
-                        <Badge className="rounded-full border border-white/14 bg-black/38 px-4 py-2 text-white">
-                            240 frame sequence
-                        </Badge>
-                        <Badge className="rounded-full border border-white/40 bg-[#1A1830]/78 px-4 py-2 text-white">
-                            Tailor · RTW · Konveksi
-                        </Badge>
-                        <Badge className="rounded-full border border-white/14 bg-black/38 px-4 py-2 text-white">
-                            1920×1080 cinematic surfaces
-                        </Badge>
+                    <div className="mx-auto flex max-w-7xl flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                        <div className="flex flex-wrap items-center gap-3">
+                            <Badge className="rounded-full border border-[#123c78]/10 bg-white/82 px-4 py-2 text-[#123c78]/74">
+                                {orderedFrames.length} frame sequence
+                            </Badge>
+                            <Badge className="rounded-full border border-[#123c78]/10 bg-white/82 px-4 py-2 text-[#123c78]/74">
+                                Tailor · RTW · Convection
+                            </Badge>
+                        </div>
+                        <div className="flex items-center gap-3 text-[#123c78]">
+                            <motion.div
+                                animate={{ y: [0, 8, 0] }}
+                                className="flex size-11 items-center justify-center rounded-full border border-[#123c78]/12 bg-white/72"
+                                transition={{
+                                    duration: 1.5,
+                                    ease: 'easeInOut',
+                                    repeat: Infinity,
+                                }}
+                            >
+                                <div className="h-2.5 w-2.5 rounded-full bg-[#123c78]" />
+                            </motion.div>
+                            <div>
+                                <p className="text-xs font-semibold tracking-[0.26em] text-[#3b73b9] uppercase">
+                                    Scroll to animate
+                                </p>
+                                <p className="mt-1 text-sm text-[#123c78]/66">
+                                    Let the mark open the brand story.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <AnimatePresence>
                     {!isReady ? (
                         <motion.div
                             animate={{ opacity: 1 }}
-                            className="absolute inset-0 z-30 flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(139,132,255,0.18),transparent_28%),linear-gradient(180deg,#09070F_0%,#0D0A17_100%)]"
+                            className="absolute inset-0 z-30 flex items-center justify-center bg-[linear-gradient(180deg,#f7f7f5_0%,#f2f5f8_100%)]"
                             exit={{
+                                clipPath: 'inset(0 0 100% 0 round 0rem)',
                                 opacity: 0,
-                                transition: { duration: 0.45 },
+                                transition: { duration: 0.55 },
                             }}
-                            initial={{ opacity: 1 }}
+                            initial={{
+                                clipPath: 'inset(0 0 0 0 round 0rem)',
+                                opacity: 1,
+                            }}
                         >
                             <div className="w-full max-w-md px-6 text-center">
                                 <div className="mb-8 flex justify-center">
-                                    <Logo />
+                                    <Logo className="size-20" />
                                 </div>
-                                <h2 className="mt-4 [font-family:var(--landing-heading-font)] text-4xl font-bold text-white">
-                                    Menyiapkan alur operasional
-                                </h2>
-                                <p className="mt-4 text-sm leading-7 text-white/68">
-                                    Preload {orderedFrames.length} frame supaya
-                                    hero scroll tetap halus dan tanpa loncatan.
+                                <p className="text-xs font-semibold tracking-[0.32em] text-[#3b73b9] uppercase">
+                                    Loading sequence
                                 </p>
-                                <div className="mt-8 overflow-hidden rounded-full bg-white/10 p-1 shadow-[0_16px_40px_rgba(0,0,0,0.35)]">
+                                <h2 className="mt-4 [font-family:var(--landing-heading-font)] text-5xl font-bold tracking-[0.03em] text-[#123c78] uppercase">
+                                    Preparing the brand motion
+                                </h2>
+                                <p className="mt-4 text-sm leading-7 text-[#123c78]/66">
+                                    Preloading {orderedFrames.length} frames so
+                                    the hero sequence stays bright, fluid, and
+                                    seamless.
+                                </p>
+                                <div className="mt-8 overflow-hidden rounded-full bg-white p-1 shadow-[0_18px_40px_rgba(18,60,120,0.10)]">
                                     <div
-                                        className="h-3 rounded-full bg-gradient-to-r from-[var(--landing-primary)] via-[#8C84FF] to-[var(--landing-accent)] transition-[width] duration-300"
+                                        className="h-3 rounded-full bg-gradient-to-r from-[#3b73b9] via-[#5f8eca] to-[#ffd21f] transition-[width] duration-300"
                                         style={{ width: `${loadingProgress}%` }}
                                     />
                                 </div>
-                                <p className="mt-5 text-3xl font-semibold text-white">
+                                <p className="mt-5 text-3xl font-semibold text-[#123c78]">
                                     {loadingProgress}%
                                 </p>
                             </div>

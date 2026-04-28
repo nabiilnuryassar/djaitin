@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\OrderAttachmentType;
 use App\Enums\OrderType;
 use App\Enums\ProductionStage;
 use App\Models\Order;
@@ -24,6 +25,7 @@ test('invalid attachment file type is rejected for customer order attachments', 
     $this->actingAs($user)
         ->post(route('customer.orders.attachments.store', $order), [
             'file' => UploadedFile::fake()->create('malicious.zip', 20),
+            'attachment_type' => OrderAttachmentType::Revision->value,
         ])
         ->assertSessionHasErrors('file');
 
@@ -45,6 +47,9 @@ test('attachment file is stored and exposed on customer order detail', function 
     $this->actingAs($user)
         ->post(route('customer.orders.attachments.store', $order), [
             'file' => UploadedFile::fake()->create('revisi-logo.pdf', 320, 'application/pdf'),
+            'title' => 'Revisi logo event',
+            'notes' => 'Mohon update penempatan logo sponsor.',
+            'attachment_type' => OrderAttachmentType::Revision->value,
         ])
         ->assertRedirect();
 
@@ -59,7 +64,46 @@ test('attachment file is stored and exposed on customer order detail', function 
             ->component('Customer/Orders/Show')
             ->has('order.attachments', 1, fn (Assert $attachmentPage) => $attachmentPage
                 ->where('file_name', 'revisi-logo.pdf')
+                ->where('title', 'Revisi logo event')
+                ->where('attachment_type', OrderAttachmentType::Revision->value)
                 ->where('uploaded_by', $user->name)
+                ->etc()
+            )
+        );
+});
+
+test('office uploaded attachment is visible to customer order detail', function () {
+    Storage::fake('public');
+
+    $admin = User::factory()->admin()->create();
+    $customerUser = User::factory()->customer()->create();
+    $customer = $customerUser->customer()->firstOrFail();
+    $order = Order::factory()->for($customer)->create([
+        'order_type' => OrderType::Convection,
+        'production_stage' => ProductionStage::Design,
+        'user_id' => $customerUser->id,
+        'created_by' => $admin->id,
+    ]);
+
+    $this->actingAs($admin)
+        ->post(route('office.orders.attachments.store', $order), [
+            'title' => 'Mockup seragam v1',
+            'notes' => 'Referensi awal dari tim office.',
+            'attachment_type' => OrderAttachmentType::DesignProposal->value,
+            'file' => UploadedFile::fake()->create('mockup-seragam-v1.pdf', 320, 'application/pdf'),
+        ])
+        ->assertRedirect();
+
+    $this->actingAs($customerUser)
+        ->get(route('customer.orders.show', $order))
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Customer/Orders/Show')
+            ->has('order.attachments', 1, fn (Assert $attachmentPage) => $attachmentPage
+                ->where('file_name', 'mockup-seragam-v1.pdf')
+                ->where('title', 'Mockup seragam v1')
+                ->where('attachment_type', OrderAttachmentType::DesignProposal->value)
+                ->where('uploaded_by', $admin->name)
                 ->etc()
             )
         );

@@ -89,8 +89,11 @@ export default function TailorWizard({
         ? subtotal * (discountPolicy.percent / 100)
         : 0;
     const total = Math.max(subtotal - discount, 0);
+    const minimumDeposit = Math.ceil(total * 0.5);
     const dpRatio =
         total > 0 ? Number(form.data.payment_amount || 0) / total : 0;
+    const dpMeetsMinimum =
+        total > 0 && Number(form.data.payment_amount || 0) >= minimumDeposit;
     const errorMap = form.errors as Record<string, string | undefined>;
 
     const submit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -372,7 +375,7 @@ export default function TailorWizard({
                                     <Input
                                         id="payment_amount"
                                         type="number"
-                                        min="1"
+                                        min={minimumDeposit}
                                         value={form.data.payment_amount}
                                         onChange={(event) =>
                                             form.setData(
@@ -418,8 +421,8 @@ export default function TailorWizard({
                         <CardHeader>
                             <CardTitle>Ringkasan biaya</CardTitle>
                             <CardDescription>
-                                Validasi DP minimal 50% akan berlaku saat order
-                                dipindah ke status in progress.
+                                Order tailor hanya bisa dicatat jika DP awal
+                                minimal 50% dari total biaya.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -447,9 +450,9 @@ export default function TailorWizard({
                                     />
                                 </div>
                                 <p className="mt-2 text-xs text-muted-foreground">
-                                    {dpRatio >= 0.5
-                                        ? 'DP sudah memenuhi threshold 50%.'
-                                        : 'DP belum mencapai threshold 50% untuk memulai produksi.'}
+                                    {dpMeetsMinimum
+                                        ? 'DP sudah memenuhi minimum 50% dan order dapat dicatat.'
+                                        : `DP minimum yang harus diterima: ${formatCurrency(minimumDeposit)}.`}
                                 </p>
                             </div>
 
@@ -473,7 +476,11 @@ export default function TailorWizard({
                             <Button
                                 type="submit"
                                 className="w-full"
-                                disabled={form.processing || total <= 0}
+                                disabled={
+                                    form.processing ||
+                                    total <= 0 ||
+                                    !dpMeetsMinimum
+                                }
                             >
                                 Simpan order tailor
                             </Button>

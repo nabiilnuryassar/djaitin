@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;500;600;700;800&display=swap');
 
 @import 'tailwindcss';
 
@@ -10,8 +10,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-    --font-sans: 'Inter', ui-sans-serif, sans-serif;
-    --font-heading: 'Plus Jakarta Sans', ui-sans-serif, sans-serif;
+    --font-sans: 'Manrope', ui-sans-serif, sans-serif;
+    --font-heading: 'Bebas Neue', ui-sans-serif, sans-serif;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -95,18 +95,18 @@
     --sidebar-accent-foreground: oklch(0.95 0 0);
     --sidebar-border: oklch(0.22 0.04 259);
     --sidebar-ring: oklch(0.52 0.24 259);
-    --landing-shell: #f8faff;
-    --landing-sidebar: #162044;
-    --landing-primary: #2563eb;
-    --landing-accent: #f9c11a;
+    --landing-shell: #f7f7f5;
+    --landing-sidebar: #f7f7f5;
+    --landing-primary: #3b73b9;
+    --landing-accent: #ffd21f;
     --landing-surface: rgba(255, 255, 255, 0.7);
-    --landing-gold: #f9c11a;
-    --landing-blue-deep: #1b5ec5;
-    --landing-navy: #162044;
-    --landing-mist: #eff4ff;
-    --landing-ink: #0f172a;
-    --landing-heading-font: 'Plus Jakarta Sans', ui-sans-serif, sans-serif;
-    --landing-body-font: 'Inter', ui-sans-serif, sans-serif;
+    --landing-gold: #ffd21f;
+    --landing-blue-deep: #2c67b2;
+    --landing-navy: #123c78;
+    --landing-mist: #f7f7f5;
+    --landing-ink: #123c78;
+    --landing-heading-font: 'Bebas Neue', ui-sans-serif, sans-serif;
+    --landing-body-font: 'Manrope', ui-sans-serif, sans-serif;
 }
 
 .dark {

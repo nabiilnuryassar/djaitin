@@ -1,5 +1,12 @@
 import { Head, Link, usePoll } from '@inertiajs/react';
-import { Bell, CheckCheck, Package, Truck, Wallet } from 'lucide-react';
+import {
+    Bell,
+    CheckCheck,
+    Palette,
+    Package,
+    Truck,
+    Wallet,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import CustomerLayout from '@/layouts/customer-layout';
@@ -70,8 +77,8 @@ export default function CustomerNotificationsIndex({ notifications }: Props) {
                             </p>
                             <p className="max-w-xl text-sm leading-6 text-slate-600">
                                 Saat pembayaran diverifikasi, order diproses,
-                                atau pengiriman bergerak, update-nya akan
-                                muncul di halaman ini.
+                                atau pengiriman bergerak, update-nya akan muncul
+                                di halaman ini.
                             </p>
                         </CardContent>
                     </Card>
@@ -109,8 +116,7 @@ export default function CustomerNotificationsIndex({ notifications }: Props) {
                                                 {notification.message}
                                             </p>
                                             <p className="text-xs font-medium tracking-wide text-slate-500 uppercase">
-                                                {notification.created_at ??
-                                                    '-'}
+                                                {notification.created_at ?? '-'}
                                             </p>
                                             <div className="flex flex-wrap gap-2 text-sm text-slate-600">
                                                 {notification.payment_amount !==
@@ -141,7 +147,9 @@ export default function CustomerNotificationsIndex({ notifications }: Props) {
                                             </div>
                                             {notification.rejection_reason && (
                                                 <div className="rounded-2xl bg-red-50 px-3 py-2 text-sm text-red-700">
-                                                    {notification.rejection_reason}
+                                                    {
+                                                        notification.rejection_reason
+                                                    }
                                                 </div>
                                             )}
                                         </div>
@@ -216,6 +224,10 @@ function NotificationIcon({ type }: { type: string }) {
 
     if (type.includes('shipped')) {
         return <Truck className="size-5" />;
+    }
+
+    if (type.includes('design')) {
+        return <Palette className="size-5" />;
     }
 
     return <Package className="size-5" />;

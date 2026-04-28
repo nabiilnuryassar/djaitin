@@ -51,6 +51,16 @@ Verifikasi terakhir yang lulus:
 - audit log
 - admin master data
 
+## Alignment Narasi Bisnis
+
+Status readiness ini mengacu pada narasi bisnis tailor, pakaian siap pakai, dan konveksi:
+
+- tailor order wajib memiliki DP awal minimal 50% dari total biaya
+- konveksi wajib dibayar penuh sebelum dapat masuk produksi
+- ready-to-wear delivery memakai biaya master courier sebagai ongkir
+- loyalty tailor memakai diskon 20% setelah customer menjahit lebih dari 5 kali
+- nota dan kwitansi mengikuti status pembayaran terverifikasi
+
 ## Non-Blocking Catatan
 
 Hal-hal ini tidak menghalangi status MVP, tetapi penting untuk disiplin operasional:

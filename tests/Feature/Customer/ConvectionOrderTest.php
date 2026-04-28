@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\OrderAttachmentType;
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Enums\PaymentMethod;
@@ -13,7 +14,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
-test('customer can load convection request page and submit convection order with items', function () {
+test('customer can load convection create page and submit convection order with full payment', function () {
     Storage::fake('public');
 
     $user = User::factory()->customer()->create();
@@ -61,6 +62,7 @@ test('customer can load convection request page and submit convection order with
     $attachment = OrderAttachment::query()->where('order_id', $order->id)->firstOrFail();
 
     expect($order->order_type)->toBe(OrderType::Convection)
+        ->and($order->status)->toBe(OrderStatus::PendingPayment)
         ->and($order->company_name)->toBe('PT Mitra Seragam')
         ->and($order->production_stage)->toBe(ProductionStage::Design)
         ->and((float) $order->subtotal)->toBe(3200000.0)
@@ -68,7 +70,8 @@ test('customer can load convection request page and submit convection order with
         ->and($order->items()->count())->toBe(2)
         ->and($payment->method)->toBe(PaymentMethod::Transfer)
         ->and($payment->status)->toBe(PaymentStatus::PendingVerification)
-        ->and($attachment->file_name)->toBe('design-board.pdf');
+        ->and($attachment->file_name)->toBe('design-board.pdf')
+        ->and($attachment->attachment_type)->toBe(OrderAttachmentType::Reference);
 
     Storage::disk('public')->assertExists($attachment->file_path);
 
@@ -83,6 +86,7 @@ test('customer can load convection request page and submit convection order with
             ->has('order.items', 2)
             ->has('order.attachments', 1, fn (Assert $attachmentPage) => $attachmentPage
                 ->where('file_name', 'design-board.pdf')
+                ->where('attachment_type', 'reference')
                 ->etc()
             )
         );

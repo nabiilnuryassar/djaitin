@@ -31,11 +31,22 @@ test('customer dashboard summary only includes owned records', function () {
     $foreignOrder = Order::factory()->for($foreignCustomer)->create();
 
     Payment::factory()->for($ownedOrder)->transfer()->create([
+        'amount' => 50000,
         'status' => PaymentStatus::Rejected,
+        'created_at' => now()->subMinute(),
+    ]);
+
+    Payment::factory()->for($ownedOrder)->verified()->create([
+        'amount' => 150000,
+        'created_at' => now(),
     ]);
 
     Payment::factory()->for($foreignOrder)->transfer()->create([
         'status' => PaymentStatus::Rejected,
+    ]);
+
+    Payment::factory()->for($foreignOrder)->verified()->create([
+        'amount' => 900000,
     ]);
 
     $this->actingAs($user)
@@ -43,9 +54,14 @@ test('customer dashboard summary only includes owned records', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Customer/Dashboard/Index')
+            ->where('customerProfile.name', $customer->name)
             ->where('summary.active_orders', 2)
             ->where('summary.pending_payments', 1)
-            ->where('summary.saved_measurements', 1),
+            ->where('summary.saved_measurements', 1)
+            ->where('summary.total_spending', 150000)
+            ->has('recentOrders', 2)
+            ->has('recentPayments', 2)
+            ->where('recentPayments.0.amount', 150000),
         );
 });
 

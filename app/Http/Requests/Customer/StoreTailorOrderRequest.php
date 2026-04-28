@@ -20,6 +20,11 @@ class StoreTailorOrderRequest extends FormRequest
         return [
             'garment_model_id' => ['required', 'integer', Rule::exists('garment_models', 'id')->where('is_active', true)],
             'fabric_id' => ['required', 'integer', Rule::exists('fabrics', 'id')->where('is_active', true)],
+            'wizard_preferences' => ['nullable', 'array'],
+            'wizard_preferences.desired_fit' => ['nullable', Rule::in(['Slim', 'Regular', 'Relaxed'])],
+            'wizard_preferences.occasion' => ['nullable', Rule::in(['Office', 'Wedding', 'Daily', 'Event', 'Uniform'])],
+            'wizard_preferences.style_traits' => ['nullable', 'array'],
+            'wizard_preferences.style_traits.*' => ['string', Rule::in(['Wibawa', 'Kreatif', 'Efisien', 'Inovatif'])],
             'measurement_mode' => ['required', Rule::in(['saved', 'manual', 'offline'])],
             'measurement_id' => ['nullable', 'integer', 'exists:measurements,id'],
             'manual_measurement.label' => ['nullable', 'string', 'max:100'],

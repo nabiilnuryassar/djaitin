@@ -53,20 +53,46 @@ export default function DiscountsIndex({
                     <CardContent className="space-y-6">
                         <form
                             {...office.admin.discounts.update.form(policyId)}
-                            className="grid gap-3 md:grid-cols-2"
+                            className="grid gap-4 md:grid-cols-2"
                         >
-                            <input
-                                name="loyalty_order_threshold"
-                                type="number"
-                                defaultValue={values.loyalty_order_threshold}
-                                className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm"
-                            />
-                            <input
-                                name="loyalty_discount_percent"
-                                type="number"
-                                defaultValue={values.loyalty_discount_percent}
-                                className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm"
-                            />
+                            <label className="space-y-2">
+                                <span className="text-sm font-semibold text-[#0F172A]">
+                                    Batas order tailor closed
+                                </span>
+                                <input
+                                    name="loyalty_order_threshold"
+                                    type="number"
+                                    min={1}
+                                    defaultValue={
+                                        values.loyalty_order_threshold
+                                    }
+                                    className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
+                                />
+                                <span className="block text-xs leading-5 text-slate-500">
+                                    Diskon aktif setelah pelanggan menutup lebih
+                                    dari nilai ini. Jika nilainya 5, diskon
+                                    mulai berlaku pada order tailor ke-6.
+                                </span>
+                            </label>
+                            <label className="space-y-2">
+                                <span className="text-sm font-semibold text-[#0F172A]">
+                                    Persentase diskon
+                                </span>
+                                <input
+                                    name="loyalty_discount_percent"
+                                    type="number"
+                                    min={0}
+                                    max={100}
+                                    defaultValue={
+                                        values.loyalty_discount_percent
+                                    }
+                                    className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm"
+                                />
+                                <span className="block text-xs leading-5 text-slate-500">
+                                    Nilai default sesuai narasi bisnis adalah
+                                    20% untuk pelanggan yang sudah loyal.
+                                </span>
+                            </label>
                             {can.update && (
                                 <div className="md:col-span-2">
                                     <Button type="submit">

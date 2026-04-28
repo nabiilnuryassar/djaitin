@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Customer;
 
+use App\Enums\OrderAttachmentType;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UploadAttachmentRequest extends FormRequest
 {
@@ -15,6 +17,9 @@ class UploadAttachmentRequest extends FormRequest
     {
         return [
             'file' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'title' => ['nullable', 'string', 'max:120'],
+            'notes' => ['nullable', 'string'],
+            'attachment_type' => ['required', Rule::in(array_column(OrderAttachmentType::cases(), 'value'))],
         ];
     }
 }

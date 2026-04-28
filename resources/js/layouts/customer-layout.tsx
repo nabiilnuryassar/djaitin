@@ -4,15 +4,14 @@ import {
     ClipboardList,
     Home,
     LogOut,
-    Package,
     ShoppingBag,
     Shirt,
     UserCircle2,
-    Wallet,
 } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import { CustomerMobileBottomBar } from '@/components/customer-mobile-bottom-bar';
 import { FlashMessage } from '@/components/flash-message';
+import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { useForceLightTheme } from '@/hooks/use-force-light-theme';
 import customer from '@/routes/customer';
@@ -23,50 +22,8 @@ import type { SharedPageProps } from '@/types/auth';
 type NavigationItem = {
     label: string;
     href: ReturnType<typeof customer.home>;
-    icon: typeof Home;
     match: string;
 };
-
-const customerNavigation: NavigationItem[] = [
-    {
-        label: 'Beranda',
-        href: customer.home(),
-        icon: Home,
-        match: '/app',
-    },
-    {
-        label: 'Tailor',
-        href: customer.services.tailor(),
-        icon: Shirt,
-        match: '/app/services/tailor',
-    },
-    {
-        label: 'Katalog',
-        href: customer.catalog.index(),
-        icon: ShoppingBag,
-        match: '/app/catalog',
-    },
-    {
-        label: 'Pesanan',
-        href: customer.orders.index(),
-        icon: ClipboardList,
-        match: '/app/orders',
-    },
-    {
-        label: 'Pembayaran',
-        href: customer.payments.index(),
-        icon: Wallet,
-        match: '/app/payments',
-    },
-    {
-        label: 'Profil',
-        href: customer.profile.edit({
-            query: { section: 'profile' },
-        }),
-        icon: UserCircle2,
-        match: '/app/profile',
-    },
-];
 
 export default function CustomerLayout({ children }: PropsWithChildren) {
     useForceLightTheme();
@@ -76,27 +33,62 @@ export default function CustomerLayout({ children }: PropsWithChildren) {
     const user = page.props.auth.user;
     const isCustomer = user?.role === 'customer';
     const unreadNotificationsCount = page.props.unread_notifications_count ?? 0;
+    const customerNavigation: NavigationItem[] = [
+        {
+            label: 'Beranda',
+            href: isCustomer ? customer.dashboard() : customer.home(),
+            match: isCustomer ? customer.dashboard.url() : '/app',
+        },
+        {
+            label: 'Tailor',
+            href: isCustomer
+                ? customer.tailor.configure()
+                : customer.services.tailor(),
+            match: isCustomer
+                ? customer.tailor.configure.url()
+                : '/app/services/tailor',
+        },
+        {
+            label: 'Katalog',
+            href: customer.catalog.index(),
+            match: '/app/catalog',
+        },
+        {
+            label: 'Pesanan',
+            href: customer.orders.index(),
+            match: '/app/orders',
+        },
+        {
+            label: 'Pembayaran',
+            href: customer.payments.index(),
+            match: '/app/payments',
+        },
+        {
+            label: 'Profil',
+            href: customer.profile.edit({
+                query: { section: 'profile' },
+            }),
+            match: '/app/profile',
+        },
+    ];
 
     return (
-        <div className="min-h-screen bg-[#F8FAFF] bg-[radial-gradient(circle_at_top,_rgba(37,99,235,0.12),_transparent_40%)] pb-[env(safe-area-inset-bottom)] text-[#0F172A]">
-            <header className="sticky top-0 z-20 border-b border-[#DBEAFE] bg-white/92 backdrop-blur">
-                <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
+        <div className="min-h-screen bg-[#eef3fb] bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.12),_transparent_32%),linear-gradient(180deg,_#f7f9fe_0%,_#eef3fb_100%)] pb-[env(safe-area-inset-bottom)] text-[#0F172A]">
+            <header className="sticky top-0 z-20 border-b border-white/60 bg-white/78 backdrop-blur-xl">
+                <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
                     <div className="flex items-center gap-3">
                         <Link
-                            href={customer.home()}
-                            className="flex items-center gap-3"
+                            href={
+                                isCustomer
+                                    ? customer.dashboard()
+                                    : customer.home()
+                            }
+                            className="inline-flex items-center gap-3 rounded-2xl bg-[#162044] px-3 py-2 text-white shadow-[0_18px_40px_rgba(15,23,42,0.16)]"
                         >
-                            <div className="rounded-2xl bg-[#162044] p-2 text-[#F9C11A] shadow-[0_12px_28px_rgba(22,32,68,0.18)]">
-                                <Package className="size-5" />
-                            </div>
-                            <div>
-                                <p className="text-xs font-semibold tracking-[0.22em] text-[#2563EB] uppercase">
-                                    Djaitin
-                                </p>
-                                <p className="[font-family:var(--font-heading)] font-semibold text-[#0F172A]">
-                                    Customer Portal
-                                </p>
-                            </div>
+                            <Logo className="size-7" />
+                            <span className="text-xs font-semibold tracking-[0.22em] uppercase">
+                                Djaitin
+                            </span>
                         </Link>
                     </div>
 
@@ -107,49 +99,45 @@ export default function CustomerLayout({ children }: PropsWithChildren) {
                                 href={item.href}
                                 className={navClassName(currentUrl, item.match)}
                             >
-                                <item.icon className="size-4" />
                                 {item.label}
                             </Link>
                         ))}
-                        {isCustomer && (
-                            <Link
-                                href={customer.notifications.index()}
-                                className={navClassName(
-                                    currentUrl,
-                                    '/app/notifications',
-                                )}
-                            >
-                                <Bell className="size-4" />
-                                Notifikasi
-                                {unreadNotificationsCount > 0 && (
-                                    <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-[#F9C11A] px-1.5 py-0.5 text-[11px] font-semibold text-[#162044]">
-                                        {unreadNotificationsCount}
-                                    </span>
-                                )}
-                            </Link>
-                        )}
                     </nav>
 
                     <div className="hidden items-center gap-3 md:flex">
                         {isCustomer ? (
                             <>
-                                <div className="text-right">
-                                    <p className="text-sm font-medium">
-                                        {user?.name}
-                                    </p>
-                                    <p className="text-xs text-slate-600">
-                                        {user?.email}
-                                    </p>
+                                <Link
+                                    href={customer.notifications.index()}
+                                    className="relative inline-flex size-10 items-center justify-center rounded-full bg-white text-[#162044] ring-1 ring-[#dbe4f5] transition hover:bg-[#f3f7ff]"
+                                >
+                                    <Bell className="size-4" />
+                                    {unreadNotificationsCount > 0 && (
+                                        <span className="absolute top-0.5 right-0.5 inline-flex min-w-5 items-center justify-center rounded-full bg-[#f4b21a] px-1 py-0.5 text-[10px] font-semibold text-[#162044]">
+                                            {unreadNotificationsCount}
+                                        </span>
+                                    )}
+                                </Link>
+                                <div className="flex items-center gap-3 rounded-full bg-white px-2 py-1.5 ring-1 ring-[#dbe4f5]">
+                                    <div className="text-right">
+                                        <p className="text-sm font-semibold text-[#162044]">
+                                            {user?.name}
+                                        </p>
+                                        <p className="text-xs text-slate-500">
+                                            Premium Member
+                                        </p>
+                                    </div>
+                                    <div className="flex size-9 items-center justify-center rounded-full bg-[linear-gradient(135deg,#f4b21a_0%,#ffdd83_100%)] text-sm font-semibold text-[#162044]">
+                                        {user?.name?.charAt(0).toUpperCase()}
+                                    </div>
                                 </div>
-                                <Button
+                                <button
                                     type="button"
-                                    variant="outline"
-                                    className="border-[#DBEAFE] bg-white text-[#1B5EC5] hover:bg-[#EFF4FF] hover:text-[#1B5EC5]"
+                                    className="inline-flex size-10 items-center justify-center rounded-full border border-[#dbe4f5] bg-white text-slate-500 transition hover:bg-[#f3f7ff] hover:text-[#1B5EC5]"
                                     onClick={() => router.post(logout().url)}
                                 >
                                     <LogOut className="size-4" />
-                                    Keluar
-                                </Button>
+                                </button>
                             </>
                         ) : user ? (
                             <Button asChild>
@@ -175,9 +163,9 @@ export default function CustomerLayout({ children }: PropsWithChildren) {
                 </div>
             </header>
 
-            <div className="mx-auto max-w-6xl px-6 py-8 pb-28 md:pb-8">
+            <div className="mx-auto max-w-7xl px-6 py-8 pb-28 md:pb-8">
                 <FlashMessage />
-                <div className="mt-6">{children}</div>
+                <div className="mt-2">{children}</div>
             </div>
 
             <CustomerMobileBottomBar
@@ -196,7 +184,7 @@ function navClassName(currentUrl: string, match: string): string {
     return [
         'inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm transition-colors duration-200',
         isActive
-            ? 'bg-[#2563EB] text-white shadow-[0_10px_24px_rgba(37,99,235,0.18)]'
-            : 'bg-white text-[#162044] ring-1 ring-[#DBEAFE] hover:bg-[#EFF4FF]',
+            ? 'bg-[#2f62d8] text-white shadow-[0_10px_24px_rgba(37,99,235,0.18)]'
+            : 'bg-white/80 text-[#162044] ring-1 ring-[#dbe4f5] hover:bg-[#f3f7ff]',
     ].join(' ');
 }

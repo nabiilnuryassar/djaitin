@@ -75,11 +75,11 @@ class CheckoutController extends Controller
                 ->map(fn (Courier $courier): array => [
                     'id' => $courier->id,
                     'name' => $courier->name,
+                    'base_fee' => (float) $courier->base_fee,
                 ])
                 ->values(),
             'summary' => [
                 'subtotal' => $cart->totalAmount(),
-                'delivery_fee' => (float) ReadyWearOrderService::DELIVERY_FEE,
             ],
             'paymentMethods' => [
                 ['value' => PaymentMethod::Cash->value, 'label' => 'Cash saat pickup'],

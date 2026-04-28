@@ -1,134 +1,417 @@
-# Deployment Runbook — Production
+# Deployment Runbook — Djaitin Production Server
 
-## 1. Pre-Deployment
+## 1. Tujuan
 
-Pastikan sebelum deploy:
+Runbook ini menjadi panduan deploy Djaitin ke server production/staging. Jalur utama yang direkomendasikan adalah Docker Compose karena dependency PHP, Nginx, PostgreSQL, queue worker, dan scheduler sudah distandarkan di repo.
 
-- branch release sudah final
-- migration baru sudah direview
-- env production sudah lengkap
-- queue, storage, dan mail sudah siap
+Referensi detail Docker ada di [DOCKER-SETUP.md](./DOCKER-SETUP.md).
 
-## 2. Minimum Environment
+Deploy utama di server dapat dijalankan dengan satu command:
 
-- PHP 8.4+
-- PostgreSQL
-- ekstensi yang dibutuhkan Laravel dan DomPDF
-- writable storage dan bootstrap cache
+```bash
+APP_URL=https://domain-production.com APP_PORT=8000 ./scripts/deploy.sh --seed
+```
 
-## 3. Checklist `.env`
+Gunakan `--seed` hanya pada first deployment. Untuk update release berikutnya cukup jalankan:
 
-Minimal cek:
+```bash
+./scripts/deploy.sh
+```
 
-- `APP_NAME`
-- `APP_ENV=production`
-- `APP_DEBUG=false`
-- `APP_URL`
-- `DB_*`
-- `MAIL_*`
-- `SESSION_DRIVER`
-- `QUEUE_CONNECTION`
-- `FILESYSTEM_DISK=public`
+## 2. Arsitektur Deployment
 
-## 4. Step Deployment
+```text
+Internet
+  |
+  | HTTPS
+  v
+Reverse Proxy Host / Load Balancer
+  |
+  | HTTP internal port APP_PORT
+  v
+Docker nginx -> Docker app PHP-FPM -> PostgreSQL
+                         |
+                         +-> worker queue
+                         +-> scheduler
+```
 
-### 4.1 Pull Code
+Komponen:
+
+- `nginx`: menerima HTTP internal dan meneruskan request PHP ke `app`.
+- `app`: menjalankan Laravel PHP-FPM.
+- `postgres`: database utama.
+- `worker`: memproses queue berbasis database.
+- `scheduler`: menjalankan Laravel scheduler setiap 60 detik.
+
+## 3. Requirement Server
+
+Minimal staging:
+
+- Ubuntu 22.04/24.04 LTS atau distro Linux setara
+- Docker Engine 24+
+- Docker Compose v2
+- RAM 2 GB
+- Disk 20 GB
+
+Rekomendasi production:
+
+- RAM 4 GB+
+- Disk 50 GB+ tergantung volume upload
+- backup database harian
+- backup storage harian
+- reverse proxy dengan SSL
+- monitoring log dan disk usage
+
+## 4. Environment Production
+
+Buat file env:
+
+```bash
+cp .env.docker.example .env.docker
+```
+
+Nilai wajib diganti:
+
+```env
+APP_NAME=Djaitin
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://domain-production.com
+APP_PORT=8000
+
+DB_DATABASE=djaitin
+DB_USERNAME=djaitin
+DB_PASSWORD=<password-kuat>
+
+MAIL_MAILER=smtp
+MAIL_HOST=<smtp-host>
+MAIL_PORT=587
+MAIL_USERNAME=<smtp-user>
+MAIL_PASSWORD=<smtp-password>
+MAIL_FROM_ADDRESS=no-reply@domain-production.com
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+Generate `APP_KEY`:
+
+```bash
+docker compose --env-file .env.docker run --rm app php artisan key:generate --show
+```
+
+Salin output ke `APP_KEY` di `.env.docker`.
+
+## 5. First Deployment
+
+### Jalur Satu Command
+
+1. Clone repo dan masuk ke folder aplikasi:
+
+```bash
+git clone <repo-url> djaitin-app
+cd djaitin-app
+```
+
+2. Jalankan deploy awal:
+
+```bash
+APP_URL=https://domain-production.com APP_PORT=8000 ./scripts/deploy.sh --seed
+```
+
+Script akan membuat `.env.docker` jika belum ada, generate `APP_KEY`, generate `DB_PASSWORD` jika masih default/kosong, build image, start service, menjalankan migration, menjalankan `ProductionStarterSeeder`, optimize Laravel, dan restart worker/scheduler.
+
+Catat credential starter yang muncul di console, lalu ganti password setelah login pertama.
+
+### Jalur Manual
+
+Gunakan jalur manual jika perlu debugging per langkah atau environment server membutuhkan proses deploy khusus.
+
+1. Clone repo:
+
+```bash
+git clone <repo-url> djaitin-app
+cd djaitin-app
+```
+
+2. Siapkan `.env.docker` sesuai section environment.
+
+3. Build image:
+
+```bash
+docker compose --env-file .env.docker build --pull
+```
+
+4. Start service:
+
+```bash
+docker compose --env-file .env.docker up -d
+```
+
+5. Jalankan migration:
+
+```bash
+docker compose --env-file .env.docker exec app php artisan migrate --force
+```
+
+6. Jalankan starter seeder untuk akun internal dan master data awal:
+
+```bash
+docker compose --env-file .env.docker exec app php artisan db:seed --class=ProductionStarterSeeder --force
+```
+
+Catat credential yang muncul, lalu ganti password setelah login pertama.
+
+7. Optimize Laravel:
+
+```bash
+docker compose --env-file .env.docker exec app php artisan optimize
+```
+
+8. Validasi:
+
+```bash
+docker compose --env-file .env.docker ps
+docker compose --env-file .env.docker logs --tail=100 app
+docker compose --env-file .env.docker logs --tail=100 nginx
+```
+
+## 6. Reverse Proxy Dan SSL
+
+Container `nginx` expose port dari `APP_PORT`, default `8000`. Di production, pasang reverse proxy host untuk HTTPS.
+
+Contoh Nginx host:
+
+```nginx
+server {
+    listen 80;
+    server_name domain-production.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name domain-production.com;
+
+    ssl_certificate /etc/letsencrypt/live/domain-production.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/domain-production.com/privkey.pem;
+
+    client_max_body_size 25m;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
+```
+
+Pastikan `APP_URL=https://domain-production.com`.
+
+## 7. Release Update
+
+Jalur rekomendasi untuk update release:
+
+```bash
+cd /path/to/djaitin-app
+./scripts/deploy.sh
+```
+
+Jika source sudah di-pull oleh CI/CD atau proses lain:
+
+```bash
+./scripts/deploy.sh --no-pull
+```
+
+Jika hanya ingin restart dan optimize tanpa build image:
+
+```bash
+./scripts/deploy.sh --no-build
+```
+
+Langkah manual di bawah ini tetap tersedia sebagai fallback.
+
+1. Masuk folder repo:
+
+```bash
+cd /path/to/djaitin-app
+```
+
+2. Pull release terbaru:
 
 ```bash
 git pull origin <release-branch>
-composer install --no-dev --optimize-autoloader
-npm ci
-npm run build
 ```
 
-### 4.2 Laravel Optimize
+3. Build image baru:
 
 ```bash
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-php artisan event:cache
+docker compose --env-file .env.docker build --pull
 ```
 
-### 4.3 Database & Storage
+4. Masuk maintenance mode:
 
 ```bash
-php artisan migrate --force
-php artisan storage:link
+docker compose --env-file .env.docker exec app php artisan down
 ```
 
-### 4.4 Starter Data
-
-Untuk fresh production:
+5. Restart service dengan image baru:
 
 ```bash
-php artisan db:seed --class=ProductionStarterSeeder --force
+docker compose --env-file .env.docker up -d
 ```
 
-Untuk environment demo/internal:
+6. Jalankan migration:
 
 ```bash
-php artisan migrate:fresh --seed
+docker compose --env-file .env.docker exec app php artisan migrate --force
 ```
 
-## 5. Post-Deploy Validation
+7. Rebuild cache:
 
-### Customer Surface
+```bash
+docker compose --env-file .env.docker exec app php artisan optimize:clear
+docker compose --env-file .env.docker exec app php artisan optimize
+```
 
-- halaman publik terbuka
-- register/login customer berjalan
-- dashboard customer terbuka
-- catalog, checkout, notifications terbuka
+8. Restart worker dan scheduler:
 
-### Office Surface
+```bash
+docker compose --env-file .env.docker exec app php artisan queue:restart
+docker compose --env-file .env.docker restart worker scheduler
+```
+
+9. Keluar maintenance mode:
+
+```bash
+docker compose --env-file .env.docker exec app php artisan up
+```
+
+## 8. Post-Deploy Validation
+
+Customer:
+
+- landing page terbuka
+- login/register berjalan
+- dashboard `/app` terbuka
+- tailor configurator bisa submit dengan DP minimal 50%
+- katalog dan checkout RTW berjalan
+- convection request berjalan
+- pembayaran transfer bisa upload bukti
+
+Office:
 
 - login staff berjalan
-- dashboard office terbuka
-- orders, payments, production, shipping, reports dapat diakses sesuai role
+- dashboard `/office` terbuka
+- order detail bisa dibuka
+- payment transfer bisa verify/reject
+- production board bisa update stage
+- shipping bisa update resi/status
+- nota dan kwitansi bisa diunduh
+- laporan bisa export
 
-### Documents
-
-- nota PDF bisa diunduh
-- kwitansi PDF bisa diunduh
-- export report PDF / CSV bisa diunduh
-
-## 6. Security Step Setelah Deploy
-
-1. rotasi password starter accounts
-2. pastikan tidak ada akun demo yang aktif di production
-3. pastikan `APP_DEBUG=false`
-4. cek permission file upload
-
-## 7. Observability Minimum
-
-- pantau log Laravel setelah deploy
-- pantau browser log bila ada issue frontend
-- review error payment, upload proof, shipment update, dan report export
-
-## 8. Rollback Thinking
-
-Siapkan rollback jika:
-
-- migration merusak flow inti
-- login gagal
-- report/export gagal
-- payment verification gagal
-
-Rollback minimal:
-
-- kembalikan code ke release stabil terakhir
-- restore database jika migration destruktif
-- rebuild assets dari release stabil
-
-## 9. Command Ringkas Release
+Command tambahan:
 
 ```bash
-composer install --no-dev --optimize-autoloader
-npm ci
-npm run build
-php artisan migrate --force
-php artisan db:seed --class=ProductionStarterSeeder --force
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+docker compose --env-file .env.docker exec app php artisan about
+docker compose --env-file .env.docker exec app php artisan queue:failed
 ```
+
+## 9. Backup
+
+Buat folder backup:
+
+```bash
+mkdir -p backups
+```
+
+Backup database:
+
+```bash
+docker compose --env-file .env.docker exec postgres pg_dump -U djaitin djaitin > backups/djaitin-$(date +%Y%m%d-%H%M%S).sql
+```
+
+Backup storage:
+
+```bash
+docker run --rm -v djaitin-app_app-storage:/data -v "$PWD/backups:/backups" alpine tar czf /backups/djaitin-storage-$(date +%Y%m%d-%H%M%S).tar.gz -C /data .
+```
+
+Rekomendasi:
+
+- backup database harian
+- backup storage harian
+- simpan backup minimal di storage terpisah dari server utama
+- test restore minimal sebelum go-live
+
+## 10. Rollback
+
+Rollback code:
+
+```bash
+git checkout <tag-atau-commit-stabil>
+docker compose --env-file .env.docker build
+docker compose --env-file .env.docker up -d
+docker compose --env-file .env.docker exec app php artisan optimize:clear
+docker compose --env-file .env.docker exec app php artisan optimize
+```
+
+Jika migration sudah mengubah data secara destruktif, rollback code saja tidak cukup. Restore database dari backup terakhir yang valid.
+
+## 11. Security Checklist
+
+- `APP_DEBUG=false`
+- `.env.docker` tidak masuk git
+- password database kuat
+- akun starter sudah diganti password
+- domain memakai HTTPS
+- folder backup tidak berada di public web root
+- server firewall hanya membuka port yang diperlukan
+- akses SSH memakai key, bukan password
+- backup rutin diuji restore
+
+## 12. Troubleshooting Deployment
+
+### Halaman 500 setelah deploy
+
+Command:
+
+```bash
+docker compose --env-file .env.docker logs --tail=200 app
+docker compose --env-file .env.docker exec app php artisan optimize:clear
+```
+
+Cek:
+
+- `.env.docker`
+- koneksi database
+- `APP_KEY`
+- permission `storage` dan `bootstrap/cache`
+
+### Asset tidak berubah
+
+Rebuild image:
+
+```bash
+docker compose --env-file .env.docker build --no-cache nginx app
+docker compose --env-file .env.docker up -d
+```
+
+### Queue tidak memproses notifikasi
+
+Command:
+
+```bash
+docker compose --env-file .env.docker logs --tail=200 worker
+docker compose --env-file .env.docker exec app php artisan queue:restart
+docker compose --env-file .env.docker restart worker
+```
+
+### Upload file gagal
+
+Cek:
+
+- `FILESYSTEM_DISK=public`
+- volume `app-storage`
+- batas upload Nginx/PHP 25 MB
+- folder `storage/app/public`

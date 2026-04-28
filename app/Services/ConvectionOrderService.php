@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\OrderAttachmentType;
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Enums\PaymentMethod;
@@ -23,6 +24,11 @@ class ConvectionOrderService
     ) {}
 
     /**
+     * Buat order konveksi baru dengan pembayaran penuh.
+     *
+     * Sesuai PRD: customer wajib menyertakan item + harga + full payment.
+     * Tidak ada flow quotation/request_quote.
+     *
      * @param  array{
      *     company_name: string,
      *     spec_notes?: string|null,
@@ -47,9 +53,9 @@ class ConvectionOrderService
         return DB::transaction(function () use ($payload, $user, $ipAddress): Order {
             $customer = $user->customer()->firstOrFail();
             $subtotal = round(collect($payload['items'])->sum(
-                fn (array $item): float => (int) $item['qty'] * round((float) $item['unit_price'], 2),
+                fn (array $item): float => (int) $item['qty'] * round((float) ($item['unit_price'] ?? 0), 2),
             ), 2);
-            $paymentAmount = round((float) $payload['payment']['amount'], 2);
+            $paymentAmount = round((float) data_get($payload, 'payment.amount', 0), 2);
 
             if ($subtotal <= 0) {
                 throw ValidationException::withMessages([
@@ -83,7 +89,7 @@ class ConvectionOrderService
             ]);
 
             foreach ($payload['items'] as $item) {
-                $unitPrice = round((float) $item['unit_price'], 2);
+                $unitPrice = round((float) ($item['unit_price'] ?? 0), 2);
 
                 OrderItem::query()->create([
                     'order_id' => $order->id,
@@ -111,6 +117,11 @@ class ConvectionOrderService
                 $order,
                 $payload['reference_file'],
                 $user,
+                [
+                    'title' => 'Referensi awal customer',
+                    'notes' => $payload['spec_notes'] ?? null,
+                    'attachment_type' => OrderAttachmentType::Reference,
+                ],
                 $ipAddress,
             );
 

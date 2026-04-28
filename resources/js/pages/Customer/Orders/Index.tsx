@@ -40,7 +40,8 @@ export default function CustomerOrdersIndex({ orders }: Props) {
                             Orders
                         </p>
                         <h1 className="[font-family:var(--font-heading)] text-3xl font-semibold tracking-tight text-[#0F172A]">
-                            Riwayat order tailor dan ready-to-wear customer.
+                            Riwayat order tailor, konveksi, dan ready-to-wear
+                            customer.
                         </h1>
                         <p className="max-w-2xl text-sm leading-7 text-slate-600">
                             Detail di bawah hanya menampilkan order yang
@@ -160,7 +161,15 @@ function formatCurrency(value: number): string {
 }
 
 function orderTypeLabel(orderType: string): string {
-    return orderType === 'ready_wear' ? 'Ready-to-Wear' : 'Tailor';
+    if (orderType === 'ready_wear') {
+        return 'Ready-to-Wear';
+    }
+
+    if (orderType === 'convection') {
+        return 'Convection';
+    }
+
+    return 'Tailor';
 }
 
 function orderSummary(order: Props['orders'][number]): string {

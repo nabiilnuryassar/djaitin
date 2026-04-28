@@ -69,9 +69,10 @@ class ProductionController extends Controller
                     'label' => str($item->value)->replace('_', ' ')->title()->value(),
                 ])->values(),
             'quickStatuses' => collect(OrderStatus::cases())
-                ->reject(fn (OrderStatus $item): bool => in_array($item, [
-                    OrderStatus::Draft,
-                    OrderStatus::PendingPayment,
+                ->reject(fn (OrderStatus $item): bool => in_array($item->value, [
+                    OrderStatus::Draft->value,
+                    OrderStatus::PendingPayment->value,
+                    OrderStatus::AwaitingPrice->value,
                 ], true))
                 ->map(fn (OrderStatus $item): array => [
                     'value' => $item->value,

@@ -1,1016 +1,897 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import {
     ArrowRight,
     BadgeCheck,
-    Boxes,
-    ChartColumnBig,
+    Building2,
+    ChevronRight,
+    ClipboardCheck,
+    Layers3,
+    PackageCheck,
+    PenTool,
+    Ruler,
+    Scissors,
     ShieldCheck,
+    Shirt,
     Sparkles,
+    SwatchBook,
+    Users2,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import { motion, useScroll, useTransform } from 'motion/react';
+import {
+    type CSSProperties,
+    type MouseEvent as ReactMouseEvent,
+    useEffect,
+    useRef,
+    useState,
+} from 'react';
+import { Logo } from '@/components/Logo';
+import { Button } from '@/components/ui/button';
 import LandingLayout from '@/layouts/landing-layout';
+import customer from '@/routes/customer';
 import { login } from '@/routes';
-import office from '@/routes/office';
-import type { User } from '@/types';
+import readyToWearImage from '../../../images/card-image/ready-to-wear.jpg';
+import fittingImage from '../../../images/card-image/fitting.jpg';
+import convectionImage from '../../../images/card-image/konveksi-1.jpg';
+import convectionDetailImage from '../../../images/card-image/konveksi-2.jpg';
+import batchImage from '../../../images/card-image/konveksi-3.jpg';
 import { CountUpStat } from './components/CountUpStat';
 import { FloatingNavbar } from './components/FloatingNavbar';
 import { LenisProvider } from './components/LenisProvider';
-import { MagneticButton } from './components/MagneticButton';
-import { RoleSurfaceShowcase } from './components/RoleSurfaceShowcase';
 import { SequenceScroll } from './components/SequenceScroll';
-import { TestimonialSlider } from './components/TestimonialSlider';
 import { TextReveal } from './components/TextReveal';
-import { WorkflowTimeline } from './components/WorkflowTimeline';
-import type {
-    LandingFeatureStory,
-    LandingHeroCue,
-    LandingNavItem,
-    LandingPersonaQuote,
-    LandingRoleSurface,
-    LandingServiceCard,
-    LandingStat,
-    LandingWorkflowLane,
-} from './types';
+import type { LandingHeroCue, LandingNavItem } from './types';
 
-const frameModules = import.meta.glob('../../../images/sequence/*.jpg', {
-    eager: true,
-    import: 'default',
-}) as Record<string, string>;
+type LandingPageProps = {
+    brand: {
+        name: string;
+        services: string[];
+        tagline: string;
+    };
+};
 
-const heroFrameSources = Object.entries(frameModules)
+const frameSources = Object.entries(
+    import.meta.glob('../../../images/sequence/*.jpg', {
+        eager: true,
+        import: 'default',
+    }),
+)
     .sort(([left], [right]) =>
         left.localeCompare(right, undefined, { numeric: true }),
     )
-    .map(([, source]) => source);
+    .map(([, source]) => source as string);
 
 const navItems: LandingNavItem[] = [
-    { id: 'hero', label: 'Beranda', kicker: '01' },
-    { id: 'manifesto', label: 'Manifesto', kicker: '02' },
-    { id: 'services', label: 'Layanan', kicker: '03' },
-    { id: 'roles', label: 'Peran', kicker: '04' },
-    { id: 'workflow', label: 'Alur Kerja', kicker: '05' },
-    { id: 'reports', label: 'Laporan', kicker: '06' },
-    { id: 'cta', label: 'Demo', kicker: '07' },
+    { id: 'hero', label: 'Intro', kicker: '00' },
+    { id: 'about', label: 'About', kicker: '01' },
+    { id: 'services', label: 'Services', kicker: '02' },
+    { id: 'trust', label: 'Trust', kicker: '03' },
+    { id: 'division', label: 'Division', kicker: '04' },
+    { id: 'awards', label: 'Proof', kicker: '05' },
 ];
 
 const heroCues: LandingHeroCue[] = [
     {
+        align: 'center',
+        badges: ['Bright Editorial Hero', 'Tailor to Production'],
+        description:
+            'Djaitin is a modern convection and tailoring brand that brings personal tailoring, ready pieces, and scaled production into one clear service flow.',
+        end: 0.18,
+        eyebrow: 'What is Djaitin?',
         start: 0,
-        end: 0.21,
-        align: 'center',
-        eyebrow: 'Scrollytelling public site',
-        title: 'Operasional konveksi yang akhirnya rapi.',
-        description:
-            'Dari order tailor, stok ready-to-wear, pembayaran, hingga laporan owner. Semua berada dalam satu sistem yang lebih jelas dibaca dan lebih tenang dioperasikan.',
-        badges: [
-            'Tailor order wizard',
-            'Payment verification',
-            'Owner visibility',
-        ],
+        title: 'A trusted convection brand for refined garments and reliable production.',
     },
     {
-        start: 0.22,
-        end: 0.47,
         align: 'left',
-        eyebrow: 'Tailor custom',
-        title: 'DP minimal 50% tervalidasi sebelum produksi berjalan.',
+        badges: ['Consultative', 'Measured', 'Personal'],
         description:
-            'Wizard order mencatat pelanggan, ukuran, model, bahan, loyalti, due date, dan DP secara terstruktur. Produksi tidak dimulai dari asumsi.',
-        badges: ['DP Gate 50%', 'Loyalty badge', 'Due date'],
+            'Tailor Custom starts from fit, silhouette, and fabric direction, then turns it into a garment that feels intentional on the body.',
+        end: 0.44,
+        eyebrow: '30% · Tailor Custom',
+        start: 0.19,
+        title: 'Custom tailoring shaped with precision, not guesswork.',
     },
     {
-        start: 0.48,
-        end: 0.73,
         align: 'right',
-        eyebrow: 'Ready-to-wear',
-        title: 'Stok real-time, checkout lebih cepat, clearance tetap terkendali.',
+        badges: ['Curated Drop', 'Fast Selection', 'Polished'],
         description:
-            'Kasir bisa menjual lebih cepat tanpa menebak stok. Barang tidak turun sebelum pembayaran terverifikasi, jadi angka inventori tetap bisa dipercaya.',
-        badges: ['No negative stock', 'Cart + size chips', 'Clearance aware'],
+            'Ready-to-Wear gives customers a faster route to Djaitin quality through curated essentials designed to stay clean, wearable, and brand-forward.',
+        end: 0.72,
+        eyebrow: '60% · Ready-to-Wear',
+        start: 0.45,
+        title: 'Ready pieces for those who need clarity and speed.',
     },
     {
-        start: 0.74,
-        end: 0.88,
         align: 'left',
-        eyebrow: 'Konveksi massal',
-        title: 'Produksi baru bergerak setelah pembayaran 100% verified.',
+        badges: ['Flexible Volume', 'Structured Delivery', 'Business Ready'],
         description:
-            'Pesanan massal mengikuti gerbang operasional yang jelas: PIC, item, qty, desain, QC, packing, lalu pengiriman. Tidak ada mulai dulu, bayar belakangan.',
-        badges: ['Payment Gate 100%', 'QC timeline', 'Company/PIC records'],
+            'Bulk Convection covers uniforms, event apparel, merchandise, and corporate orders with production discipline and clear communication.',
+        end: 0.9,
+        eyebrow: '85% · Bulk Convection',
+        start: 0.73,
+        title: 'Production capacity that stays dependable from sample to batch.',
     },
     {
-        start: 0.89,
+        align: 'right',
+        badges: ['Trusted Partner', 'Indonesia Ready', 'Brand Led'],
+        description:
+            'Djaitin is where craftsmanship, readiness, and production capability meet, for both personal orders and operational scale.',
         end: 1,
-        align: 'center',
-        eyebrow: 'Single operating system',
-        title: 'Pantau order, pembayaran, stok, dan laporan dalam satu alur.',
-        description:
-            'Lebih rapi untuk kasir. Lebih jelas untuk produksi. Lebih tenang untuk owner yang akhirnya bisa membaca kesehatan bisnis tanpa mengejar status manual.',
-        badges: ['4 peran operasional', 'Audit trail', 'Export-ready reports'],
+        eyebrow: 'Final State',
+        start: 0.91,
+        title: 'Djaitin is your trusted partner for tailoring, ready wear, and convection.',
     },
 ];
 
-const serviceCards: LandingServiceCard[] = [
+const services = [
     {
-        badge: 'Tailor',
-        title: 'Custom order yang ingat ukuran, loyalitas, dan due date.',
+        accent: 'bg-[#f0f6ff]',
         description:
-            'Semua data pelanggan dan garment history tersimpan untuk repeat order yang lebih cepat dan lebih akurat.',
-        highlights: ['Wizard 4 langkah', 'Ukuran history', 'DP gate 50%'],
-        accentClassName:
-            'from-[rgba(108,99,255,0.22)] to-[rgba(168,156,255,0.04)]',
-    },
-    {
-        badge: 'Ready-to-Wear',
-        title: 'Penjualan stok yang tetap cepat tanpa membuat inventori berbohong.',
-        description:
-            'Size chips, cart, clearance, dan validasi stok real-time dirancang untuk meja kasir yang sibuk.',
+            'For customers who need garments built around exact measurements, styling intent, and finishing discipline.',
         highlights: [
-            'Stock-aware checkout',
-            'Clearance badge',
-            'Shipping optional',
+            'Measured fitting flow',
+            'Fabric and silhouette direction',
+            'Personal consultation',
         ],
-        accentClassName:
-            'from-[rgba(14,165,233,0.18)] to-[rgba(240,249,255,0.08)]',
+        icon: Scissors,
+        title: 'Tailor Custom',
     },
     {
-        badge: 'Konveksi',
-        title: 'Bulk production dengan payment gate dan tahapan produksi yang tegas.',
+        accent: 'bg-[#fff8d8]',
         description:
-            'Company/PIC, daftar item, full payment, QC, packing, sampai pengiriman berada di satu permukaan kerja.',
-        highlights: ['Payment gate 100%', 'Production stages', 'PIC + company'],
-        accentClassName:
-            'from-[rgba(139,92,246,0.22)] to-[rgba(76,29,149,0.05)]',
+            'For customers who want faster access to Djaitin quality through refined ready-to-wear selections.',
+        highlights: [
+            'Curated capsule pieces',
+            'Immediate choice process',
+            'Clean retail presentation',
+        ],
+        icon: Shirt,
+        title: 'Ready-to-Wear',
+    },
+    {
+        accent: 'bg-[#edf4ef]',
+        description:
+            'For brands, schools, offices, communities, and events that need scalable garment production with clarity.',
+        highlights: [
+            'Sampling to batch workflow',
+            'Capacity planning',
+            'Business order handling',
+        ],
+        icon: Building2,
+        title: 'Bulk Convection',
     },
 ];
 
-const roleSurfaces: LandingRoleSurface[] = [
+const trustPoints = [
     {
-        role: 'Kasir / Front Office',
-        device: 'Mobile surface',
-        navStyle: 'Bottom nav + create FAB',
-        headline:
-            'Flow entry order dan pembayaran dibuat cepat untuk area depan toko.',
         description:
-            'Permukaan ini fokus pada create order, scan ringkasan, input pembayaran cash/transfer, dan cetak dokumen tanpa tenggelam dalam data yang tidak relevan.',
-        chips: ['Tailor entry', 'RTW checkout', 'Transfer pending'],
+            'Each order is grounded in fit logic, finishing care, and material sensitivity.',
+        icon: PenTool,
+        title: 'Craftsmanship that feels considered',
     },
     {
-        role: 'Tim Produksi',
-        device: 'Tablet surface',
-        navStyle: 'Compact rail',
-        headline:
-            'Produksi cukup melihat apa yang sedang berjalan dan apa yang sudah clear secara pembayaran.',
         description:
-            'Status berjalan per order, due date hari ini, dan catatan desain tetap terlihat tanpa mengganggu ritme kerja di area produksi.',
-        chips: ['In progress', 'QC queue', 'Due today'],
+            'Djaitin handles one-off personal pieces and larger structured production with the same clarity.',
+        icon: Layers3,
+        title: 'Flexible for personal and business needs',
     },
     {
-        role: 'Admin',
-        device: 'Desktop surface',
-        navStyle: 'Wide sidebar + topbar',
-        headline:
-            'Verifikasi pembayaran, master data, dan audit trail berada dalam satu panel kontrol.',
         description:
-            'Admin perlu membaca detail, memverifikasi transfer, menolak bukti yang salah, dan menjaga konsistensi data tanpa berpindah-pindah konteks.',
-        chips: ['Verify / reject', 'Master data', 'Audit log'],
+            'Service paths stay direct, so customers understand scope, progress, and output from the start.',
+        icon: ClipboardCheck,
+        title: 'Clear process, cleaner decisions',
     },
     {
-        role: 'Owner / Manager',
-        device: 'Desktop analytics',
-        navStyle: 'Read-only overview',
-        headline:
-            'Owner tidak mengelola detail harian, tetapi akhirnya bisa melihat bisnis secara utuh.',
         description:
-            'Omzet, pending transfer, stok kritis, dan loyal customer tampil sebagai ringkasan yang bisa dibaca cepat sebelum mengambil keputusan.',
-        chips: ['Revenue overview', 'Low stock', 'Loyal customers'],
+            'Production thinking supports uniforms, communities, campaigns, and recurring operational demand.',
+        icon: PackageCheck,
+        title: 'Capability that scales with demand',
     },
 ];
 
-const workflowLanes: LandingWorkflowLane[] = [
+const partnerItems = [
+    'Uniform Programs',
+    'Community Apparel',
+    'Corporate Orders',
+    'Ready Capsule',
+    'Custom Tailoring',
+    'Event Production',
+];
+
+const divisions = [
     {
-        label: 'Tailor',
-        gate: 'DP minimal 50%',
-        accentClassName: 'border-indigo-200 bg-indigo-50 text-indigo-700',
-        steps: [
-            'DRAFT: data pelanggan, model, bahan, ukuran, dan due date dirangkum.',
-            'PENDING_PAYMENT: sistem menunggu DP verified dengan nominal minimal 50%.',
-            'IN_PROGRESS: produksi baru berjalan setelah gerbang DP terpenuhi.',
-            'DONE hingga CLOSED: pelunasan wajib lunas sebelum serah terima dan penutupan order.',
-        ],
+        copy: 'Personal garments shaped around fit, fabric, and presence.',
+        icon: Ruler,
+        image: fittingImage,
+        title: 'Personal Tailoring',
     },
     {
-        label: 'Ready-to-Wear',
-        gate: 'Stok negatif = 0',
-        accentClassName: 'border-sky-200 bg-sky-50 text-sky-700',
-        steps: [
-            'Produk dipilih per size chip dengan stok saat ini.',
-            'Checkout tetap cepat karena kasir melihat validasi stok langsung.',
-            'Transfer masuk sebagai pending verification jika belum terkonfirmasi.',
-            'Stok baru dikurangi setelah pembayaran verified, bukan saat cart dibuat.',
-        ],
+        copy: 'Uniform systems for teams that need consistency and durability.',
+        icon: ShieldCheck,
+        image: convectionImage,
+        title: 'Uniforms',
     },
     {
-        label: 'Konveksi',
-        gate: 'Full payment 100%',
-        accentClassName: 'border-violet-200 bg-violet-50 text-violet-700',
-        steps: [
-            'PIC dan item produksi dikunci dari awal sebagai sumber koordinasi.',
-            'Pembayaran penuh wajib verified sebelum status produksi aktif.',
-            'Tahap desain, bahan, produksi, QC, dan packing terbaca jelas.',
-            'Pengiriman atau pickup terjadi setelah pipeline selesai dan tercatat.',
-        ],
+        copy: 'Event apparel with production control from sample through delivery.',
+        icon: Sparkles,
+        image: batchImage,
+        title: 'Event Apparel',
+    },
+    {
+        copy: 'Community merchandise that feels more refined than standard merch output.',
+        icon: Users2,
+        image: readyToWearImage,
+        title: 'Community Merchandise',
+    },
+    {
+        copy: 'Corporate and bulk orders with clearer communication and dependable batching.',
+        icon: BadgeCheck,
+        image: convectionDetailImage,
+        title: 'Corporate / Bulk Orders',
     },
 ];
 
-const stats: LandingStat[] = [
+const stats = [
     {
-        label: 'Layanan inti',
+        description: 'From personal tailoring to coordinated batch programs.',
+        label: 'Orders handled',
+        suffix: '+',
+        value: 420,
+    },
+    {
+        description:
+            'A workable structure for sampling, revisions, and production runs.',
+        label: 'Pieces per batch',
+        suffix: '+',
+        value: 1800,
+    },
+    {
+        description: 'Service designed for both individuals and organizations.',
+        label: 'Client segments',
         value: 3,
-        description:
-            'Tailor, ready-to-wear, dan konveksi tidak hidup sebagai modul terpisah.',
     },
     {
-        label: 'Peran operasional',
-        value: 4,
         description:
-            'Kasir, produksi, admin, dan owner masing-masing punya permukaan kerja sendiri.',
-    },
-    {
-        label: 'DP tailor',
-        value: 50,
-        suffix: '%',
-        description:
-            'Produksi tidak bergerak tanpa minimal DP verified sesuai aturan bisnis.',
-    },
-    {
-        label: 'Gate konveksi',
-        value: 100,
-        suffix: '%',
-        description:
-            'Konveksi baru masuk ke tahap produksi setelah pembayaran penuh terkonfirmasi.',
-    },
-    {
-        label: 'Stok negatif',
-        value: 0,
-        description:
-            'Checkout RTW menolak kuantitas yang melebihi stok yang benar-benar tersedia.',
+            'Tailor, RTW, and convection connected in one modern brand.',
+        label: 'Core service lines',
+        value: 3,
     },
 ];
 
-const featureStories: LandingFeatureStory[] = [
+const achievements = [
     {
-        badge: 'Pelanggan & Ukuran',
-        title: 'Riwayat ukuran dan preferensi tersusun untuk repeat order yang lebih cepat.',
-        description: 'Tidak perlu mencari catatan lama di buku atau chat.',
+        eyebrow: 'Production',
+        summary:
+            'Structured production flow for uniforms, events, and merchandise without losing finish quality.',
+        title: 'Built for batch execution',
     },
     {
-        badge: 'Tailor Wizard',
-        title: 'Wizard order menuntun kasir dari pelanggan sampai DP tanpa blind spot.',
-        description: 'Semua langkah penting divalidasi sejak awal.',
+        eyebrow: 'Trust Signal',
+        summary:
+            'Clear service mapping gives customers a better sense of timeline, fit route, and delivery expectation.',
+        title: 'Service clarity customers can follow',
     },
     {
-        badge: 'Inventori',
-        title: 'RTW tetap cepat dijual tanpa membuat stok menjadi asumsi.',
-        description: 'Size, clearance, dan qty dibaca dalam satu grid kerja.',
+        eyebrow: 'Craft',
+        summary:
+            'Tailoring logic stays visible in the way garments are fitted, refined, and presented.',
+        title: 'Craftsmanship remains visible',
     },
     {
-        badge: 'Verifikasi',
-        title: 'Cash langsung verified, transfer tetap menunggu pengecekan.',
-        description: 'Audit trail siapa dan kapan tetap tercatat.',
-    },
-    {
-        badge: 'Pengiriman',
-        title: 'Pickup, kurir, dan biaya kirim tidak lagi tercecer di luar sistem.',
-        description: 'Order detail tetap menjadi single source of truth.',
-    },
-    {
-        badge: 'Audit Log',
-        title: 'Perubahan status penting tidak hilang karena semua aksi kritikal dibaca ulang.',
-        description: 'Reject transfer dan override diskon tetap punya jejak.',
-    },
-    {
-        badge: 'Dashboard KPI',
-        title: 'Owner dan admin melihat kesehatan bisnis dari ringkasan yang relevan.',
-        description: 'Omzet, pending transfer, low stock, loyal customer.',
-    },
-    {
-        badge: 'Export',
-        title: 'Laporan tidak berhenti di layar, tetapi siap dibagikan lewat PDF atau CSV.',
-        description: 'Visibilitas lebih mudah diteruskan ke keputusan.',
+        eyebrow: 'Capability',
+        summary:
+            'Djaitin serves individual wardrobes and business procurement through the same premium lens.',
+        title: 'Personal and business ready',
     },
 ];
 
-const personaQuotes: LandingPersonaQuote[] = [
-    {
-        role: 'Kasir',
-        label: 'Front office',
-        quote: 'Yang paling terasa bukan tampilannya, tapi saya tidak lagi bingung order mana yang sudah cukup DP dan mana yang masih menunggu verifikasi transfer.',
-        focus: 'Kecepatan input tanpa kehilangan validasi bisnis.',
-    },
-    {
-        role: 'Admin',
-        label: 'Control panel',
-        quote: 'Saat ada bukti transfer masuk, saya bisa lihat statusnya jelas, verifikasi atau tolak dengan alasan, lalu semuanya langsung tercatat.',
-        focus: 'Operasional rapi dan mudah diaudit.',
-    },
-    {
-        role: 'Owner',
-        label: 'Read-only visibility',
-        quote: 'Akhirnya saya bisa membaca omzet, stok kritis, dan pembayaran pending tanpa menanyakan satu per satu ke tim.',
-        focus: 'Ketenangan membaca kesehatan bisnis secara cepat.',
-    },
-    {
-        role: 'Produksi',
-        label: 'Workshop surface',
-        quote: 'Kami hanya mengerjakan order yang memang sudah clear dan bisa langsung lihat stage berikutnya tanpa menebak-nebak dari chat.',
-        focus: 'Status produksi yang lebih jelas di lantai kerja.',
-    },
+const aboutImages = [
+    { alt: 'Tailoring fitting session', src: fittingImage },
+    { alt: 'Ready to wear garment detail', src: readyToWearImage },
+    { alt: 'Convection production detail', src: convectionDetailImage },
 ];
 
-function SectionHeading({
-    eyebrow,
-    title,
-    description,
-    light = false,
-}: {
-    description: string;
-    eyebrow: string;
-    light?: boolean;
-    title: string;
-}) {
+export default function LandingIndex({ brand }: LandingPageProps) {
+    const [activeAchievement, setActiveAchievement] = useState(0);
+
+    useEffect(() => {
+        const intervalId = window.setInterval(() => {
+            setActiveAchievement(
+                (current) => (current + 1) % achievements.length,
+            );
+        }, 3200);
+
+        return () => {
+            window.clearInterval(intervalId);
+        };
+    }, []);
+
+    const scrollToSection = (sectionId: string) => {
+        document.getElementById(sectionId)?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+        });
+    };
+
     return (
-        <div className="max-w-3xl">
-            <p
-                className={`text-xs font-semibold tracking-[0.28em] uppercase ${
-                    light
-                        ? 'text-[var(--landing-accent)]'
-                        : 'text-[var(--landing-primary)]'
-                }`}
+        <LandingLayout>
+            <Head title={brand.name} />
+
+            <LenisProvider>
+                <div className="bg-[var(--landing-shell)] text-[var(--landing-navy)]">
+                    <FloatingNavbar
+                        actionHref={login()}
+                        actionLabel="Masuk"
+                        navItems={navItems}
+                        onNavigate={scrollToSection}
+                    />
+
+                    <SequenceScroll
+                        cues={heroCues}
+                        frameSources={frameSources}
+                        onPrimaryAction={() => scrollToSection('services')}
+                        onSecondaryAction={() => scrollToSection('about')}
+                    />
+
+                    <main className="relative z-20 -mt-24 pb-0">
+                        <div className="w-full">
+                            <div className="overflow-hidden rounded-t-[2.5rem] bg-[linear-gradient(180deg,rgba(247,247,245,0.82)_0%,#f7f7f5_22%,#f2f5f8_100%)] shadow-[0_-30px_120px_rgba(18,60,120,0.08)]">
+                                <section
+                                    className="px-6 pt-16 md:px-10 md:pt-20 lg:px-14"
+                                    id="about"
+                                >
+                                    <div className="mx-auto max-w-6xl">
+                                        <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
+                                            <div className="space-y-6">
+                                                <p className="text-xs font-semibold tracking-[0.3em] text-[#3b73b9] uppercase">
+                                                    About Djaitin
+                                                </p>
+                                                <h2 className="[font-family:var(--landing-heading-font)] text-5xl leading-[0.94] tracking-[0.01em] text-[#123c78] uppercase md:text-7xl">
+                                                    What is Djaitin?
+                                                </h2>
+                                            </div>
+                                            <TextReveal
+                                                className="max-w-3xl text-[#123c78] md:text-[2.15rem]"
+                                                text={brand.tagline}
+                                            />
+                                        </div>
+
+                                        <div className="mt-14 grid gap-6 lg:grid-cols-[0.76fr_0.24fr]">
+                                            <div className="space-y-6">
+                                                <EditorialImage
+                                                    alt={aboutImages[0].alt}
+                                                    src={aboutImages[0].src}
+                                                />
+                                                <div className="grid gap-6 md:grid-cols-2">
+                                                    <article className="rounded-[2rem] border border-[#123c78]/10 bg-white/76 p-6 shadow-[0_22px_80px_rgba(18,60,120,0.08)] md:p-7">
+                                                        <p className="text-xs font-semibold tracking-[0.28em] text-[#3b73b9] uppercase">
+                                                            Tailor minded
+                                                        </p>
+                                                        <p className="mt-4 text-[1.02rem] leading-8 text-[#123c78]/76">
+                                                            It starts from
+                                                            measurement, style
+                                                            intent, and
+                                                            finishing, so the
+                                                            garment feels
+                                                            resolved before it
+                                                            reaches the final
+                                                            handoff.
+                                                        </p>
+                                                    </article>
+                                                    <EditorialImage
+                                                        alt={aboutImages[1].alt}
+                                                        className="h-full min-h-64"
+                                                        src={aboutImages[1].src}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-6">
+                                                <article className="rounded-[2rem] border border-[#123c78]/10 bg-[#123c78] p-6 text-white shadow-[0_28px_90px_rgba(18,60,120,0.18)] md:p-7">
+                                                    <p className="text-xs font-semibold tracking-[0.28em] text-[#ffd21f] uppercase">
+                                                        Brand statement
+                                                    </p>
+                                                    <p className="mt-6 [font-family:var(--landing-heading-font)] text-3xl leading-none tracking-[0.03em] uppercase md:text-4xl">
+                                                        Tailor custom,
+                                                        ready-to-wear, and
+                                                        production that stays
+                                                        trusted.
+                                                    </p>
+                                                </article>
+                                                <EditorialImage
+                                                    alt={aboutImages[2].alt}
+                                                    className="min-h-[20rem] md:min-h-[22rem]"
+                                                    src={aboutImages[2].src}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section
+                                    className="px-6 pt-20 md:px-10 lg:px-14"
+                                    id="services"
+                                >
+                                    <div className="mx-auto max-w-6xl">
+                                        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+                                            <div>
+                                                <p className="text-xs font-semibold tracking-[0.3em] text-[#3b73b9] uppercase">
+                                                    Services
+                                                </p>
+                                                <h2 className="[font-family:var(--landing-heading-font)] text-4xl leading-none tracking-[0.02em] uppercase md:text-6xl">
+                                                    Three service lanes, one
+                                                    refined brand.
+                                                </h2>
+                                            </div>
+                                            <p className="max-w-2xl text-base leading-8 text-[#123c78]/70">
+                                                Djaitin keeps the offer simple:
+                                                personal tailoring for fit,
+                                                ready pieces for speed, and bulk
+                                                convection for operational
+                                                scale.
+                                            </p>
+                                        </div>
+
+                                        <div className="mt-10 grid gap-5 xl:grid-cols-3">
+                                            {services.map((service, index) => (
+                                                <ServiceCard
+                                                    featured={index === 2}
+                                                    key={service.title}
+                                                    service={service}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section
+                                    className="px-6 pt-20 md:px-10 lg:px-14"
+                                    id="trust"
+                                >
+                                    <div className="mx-auto max-w-6xl">
+                                        <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr]">
+                                            <div className="space-y-6">
+                                                <p className="text-xs font-semibold tracking-[0.3em] text-[#3b73b9] uppercase">
+                                                    Why Djaitin
+                                                </p>
+                                                <h2 className="[font-family:var(--landing-heading-font)] text-4xl leading-[0.96] tracking-[0.02em] uppercase md:text-6xl">
+                                                    A trusted choice for
+                                                    personal orders and business
+                                                    runs.
+                                                </h2>
+                                                <p className="max-w-lg text-[1.02rem] leading-8 text-[#123c78]/72">
+                                                    Customers come to Djaitin
+                                                    when they need garments
+                                                    handled with more control,
+                                                    clearer communication, and
+                                                    production capability that
+                                                    stays accountable.
+                                                </p>
+                                            </div>
+                                            <div className="grid gap-4 md:grid-cols-2">
+                                                {trustPoints.map((point) => (
+                                                    <article
+                                                        className="rounded-[1.8rem] border border-[#123c78]/10 bg-white/78 p-5 shadow-[0_20px_70px_rgba(18,60,120,0.07)] md:p-6"
+                                                        key={point.title}
+                                                    >
+                                                        <div className="flex size-12 items-center justify-center rounded-2xl bg-[#eef4fb] text-[#123c78]">
+                                                            <point.icon className="size-5" />
+                                                        </div>
+                                                        <h3 className="mt-5 text-[1.15rem] font-semibold text-[#123c78] md:text-xl">
+                                                            {point.title}
+                                                        </h3>
+                                                        <p className="mt-3 text-[0.98rem] leading-7 text-[#123c78]/68">
+                                                            {point.description}
+                                                        </p>
+                                                    </article>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section className="pt-20">
+                                    <PartnerMarquee items={partnerItems} />
+                                </section>
+
+                                <section
+                                    className="px-6 pt-20 md:px-10 lg:px-14"
+                                    id="division"
+                                >
+                                    <div className="mx-auto max-w-6xl">
+                                        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+                                            <div>
+                                                <p className="text-xs font-semibold tracking-[0.3em] text-[#3b73b9] uppercase">
+                                                    Division / Category
+                                                </p>
+                                                <h2 className="[font-family:var(--landing-heading-font)] text-4xl leading-none tracking-[0.02em] uppercase md:text-6xl">
+                                                    Built for different garment
+                                                    needs.
+                                                </h2>
+                                            </div>
+                                            <p className="max-w-2xl text-base leading-8 text-[#123c78]/70">
+                                                The service grid is designed to
+                                                feel complete, from private
+                                                tailoring to recurring corporate
+                                                procurement.
+                                            </p>
+                                        </div>
+
+                                        <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                                            {divisions.map((division) => (
+                                                <PointerGlowCard
+                                                    division={division}
+                                                    key={division.title}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section className="px-6 pt-20 md:px-10 lg:px-14">
+                                    <div className="mx-auto max-w-6xl">
+                                        <div className="rounded-[2.5rem] border border-[#123c78]/10 bg-[#123c78] px-6 py-8 text-white shadow-[0_35px_120px_rgba(18,60,120,0.22)] md:px-8 lg:px-10">
+                                            <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+                                                <div>
+                                                    <p className="text-xs font-semibold tracking-[0.3em] text-[#ffd21f] uppercase">
+                                                        Stats
+                                                    </p>
+                                                    <h2 className="[font-family:var(--landing-heading-font)] text-5xl leading-none tracking-[0.02em] uppercase md:text-7xl">
+                                                        Numbers that reinforce
+                                                        trust.
+                                                    </h2>
+                                                </div>
+                                                <p className="max-w-2xl text-sm leading-7 text-white/72 md:text-base">
+                                                    This section signals
+                                                    readiness without turning
+                                                    the brand into a dry
+                                                    dashboard.
+                                                </p>
+                                            </div>
+                                            <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                                                {stats.map((stat) => (
+                                                    <CountUpStat
+                                                        description={
+                                                            stat.description
+                                                        }
+                                                        key={stat.label}
+                                                        label={stat.label}
+                                                        suffix={stat.suffix}
+                                                        value={stat.value}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section
+                                    className="px-6 pt-20 pb-24 md:px-10 lg:px-14"
+                                    id="awards"
+                                >
+                                    <div className="mx-auto max-w-6xl">
+                                        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+                                            <div>
+                                                <p className="text-xs font-semibold tracking-[0.3em] text-[#3b73b9] uppercase">
+                                                    Achievements / Trust Signals
+                                                </p>
+                                                <h2 className="[font-family:var(--landing-heading-font)] text-4xl leading-none tracking-[0.02em] uppercase md:text-6xl">
+                                                    An Awwwards-grade proof
+                                                    shelf, without generic
+                                                    carousel energy.
+                                                </h2>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                {achievements.map(
+                                                    (item, index) => (
+                                                        <button
+                                                            aria-label={
+                                                                item.title
+                                                            }
+                                                            className={`h-2.5 w-10 rounded-full transition ${
+                                                                index ===
+                                                                activeAchievement
+                                                                    ? 'bg-[#123c78]'
+                                                                    : 'bg-[#123c78]/15'
+                                                            }`}
+                                                            key={item.title}
+                                                            onClick={() =>
+                                                                setActiveAchievement(
+                                                                    index,
+                                                                )
+                                                            }
+                                                            type="button"
+                                                        />
+                                                    ),
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <AchievementShelf
+                                            activeIndex={activeAchievement}
+                                            items={achievements}
+                                            onSelect={setActiveAchievement}
+                                        />
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+                    </main>
+
+                    <Footer />
+                </div>
+            </LenisProvider>
+        </LandingLayout>
+    );
+}
+
+function EditorialImage({
+    alt,
+    className = '',
+    src,
+}: {
+    alt: string;
+    className?: string;
+    src: string;
+}) {
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const { scrollYProgress } = useScroll({
+        target: containerRef,
+        offset: ['start 0.9', 'end 0.2'],
+    });
+    const scale = useTransform(scrollYProgress, [0, 1], [0.94, 1]);
+    const width = useTransform(scrollYProgress, [0, 1], ['92%', '100%']);
+
+    return (
+        <div
+            className={`flex items-center justify-center overflow-hidden rounded-[1.8rem] border border-[#123c78]/10 bg-white/72 p-3 shadow-[0_18px_60px_rgba(18,60,120,0.08)] ${className}`}
+            ref={containerRef}
+        >
+            <motion.div
+                className="overflow-hidden rounded-[1.35rem]"
+                style={{ scale, width }}
             >
-                {eyebrow}
-            </p>
-            <h2
-                className={`mt-4 [font-family:var(--landing-heading-font)] text-3xl leading-tight font-bold md:text-5xl ${
-                    light ? 'text-white' : 'text-[#1A1830]'
-                }`}
-            >
-                {title}
-            </h2>
-            <p
-                className={`mt-5 text-base leading-7 md:text-lg ${
-                    light ? 'text-white/72' : 'text-slate-600'
-                }`}
-            >
-                {description}
-            </p>
+                <img
+                    alt={alt}
+                    className="h-[18rem] w-full object-cover md:h-[20rem]"
+                    src={src}
+                />
+            </motion.div>
         </div>
     );
 }
 
-function ReportsShowcase() {
+function ServiceCard({
+    featured = false,
+    service,
+}: {
+    featured?: boolean;
+    service: (typeof services)[number];
+}) {
     return (
-        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="rounded-[2.5rem] bg-[#101320] p-8 text-white shadow-[0_40px_120px_rgba(26,24,48,0.18)]">
-                <div className="flex flex-wrap items-center gap-3">
-                    <Badge className="rounded-full bg-emerald-400/18 px-3 py-1 text-emerald-200">
-                        Owner visibility
-                    </Badge>
-                    <Badge className="rounded-full bg-white/10 px-3 py-1 text-white/75">
-                        Export PDF / CSV
-                    </Badge>
+        <article
+            className={`relative overflow-hidden rounded-[2rem] border border-[#123c78]/10 p-5 shadow-[0_20px_70px_rgba(18,60,120,0.08)] md:p-6 ${featured ? 'bg-[#123c78] text-white' : 'bg-white/82 text-[#123c78]'}`}
+        >
+            <div
+                className={`absolute top-0 right-0 h-40 w-40 rounded-full blur-3xl ${featured ? 'bg-[#ffd21f]/20' : 'bg-[#3b73b9]/10'}`}
+            />
+            <div
+                className={`relative flex size-14 items-center justify-center rounded-2xl ${featured ? 'bg-white/12 text-[#ffd21f]' : `${service.accent} text-[#123c78]`}`}
+            >
+                <service.icon className="size-6" />
+            </div>
+            <div className="relative mt-7 flex flex-col gap-6">
+                <div>
+                    <h3 className="[font-family:var(--landing-heading-font)] text-3xl leading-none tracking-[0.03em] uppercase md:text-4xl">
+                        {service.title}
+                    </h3>
+                    <p
+                        className={`mt-4 max-w-xl text-[1rem] leading-7 ${featured ? 'text-white/76' : 'text-[#123c78]/72'}`}
+                    >
+                        {service.description}
+                    </p>
                 </div>
-                <p className="mt-6 [font-family:var(--landing-heading-font)] text-4xl font-semibold">
-                    Visibility yang akhirnya terasa unlocked.
-                </p>
-                <div className="mt-8 grid gap-4 md:grid-cols-3">
-                    {[
-                        { label: 'Omzet bulan ini', value: 'Rp 48,2 jt' },
-                        { label: 'Transfer pending', value: '7 transaksi' },
-                        { label: 'Stok kritis', value: '3 SKU' },
-                    ].map((item) => (
+                <div className="grid gap-2.5">
+                    {service.highlights.map((highlight) => (
                         <div
-                            className="rounded-[1.5rem] border border-white/10 bg-white/6 p-5"
-                            key={item.label}
+                            className={`flex items-center gap-3 rounded-full border px-4 py-2.5 text-[0.95rem] ${featured ? 'border-white/10 bg-white/8 text-white' : 'border-[#123c78]/10 bg-[#f7f9fc] text-[#123c78]'}`}
+                            key={highlight}
                         >
-                            <p className="text-sm text-white/60">
-                                {item.label}
-                            </p>
-                            <p className="mt-4 [font-family:var(--landing-heading-font)] text-2xl font-semibold">
-                                {item.value}
-                            </p>
+                            <ChevronRight className="size-4" />
+                            {highlight}
                         </div>
                     ))}
                 </div>
-                <div className="mt-6 rounded-[1.8rem] border border-white/10 bg-white/6 p-5">
-                    <div className="flex items-center justify-between">
-                        <p className="text-sm text-white/65">
-                            Breakdown pembayaran
-                        </p>
-                        <ChartColumnBig className="size-5 text-[var(--landing-accent)]" />
+            </div>
+        </article>
+    );
+}
+
+function PartnerMarquee({ items }: { items: string[] }) {
+    const repeatedItems = [...items, ...items];
+
+    return (
+        <div className="overflow-hidden border-y border-[#123c78]/10 bg-white/56 py-5">
+            <motion.div
+                animate={{ x: ['0%', '-50%'] }}
+                className="flex w-max gap-5"
+                transition={{ duration: 20, ease: 'linear', repeat: Infinity }}
+            >
+                {repeatedItems.map((item, index) => (
+                    <div
+                        className="flex items-center gap-5 px-3 text-sm font-semibold tracking-[0.2em] text-[#123c78]/64 uppercase"
+                        key={`${item}-${index}`}
+                    >
+                        <span>{item}</span>
+                        <SwatchBook className="size-4 text-[#ffd21f]" />
                     </div>
-                    <div className="mt-6 space-y-4">
-                        <div>
-                            <div className="flex justify-between text-sm text-white/70">
-                                <span>Cash verified</span>
-                                <span>62%</span>
-                            </div>
-                            <div className="mt-2 h-3 rounded-full bg-white/10">
-                                <div className="h-3 w-[62%] rounded-full bg-emerald-400" />
-                            </div>
+                ))}
+            </motion.div>
+        </div>
+    );
+}
+
+function PointerGlowCard({
+    division,
+}: {
+    division: (typeof divisions)[number];
+}) {
+    const [pointerStyle, setPointerStyle] = useState<CSSProperties>({
+        '--glow-x': '50%',
+        '--glow-y': '50%',
+    } as CSSProperties);
+
+    const handlePointerMove = (event: ReactMouseEvent<HTMLDivElement>) => {
+        const bounds = event.currentTarget.getBoundingClientRect();
+        const x = ((event.clientX - bounds.left) / bounds.width) * 100;
+        const y = ((event.clientY - bounds.top) / bounds.height) * 100;
+
+        setPointerStyle({
+            '--glow-x': `${x}%`,
+            '--glow-y': `${y}%`,
+        } as CSSProperties);
+    };
+
+    return (
+        <article
+            className="group relative overflow-hidden rounded-[1.9rem] border border-[#123c78]/10 bg-white/82 p-3 shadow-[0_20px_70px_rgba(18,60,120,0.07)]"
+            onMouseMove={handlePointerMove}
+            style={pointerStyle}
+        >
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_var(--glow-x)_var(--glow-y),rgba(255,210,31,0.28),transparent_36%)] opacity-0 transition duration-300 group-hover:opacity-100" />
+            <div className="relative flex h-full flex-col gap-4">
+                <div className="overflow-hidden rounded-[1.6rem]">
+                    <img
+                        alt={division.title}
+                        className="h-[15rem] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                        src={division.image}
+                    />
+                </div>
+                <div className="flex flex-1 flex-col gap-5 p-3">
+                    <div>
+                        <div className="flex size-12 items-center justify-center rounded-2xl bg-[#eef4fb] text-[#123c78]">
+                            <division.icon className="size-5" />
                         </div>
-                        <div>
-                            <div className="flex justify-between text-sm text-white/70">
-                                <span>Transfer verified</span>
-                                <span>28%</span>
-                            </div>
-                            <div className="mt-2 h-3 rounded-full bg-white/10">
-                                <div className="h-3 w-[28%] rounded-full bg-[var(--landing-accent)]" />
-                            </div>
-                        </div>
-                        <div>
-                            <div className="flex justify-between text-sm text-white/70">
-                                <span>Pending verification</span>
-                                <span>10%</span>
-                            </div>
-                            <div className="mt-2 h-3 rounded-full bg-white/10">
-                                <div className="h-3 w-[10%] rounded-full bg-amber-300" />
-                            </div>
-                        </div>
+                        <h3 className="mt-4 text-[1.35rem] font-semibold text-[#123c78] md:text-[1.55rem]">
+                            {division.title}
+                        </h3>
+                        <p className="mt-3 text-[0.98rem] leading-7 text-[#123c78]/68">
+                            {division.copy}
+                        </p>
+                    </div>
+                    <div className="mt-auto inline-flex items-center gap-2 text-sm font-semibold text-[#123c78]">
+                        Explore category
+                        <ArrowRight className="size-4 transition duration-300 group-hover:translate-x-1" />
                     </div>
                 </div>
             </div>
-            <div className="grid gap-5">
-                {[
-                    {
-                        icon: ShieldCheck,
-                        title: 'Pending transfer alerts',
-                        text: 'Admin tahu mana transfer yang harus dicek sebelum order bergerak lebih jauh.',
-                    },
-                    {
-                        icon: Boxes,
-                        title: 'Low stock watchlist',
-                        text: 'Produk yang mendekati habis terlihat cepat sebelum menjadi masalah kasir.',
-                    },
-                    {
-                        icon: BadgeCheck,
-                        title: 'Loyal customer view',
-                        text: 'Threshold loyalitas dan diskon terbaca sebagai keputusan sistem, bukan ingatan tim.',
-                    },
-                    {
-                        icon: Sparkles,
-                        title: 'Export action surface',
-                        text: 'Data siap dibawa keluar untuk pelaporan tanpa memecah konteks kerja.',
-                    },
-                ].map((item, index) => (
-                    <div
-                        className={`rounded-[2rem] p-6 shadow-[0_20px_70px_rgba(26,24,48,0.08)] ${
-                            index % 2 === 0 ? 'bg-white' : 'bg-[#e8f0ff]'
+        </article>
+    );
+}
+
+function AchievementShelf({
+    activeIndex,
+    items,
+    onSelect,
+}: {
+    activeIndex: number;
+    items: typeof achievements;
+    onSelect: (index: number) => void;
+}) {
+    return (
+        <div className="mt-10 grid gap-5 lg:grid-cols-[0.54fr_0.46fr]">
+            <div className="relative overflow-hidden rounded-[2rem] border border-[#123c78]/10 bg-[linear-gradient(135deg,#123c78_0%,#255ca3_45%,#f7f7f5_130%)] p-6 shadow-[0_24px_90px_rgba(18,60,120,0.20)] md:p-7">
+                <motion.div
+                    animate={{ opacity: 1, y: 0 }}
+                    className="relative max-w-xl text-white"
+                    initial={{ opacity: 0, y: 18 }}
+                    key={items[activeIndex].title}
+                    transition={{ duration: 0.35, ease: 'easeOut' }}
+                >
+                    <p className="text-xs font-semibold tracking-[0.3em] text-[#ffd21f] uppercase">
+                        {items[activeIndex].eyebrow}
+                    </p>
+                    <h3 className="mt-5 [font-family:var(--landing-heading-font)] text-5xl leading-[0.94] tracking-[0.02em] uppercase md:text-6xl">
+                        {items[activeIndex].title}
+                    </h3>
+                    <p className="mt-4 max-w-lg text-[1rem] leading-8 text-white/76">
+                        {items[activeIndex].summary}
+                    </p>
+                </motion.div>
+            </div>
+
+            <div className="grid gap-4">
+                {items.map((item, index) => (
+                    <button
+                        className={`rounded-[1.6rem] border p-4 text-left transition md:p-5 ${
+                            index === activeIndex
+                                ? 'border-[#123c78] bg-white shadow-[0_22px_80px_rgba(18,60,120,0.08)]'
+                                : 'border-[#123c78]/10 bg-white/68'
                         }`}
                         key={item.title}
+                        onClick={() => onSelect(index)}
+                        type="button"
                     >
-                        <item.icon className="size-6 text-[var(--landing-primary)]" />
-                        <p className="mt-5 [font-family:var(--landing-heading-font)] text-xl font-semibold text-[#1A1830]">
+                        <p className="text-xs font-semibold tracking-[0.26em] text-[#3b73b9] uppercase">
+                            {item.eyebrow}
+                        </p>
+                        <h4 className="mt-3 text-[1.12rem] font-semibold text-[#123c78] md:text-xl">
                             {item.title}
+                        </h4>
+                        <p className="mt-2 text-[0.97rem] leading-7 text-[#123c78]/66">
+                            {item.summary}
                         </p>
-                        <p className="mt-3 text-sm leading-7 text-slate-600">
-                            {item.text}
-                        </p>
-                    </div>
+                    </button>
                 ))}
             </div>
         </div>
     );
 }
 
-export default function LandingIndex() {
-    const { auth } = usePage<{ auth: { user: User | null } }>().props;
-    const actionHref = !auth.user
-        ? login()
-        : auth.user.role === 'customer'
-          ? '/app/dashboard'
-          : office.dashboard();
-    const actionLabel = auth.user ? 'Dashboard' : 'Masuk';
-
-    function scrollToSection(sectionId: string) {
-        document.getElementById(sectionId)?.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
-        });
-    }
-
+function Footer() {
     return (
-        <LandingLayout>
-            <LenisProvider>
-                <Head title="djaitin">
-                    <meta
-                        content="Sistem informasi konveksi, tailor, dan ready-to-wear dengan alur order, pembayaran, stok, dan laporan yang lebih rapi."
-                        name="description"
-                    />
-                    <meta content="djaitin" property="og:title" />
-                    <meta
-                        content="Operating system untuk bisnis garmen dengan payment gate, stok real-time, dan visibilitas owner."
-                        property="og:description"
-                    />
-                </Head>
-                <div className="bg-[#05030A] [font-family:var(--landing-body-font)] text-white">
-                    <FloatingNavbar
-                        actionHref={actionHref}
-                        actionLabel={actionLabel}
-                        navItems={navItems}
-                        onNavigate={scrollToSection}
-                    />
-                    <SequenceScroll
-                        cues={heroCues}
-                        frameSources={heroFrameSources}
-                        onPrimaryAction={() => scrollToSection('cta')}
-                        onSecondaryAction={() => scrollToSection('services')}
-                    />
-                    <main className="relative z-20 -mt-16 overflow-hidden rounded-t-[2.5rem] bg-[#f1efe9] text-[#1A1830] shadow-[0_-30px_90px_rgba(0,0,0,0.12)] md:-mt-24 md:rounded-t-[4rem]">
-                        <section
-                            className="relative overflow-hidden px-6 py-24 md:px-10"
-                            id="manifesto"
-                        >
-                            <div className="absolute top-8 right-[-4rem] size-48 rounded-full bg-[#d7d1fb] blur-3xl" />
-                            <div className="absolute bottom-8 left-[-5rem] size-56 rounded-full bg-[#f6dfe9] blur-3xl" />
-                            <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-                                <div>
-                                    <SectionHeading
-                                        description="djaitin bukan toko fashion dan bukan startup dashboard generik. Ini adalah operating system untuk alur kerja konveksi yang selama ini tercecer di buku, chat, dan asumsi."
-                                        eyebrow="Manifesto"
-                                        title="Dari operasional yang serba manual menjadi cerita kerja yang jauh lebih terbaca."
-                                    />
-                                    <div className="mt-8 rounded-[2rem] border border-black/6 bg-white/70 p-7 shadow-[0_24px_80px_rgba(26,24,48,0.08)] backdrop-blur-xl">
-                                        <TextReveal text="Catatan di buku. Status di grup WhatsApp. DP belum masuk tapi produksi sudah jalan. Stok ready-to-wear minus satu dan tidak ada yang benar-benar tahu angkanya. djaitin menyusun ulang semua itu menjadi satu alur yang lebih jelas, lebih tegas, dan lebih mudah dipercaya." />
-                                    </div>
-                                </div>
-                                <div className="relative min-h-[34rem] overflow-hidden rounded-[3rem] bg-[#7ea4ff] p-8 shadow-[0_40px_140px_rgba(71,97,181,0.28)]">
-                                    <div className="absolute top-8 right-8 rounded-full border border-white/40 bg-white/75 px-4 py-2 text-xs font-semibold tracking-[0.22em] text-[#3158c7] uppercase">
-                                        verified flow
-                                    </div>
-                                    <div className="max-w-xs">
-                                        <p className="text-xs font-semibold tracking-[0.28em] text-white/80 uppercase">
-                                            Editorial product layout
-                                        </p>
-                                        <h3 className="mt-4 max-w-sm [font-family:var(--landing-heading-font)] text-4xl leading-tight font-bold text-white">
-                                            Sistem yang membuat operasional
-                                            terlihat kreatif sekaligus rapi.
-                                        </h3>
-                                    </div>
-                                    <div className="absolute right-10 bottom-10 left-10 grid gap-4 md:grid-cols-[0.9fr_1.1fr]">
-                                        <div className="rounded-[2rem] border border-black/6 bg-white p-5 shadow-[0_20px_60px_rgba(26,24,48,0.12)]">
-                                            <p className="text-sm font-semibold text-[#1A1830]">
-                                                Tailor wizard
-                                            </p>
-                                            <div className="mt-4 space-y-3">
-                                                <div className="h-3 w-24 rounded-full bg-[#d7d1fb]" />
-                                                <div className="h-2 rounded-full bg-slate-200" />
-                                                <div className="h-2 w-5/6 rounded-full bg-slate-200" />
-                                                <div className="h-11 rounded-[1rem] bg-[#101320]" />
-                                            </div>
-                                        </div>
-                                        <div className="rounded-[2rem] border border-white/20 bg-[#e9eefb] p-5 shadow-[0_22px_70px_rgba(26,24,48,0.12)]">
-                                            <div className="grid gap-3 sm:grid-cols-3">
-                                                <div className="rounded-[1.2rem] bg-white p-4">
-                                                    <div className="h-10 rounded-xl bg-[#ff6b7a]" />
-                                                </div>
-                                                <div className="rounded-[1.2rem] bg-white p-4">
-                                                    <div className="h-10 rounded-xl bg-[#91a8ff]" />
-                                                </div>
-                                                <div className="rounded-[1.2rem] bg-white p-4">
-                                                    <div className="h-10 rounded-xl bg-[#ffd56f]" />
-                                                </div>
-                                            </div>
-                                            <p className="mt-4 text-sm leading-6 text-slate-600">
-                                                Order, pembayaran, dan stok
-                                                tidak lagi berdiri sendiri.
-                                                Semuanya berada di satu
-                                                permukaan kerja yang sama.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        <section
-                            className="bg-white px-6 py-24 md:px-10"
-                            id="services"
-                        >
-                            <div className="mx-auto max-w-7xl">
-                                <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
-                                    <div>
-                                        <SectionHeading
-                                            description="Tiga alur utama dibangun dengan identitas visual berbeda, tetapi tetap berjalan di bawah aturan bisnis yang sama."
-                                            eyebrow="Layanan inti"
-                                            title="Layout modular, tapi cerita produknya tetap satu."
-                                        />
-                                        <div className="mt-8 rounded-[2.2rem] bg-[#d7ff69] p-8 shadow-[0_24px_80px_rgba(169,203,38,0.28)]">
-                                            <p className="text-xs font-semibold tracking-[0.24em] text-[#5a7400] uppercase">
-                                                Why this matters
-                                            </p>
-                                            <p className="mt-4 [font-family:var(--landing-heading-font)] text-3xl font-semibold text-[#1A1830]">
-                                                Kasir, produksi, admin, dan
-                                                owner membaca bisnis dari sudut
-                                                pandang yang memang relevan bagi
-                                                mereka.
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="grid gap-6 md:grid-cols-2">
-                                        {serviceCards.map((card, index) => (
-                                            <Card
-                                                className={`overflow-hidden rounded-[2.2rem] border-black/6 bg-[#121420] text-white shadow-[0_24px_80px_rgba(26,24,48,0.16)] ${index === 0 ? 'md:col-span-2' : ''}`}
-                                                key={card.badge}
-                                            >
-                                                <CardContent className="p-0">
-                                                    <div
-                                                        className={`h-48 bg-gradient-to-br ${card.accentClassName} p-6`}
-                                                    >
-                                                        <Badge className="rounded-full bg-black/40 px-3 py-1 text-white">
-                                                            {card.badge}
-                                                        </Badge>
-                                                        <div className="mt-8 grid gap-3 sm:grid-cols-3">
-                                                            <div className="rounded-[1.3rem] bg-white/70 p-4">
-                                                                <div className="h-10 rounded-xl bg-[#0f1320]/12" />
-                                                            </div>
-                                                            <div className="rounded-[1.3rem] bg-white/70 p-4">
-                                                                <div className="h-10 rounded-xl bg-[#0f1320]/12" />
-                                                            </div>
-                                                            <div className="rounded-[1.3rem] bg-white/70 p-4">
-                                                                <div className="h-10 rounded-xl bg-[#0f1320]/12" />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="p-6">
-                                                        <h3 className="[font-family:var(--landing-heading-font)] text-2xl font-semibold">
-                                                            {card.title}
-                                                        </h3>
-                                                        <p className="mt-4 text-sm leading-7 text-white/72">
-                                                            {card.description}
-                                                        </p>
-                                                        <div className="mt-6 flex flex-wrap gap-2">
-                                                            {card.highlights.map(
-                                                                (highlight) => (
-                                                                    <Badge
-                                                                        className="rounded-full bg-white/10 px-3 py-1 text-white/86"
-                                                                        key={
-                                                                            highlight
-                                                                        }
-                                                                        variant="secondary"
-                                                                    >
-                                                                        {
-                                                                            highlight
-                                                                        }
-                                                                    </Badge>
-                                                                ),
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="mt-10 rounded-[2.6rem] bg-[#101320] p-6 md:p-8">
-                                    <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-                                        <div>
-                                            <p className="text-xs font-semibold tracking-[0.24em] text-[var(--landing-accent)] uppercase">
-                                                Grounded metrics
-                                            </p>
-                                            <p className="mt-3 [font-family:var(--landing-heading-font)] text-3xl font-semibold text-white">
-                                                Aturan bisnis inti ditampilkan
-                                                sebagai struktur, bukan
-                                                tempelan.
-                                            </p>
-                                        </div>
-                                        <Badge className="rounded-full bg-white/10 px-4 py-2 text-white">
-                                            3 layanan · 4 peran · 0 stok negatif
-                                        </Badge>
-                                    </div>
-                                    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
-                                        {stats.map((stat) => (
-                                            <CountUpStat
-                                                description={stat.description}
-                                                key={stat.label}
-                                                label={stat.label}
-                                                suffix={stat.suffix}
-                                                value={stat.value}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        <section
-                            className="relative overflow-hidden bg-[#ebe7f4] px-6 py-24 md:px-10"
-                            id="roles"
-                        >
-                            <div className="absolute -top-12 left-0 h-40 w-40 rounded-br-[3rem] bg-[#d4cbff]" />
-                            <div className="mx-auto max-w-7xl">
-                                <div className="grid gap-8 lg:grid-cols-[0.78fr_1.22fr]">
-                                    <div className="space-y-6">
-                                        <SectionHeading
-                                            description="Setiap peran membutuhkan surface yang berbeda. Itulah kenapa layout internal tidak dipaksakan seragam."
-                                            eyebrow="Role surfaces"
-                                            title="Empat peran, empat permukaan kerja yang terasa spesifik."
-                                        />
-                                        <div className="rounded-[2rem] bg-white p-6 shadow-[0_20px_70px_rgba(26,24,48,0.08)]">
-                                            <p className="text-sm leading-7 text-slate-600">
-                                                Kasir fokus ke create order dan
-                                                pembayaran. Produksi fokus ke
-                                                status dan due date. Admin fokus
-                                                ke verifikasi dan master data.
-                                                Owner fokus ke membaca ringkasan
-                                                bisnis.
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="rounded-[2.6rem] bg-[#101320] p-5 md:p-7">
-                                        <RoleSurfaceShowcase
-                                            surfaces={roleSurfaces}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        <section
-                            className="bg-white px-6 py-24 md:px-10"
-                            id="workflow"
-                        >
-                            <div className="mx-auto max-w-7xl">
-                                <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-                                    <div className="space-y-6">
-                                        <SectionHeading
-                                            description="DP tailor, full-payment konveksi, dan stok RTW tidak ditinggalkan sebagai SOP saja. Semuanya diikat ke alur sistem."
-                                            eyebrow="Workflow"
-                                            title="Gerbang operasional utama dibangun sebagai perjalanan status yang tegas."
-                                        />
-                                        <div className="rounded-[2.2rem] bg-[#f1eff8] p-7">
-                                            <p className="text-xs font-semibold tracking-[0.24em] text-[#5d4fe6] uppercase">
-                                                Critical gates
-                                            </p>
-                                            <div className="mt-5 space-y-4">
-                                                {[
-                                                    'DP minimal 50% untuk tailor sebelum produksi.',
-                                                    'Konveksi wajib 100% verified sebelum status aktif.',
-                                                    'Order tidak bisa ditutup saat outstanding belum nol.',
-                                                ].map((item) => (
-                                                    <div
-                                                        className="flex gap-3"
-                                                        key={item}
-                                                    >
-                                                        <span className="mt-2 size-2 rounded-full bg-[#5d4fe6]" />
-                                                        <p className="text-sm leading-6 text-slate-700">
-                                                            {item}
-                                                        </p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <WorkflowTimeline lanes={workflowLanes} />
-                                </div>
-                            </div>
-                        </section>
-
-                        <section className="bg-[#f5dde7] px-6 py-24 md:px-10">
-                            <div className="mx-auto max-w-7xl">
-                                <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-                                    <div>
-                                        <SectionHeading
-                                            description="Setiap card adalah potongan cerita produk, bukan daftar fitur polos."
-                                            eyebrow="Feature bento"
-                                            title="Susunan section sesudah hero kini lebih modular dan editorial."
-                                        />
-                                        <div className="mt-10 grid gap-5 md:grid-cols-2">
-                                            {featureStories.map(
-                                                (feature, index) => (
-                                                    <article
-                                                        className={`rounded-[2rem] border border-black/6 p-6 shadow-[0_20px_70px_rgba(26,24,48,0.08)] ${
-                                                            index % 4 === 0
-                                                                ? 'bg-white'
-                                                                : index % 4 ===
-                                                                    1
-                                                                  ? 'bg-[#e8f0ff]'
-                                                                  : index %
-                                                                          4 ===
-                                                                      2
-                                                                    ? 'bg-[#fff0d7]'
-                                                                    : 'bg-[#efe7ff]'
-                                                        }`}
-                                                        key={feature.title}
-                                                    >
-                                                        <Badge className="rounded-full bg-[#101320] px-3 py-1 text-white">
-                                                            {feature.badge}
-                                                        </Badge>
-                                                        <p className="mt-5 [font-family:var(--landing-heading-font)] text-xl font-semibold text-[#1A1830]">
-                                                            {feature.title}
-                                                        </p>
-                                                        <p className="mt-4 text-sm leading-7 text-slate-600">
-                                                            {
-                                                                feature.description
-                                                            }
-                                                        </p>
-                                                    </article>
-                                                ),
-                                            )}
-                                        </div>
-                                    </div>
-                                    <div className="space-y-6">
-                                        <div className="rounded-[2.6rem] bg-[#101320] p-6">
-                                            <TestimonialSlider
-                                                quotes={personaQuotes}
-                                            />
-                                        </div>
-                                        <div className="rounded-[2.2rem] bg-white p-8 shadow-[0_20px_70px_rgba(26,24,48,0.08)]">
-                                            <p className="text-xs font-semibold tracking-[0.24em] text-[#f04b64] uppercase">
-                                                Product tone
-                                            </p>
-                                            <p className="mt-4 [font-family:var(--landing-heading-font)] text-3xl font-semibold text-[#1A1830]">
-                                                Landing ini menjual ketenangan
-                                                operasional, bukan kemewahan
-                                                visual kosong.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        <section
-                            className="bg-[#f1efe9] px-6 py-24 md:px-10"
-                            id="reports"
-                        >
-                            <div className="mx-auto max-w-7xl">
-                                <SectionHeading
-                                    description="Bagian owner dan admin harus terasa seperti visibilitas yang akhirnya terbuka, bukan spreadsheet yang dipoles."
-                                    eyebrow="Reports showcase"
-                                    title="Revenue, pending transfer, loyal customer, dan stok kritis dibaca dalam panel yang lebih hidup."
-                                />
-                                <div className="mt-10">
-                                    <ReportsShowcase />
-                                </div>
-                            </div>
-                        </section>
-
-                        <section
-                            className="bg-[#f1efe9] px-6 py-24 md:px-10"
-                            id="cta"
-                        >
-                            <div className="mx-auto max-w-7xl">
-                                <div className="relative overflow-hidden rounded-[2.8rem] bg-[#ff3e58] px-8 py-14 text-white shadow-[0_40px_120px_rgba(255,62,88,0.28)] md:px-12 md:py-18">
-                                    <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.2),transparent_60%)]" />
-                                    <div className="relative grid gap-10 lg:grid-cols-[1fr_0.34fr] lg:items-end">
-                                        <div>
-                                            <p className="text-xs font-semibold tracking-[0.28em] text-white/78 uppercase">
-                                                CTA
-                                            </p>
-                                            <h2 className="mt-4 max-w-3xl [font-family:var(--landing-heading-font)] text-3xl leading-tight font-bold md:text-5xl">
-                                                Semua alur kerja konveksi,
-                                                tailor, dan RTW dalam satu
-                                                sistem.
-                                            </h2>
-                                            <p className="mt-5 max-w-2xl text-base leading-7 text-white/82">
-                                                Lebih rapi untuk kasir. Lebih
-                                                jelas untuk produksi. Lebih
-                                                tenang untuk owner yang akhirnya
-                                                bisa membaca bisnis tanpa
-                                                mengejar status manual.
-                                            </p>
-                                            <div className="mt-8 flex flex-wrap gap-3">
-                                                <MagneticButton
-                                                    href={actionHref}
-                                                >
-                                                    {actionLabel === 'Masuk'
-                                                        ? 'Jadwalkan Demo'
-                                                        : 'Buka Dashboard'}
-                                                </MagneticButton>
-                                                <MagneticButton
-                                                    className="border-white/35 bg-white/12 text-white hover:bg-white/18"
-                                                    href="#services"
-                                                    variant="outline"
-                                                >
-                                                    Lihat Modul
-                                                </MagneticButton>
-                                            </div>
-                                        </div>
-                                        <div className="rounded-[2rem] bg-black/14 p-6 backdrop-blur-md">
-                                            <p className="text-xs font-semibold tracking-[0.24em] text-white/70 uppercase">
-                                                What happens next
-                                            </p>
-                                            <div className="mt-5 space-y-4">
-                                                {[
-                                                    'Telaah alur order yang saat ini masih tercecer.',
-                                                    'Petakan payment gate dan status produksi yang wajib tegas.',
-                                                    'Susun permukaan kerja kasir, admin, produksi, dan owner.',
-                                                ].map((item) => (
-                                                    <div
-                                                        className="flex gap-3"
-                                                        key={item}
-                                                    >
-                                                        <span className="mt-1.5 size-2 rounded-full bg-white" />
-                                                        <p className="text-sm leading-6 text-white/78">
-                                                            {item}
-                                                        </p>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-                    </main>
-                    <footer className="bg-[#05030a] px-6 pb-12 md:px-10">
-                        <div className="mx-auto max-w-7xl rounded-[2rem] border border-white/10 bg-white/6 px-6 py-8 shadow-[0_20px_70px_rgba(0,0,0,0.26)] backdrop-blur-xl">
-                            <div className="grid gap-8 md:grid-cols-[1.1fr_0.45fr_0.45fr]">
-                                <div>
-                                    <div className="flex items-center gap-3">
-                                        <span className="flex size-10 items-center justify-center rounded-full bg-[var(--landing-primary)] text-sm font-bold text-white">
-                                            dj
-                                        </span>
-                                        <div>
-                                            <p className="[font-family:var(--landing-heading-font)] font-semibold text-white">
-                                                djaitin
-                                            </p>
-                                            <p className="text-sm text-white/48">
-                                                Sistem informasi konveksi &
-                                                tailor
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <p className="mt-5 max-w-md text-sm leading-7 text-white/68">
-                                        Operating system untuk bisnis garmen
-                                        yang membutuhkan alur order, pembayaran,
-                                        stok, dan laporan yang lebih rapi.
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-semibold text-white">
-                                        Navigasi
-                                    </p>
-                                    <div className="mt-4 space-y-3">
-                                        {navItems.slice(1).map((item) => (
-                                            <button
-                                                className="block text-sm text-white/68 transition hover:text-[var(--landing-accent)]"
-                                                key={item.id}
-                                                onClick={() =>
-                                                    scrollToSection(item.id)
-                                                }
-                                                type="button"
-                                            >
-                                                {item.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-semibold text-white">
-                                        Aksi
-                                    </p>
-                                    <div className="mt-4 space-y-3 text-sm text-white/68">
-                                        <a
-                                            className="inline-flex items-center gap-2 hover:text-[var(--landing-accent)]"
-                                            href={
-                                                typeof actionHref === 'string'
-                                                    ? actionHref
-                                                    : actionHref.url
-                                            }
-                                        >
-                                            {actionLabel}
-                                            <ArrowRight className="size-4" />
-                                        </a>
-                                        <p>hello@djaitin.app</p>
-                                        <p>
-                                            © 2026 djaitin. All rights reserved.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <Separator className="my-8 bg-white/10" />
-                            <div className="flex flex-wrap gap-3">
-                                <Badge className="rounded-full bg-indigo-400/12 px-3 py-1 text-indigo-200">
-                                    Tailor
-                                </Badge>
-                                <Badge className="rounded-full bg-sky-400/12 px-3 py-1 text-sky-200">
-                                    Ready-to-Wear
-                                </Badge>
-                                <Badge className="rounded-full bg-violet-400/12 px-3 py-1 text-violet-200">
-                                    Konveksi
-                                </Badge>
-                                <Badge className="rounded-full bg-emerald-400/12 px-3 py-1 text-emerald-200">
-                                    Verified workflow
-                                </Badge>
+        <footer className="relative overflow-hidden pt-10 pb-0">
+            <div className="w-full overflow-hidden rounded-[2.5rem_2.5rem_0_0] bg-[#0f3365] px-6 py-12 text-white shadow-[0_40px_120px_rgba(18,60,120,0.28)] md:px-10 md:py-16">
+                <div className="absolute inset-x-0 bottom-0 h-40 bg-[radial-gradient(circle_at_bottom,rgba(255,210,31,0.42),transparent_58%)]" />
+                <div className="relative flex flex-col gap-10">
+                    <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+                        <div className="flex items-center gap-4">
+                            <Logo className="size-14" />
+                            <div>
+                                <p className="text-xs font-semibold tracking-[0.3em] text-white/60 uppercase">
+                                    Trusted convection partner
+                                </p>
+                                <p className="mt-2 max-w-md text-sm leading-7 text-white/72">
+                                    Djaitin supports custom tailoring,
+                                    ready-to-wear, and bulk production with a
+                                    bright, modern, and more dependable service
+                                    approach.
+                                </p>
                             </div>
                         </div>
-                    </footer>
+                        <div className="flex flex-wrap gap-3">
+                            <Button
+                                asChild
+                                className="rounded-full bg-[#ffd21f] px-5 text-[#123c78] hover:bg-[#ffe265]"
+                            >
+                                <Link href={customer.services.tailor()}>
+                                    Explore Tailor
+                                </Link>
+                            </Button>
+                            <Button
+                                asChild
+                                className="rounded-full border border-white/14 bg-white/10 px-5 text-white hover:bg-white/16"
+                                variant="ghost"
+                            >
+                                <Link href={login()}>Masuk</Link>
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div className="[font-family:var(--landing-heading-font)] text-[5rem] leading-none tracking-[0.02em] text-white/96 uppercase md:text-[9rem] lg:text-[12rem]">
+                        Djaitin
+                    </div>
                 </div>
-            </LenisProvider>
-        </LandingLayout>
+            </div>
+        </footer>
     );
 }

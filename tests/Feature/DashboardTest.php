@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ProductionStage;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Payment;
@@ -25,20 +26,40 @@ test('office dashboard exposes metrics and recent orders for the app shell', fun
         'name' => 'Pelanggan Dashboard',
     ]);
 
-    $order = Order::factory()
+    $pendingOrder = Order::factory()
         ->for($customer)
         ->pendingPayment()
         ->create([
             'order_number' => 'ORD-UI-000001',
             'total_amount' => 500000,
             'outstanding_amount' => 250000,
+            'created_at' => now()->subMinute(),
         ]);
 
-    Payment::factory()->for($order)->pending()->create([
+    $productionOrder = Order::factory()
+        ->for($customer)
+        ->inProgress()
+        ->create([
+            'order_number' => 'ORD-UI-000002',
+            'production_stage' => ProductionStage::Production,
+            'created_at' => now(),
+        ]);
+
+    Order::factory()
+        ->for($customer)
+        ->closed()
+        ->create([
+            'order_number' => 'ORD-UI-000003',
+            'production_stage' => ProductionStage::QC,
+            'created_at' => now()->subMinutes(2),
+        ]);
+
+    Payment::factory()->for($pendingOrder)->pending()->create([
         'amount' => 125000,
+        'reference_number' => 'TRX-123456',
     ]);
 
-    Payment::factory()->for($order)->verified()->create([
+    Payment::factory()->for($pendingOrder)->verified()->create([
         'amount' => 200000,
     ]);
 
@@ -50,13 +71,27 @@ test('office dashboard exposes metrics and recent orders for the app shell', fun
             ->where('role', 'admin')
             ->has('metricCards', 4)
             ->where('metricCards.0.label', 'Order Hari Ini')
-            ->has('recentOrders', 1)
-            ->where('recentOrders.0.order_number', 'ORD-UI-000001')
-            ->where('recentOrders.0.status', 'pending_payment')
+            ->has('recentOrders', 3)
+            ->where('recentOrders.0.order_number', 'ORD-UI-000002')
+            ->where('recentOrders.0.status', 'in_progress')
+            ->where('recentOrders.0.order_type', 'tailor')
             ->where('recentOrders.0.customer_name', 'Pelanggan Dashboard')
-            ->where('recentOrders.0.total_amount', 500000)
-            ->where('recentOrders.0.outstanding_amount', 250000)
+            ->where('recentOrders.1.order_number', 'ORD-UI-000001')
+            ->where('recentOrders.1.total_amount', 500000)
+            ->where('recentOrders.1.outstanding_amount', 250000)
             ->where('alerts.overdue_orders', 0)
-            ->where('alerts.low_stock_products', 0),
+            ->where('alerts.low_stock_products', 0)
+            ->where('orderStatusDistribution.0.count', 0)
+            ->where('orderStatusDistribution.1.count', 1)
+            ->where('orderStatusDistribution.2.count', 1)
+            ->where('orderStatusDistribution.4.count', 1)
+            ->has('pendingPayments', 1)
+            ->where('pendingPayments.0.reference_number', 'TRX-123456')
+            ->where('pendingPayments.0.order.order_number', 'ORD-UI-000001')
+            ->where('productionPulse.active_count', 1)
+            ->where('productionPulse.stages.1.count', 1)
+            ->where('productionPulse.stages.1.orders.0.order_number', $productionOrder->order_number)
+            ->where('can.view_payments', true)
+            ->where('can.verify_payments', true),
         );
 });

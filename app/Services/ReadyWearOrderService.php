@@ -8,6 +8,7 @@ use App\Enums\PaymentMethod;
 use App\Enums\ShipmentStatus;
 use App\Models\Address;
 use App\Models\Cart;
+use App\Models\Courier;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Shipment;
@@ -17,8 +18,6 @@ use Illuminate\Validation\ValidationException;
 
 class ReadyWearOrderService
 {
-    public const DELIVERY_FEE = 20000;
-
     public function __construct(
         protected CartService $cartService,
         protected StockService $stockService,
@@ -67,9 +66,14 @@ class ReadyWearOrderService
                 $this->stockService->validateStock($item->product, $item->qty);
             }
 
-            $shippingCost = $payload['delivery_type'] === 'delivery'
-                ? (float) self::DELIVERY_FEE
-                : 0.0;
+            $courier = $payload['delivery_type'] === 'delivery'
+                ? Courier::query()
+                    ->whereKey($payload['courier_id'] ?? null)
+                    ->where('is_active', true)
+                    ->firstOrFail()
+                : null;
+
+            $shippingCost = $courier === null ? 0.0 : (float) $courier->base_fee;
 
             $subtotal = round($cart->items->sum(
                 fn ($item): float => $item->qty * (float) $item->product->selling_price,
@@ -120,7 +124,7 @@ class ReadyWearOrderService
 
                 Shipment::query()->create([
                     'order_id' => $order->id,
-                    'courier_id' => $payload['courier_id'] ?? null,
+                    'courier_id' => $courier?->id,
                     'status' => ShipmentStatus::Pending,
                     'recipient_name' => $address->recipient_name,
                     'recipient_address' => collect([

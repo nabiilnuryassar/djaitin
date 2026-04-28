@@ -44,6 +44,7 @@ class ShippingController extends Controller
                 'recipient_address' => $shipment->recipient_address,
                 'courier_id' => $shipment->courier_id,
                 'courier_name' => $shipment->courier?->name,
+                'shipping_cost' => (float) $shipment->shipping_cost,
                 'notes' => $shipment->notes,
                 'shipped_at' => optional($shipment->shipped_at)?->format('Y-m-d H:i'),
                 'delivered_at' => optional($shipment->delivered_at)?->format('Y-m-d H:i'),
@@ -63,7 +64,7 @@ class ShippingController extends Controller
             'couriers' => Courier::query()
                 ->where('is_active', true)
                 ->orderBy('name')
-                ->get(['id', 'name']),
+                ->get(['id', 'name', 'base_fee']),
             'statuses' => collect(ShipmentStatus::cases())
                 ->map(fn (ShipmentStatus $item): array => [
                     'value' => $item->value,

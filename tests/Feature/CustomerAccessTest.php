@@ -34,6 +34,9 @@ test('customers can access the customer dashboard', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->component('Customer/Dashboard/Index')
             ->has('summary')
+            ->has('customerProfile')
+            ->has('recentOrders')
+            ->has('recentPayments')
         );
 });
 

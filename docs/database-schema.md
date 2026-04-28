@@ -261,6 +261,7 @@ Master jasa pengiriman.
 |---|---|:---:|---|---|
 | `id` | `bigint` UNSIGNED PK | No | — | |
 | `name` | `varchar(255)` | No | — | Misal: JNE, TIKI, Gojek, dst |
+| `base_fee` | `decimal(15,2)` | No | `0` | Biaya jasa kurir yang dipakai sebagai ongkir checkout delivery |
 | `is_active` | `boolean` | No | `true` | |
 | `created_at` | `timestamp` | No | `now()` | |
 | `updated_at` | `timestamp` | No | `now()` | |

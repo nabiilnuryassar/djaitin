@@ -5,6 +5,8 @@
 - [ ] `.env` production sudah final
 - [ ] `APP_URL` sesuai domain production
 - [ ] database production aktif dan backup berjalan
+- [ ] jika memakai Docker, `.env.docker` sudah final dan tidak masuk git
+- [ ] jika memakai Docker, `docker compose --env-file .env.docker ps` semua service sehat
 - [ ] `php artisan migrate --force` sukses
 - [ ] `php artisan storage:link` sudah dibuat
 - [ ] mail configuration untuk verify email sudah aktif

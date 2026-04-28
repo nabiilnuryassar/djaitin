@@ -16,6 +16,7 @@ class StoreCourierRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
+            'base_fee' => ['required', 'numeric', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
         ];
     }

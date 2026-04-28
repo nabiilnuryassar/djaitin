@@ -29,6 +29,7 @@ Route::controller(OrderController::class)
         Route::get('tailor/create', 'createTailor')->name('tailor.create');
         Route::post('tailor', 'storeTailor')->name('tailor.store');
         Route::get('{order}', 'show')->name('show');
+        Route::post('{order}/attachments', 'uploadAttachment')->name('attachments.store');
         Route::put('{order}/status', 'updateStatus')->name('status');
         Route::put('{order}/production-stage', 'updateProductionStage')->name('production-stage');
         Route::get('{order}/nota', [DocumentController::class, 'nota'])->name('nota');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Office;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
+use App\Enums\ProductionStage;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
@@ -32,6 +33,7 @@ class DashboardController extends Controller
                 'id' => $order->id,
                 'order_number' => $order->order_number,
                 'status' => $order->status->value,
+                'order_type' => $order->order_type->value,
                 'customer_name' => $order->customer?->name,
                 'total_amount' => (float) $order->total_amount,
                 'outstanding_amount' => (float) $order->outstanding_amount,
@@ -42,11 +44,49 @@ class DashboardController extends Controller
             now()->subDays(29)->startOfDay(),
             now()->endOfDay(),
         );
+        $pendingPayments = Payment::query()
+            ->with(['order.customer'])
+            ->where('status', PaymentStatus::PendingVerification)
+            ->latest()
+            ->limit(3)
+            ->get()
+            ->map(fn (Payment $payment): array => [
+                'id' => $payment->id,
+                'payment_number' => $payment->payment_number,
+                'amount' => (float) $payment->amount,
+                'reference_number' => $payment->reference_number,
+                'method' => $payment->method->value,
+                'order' => [
+                    'id' => $payment->order?->id,
+                    'order_number' => $payment->order?->order_number,
+                    'customer_name' => $payment->order?->customer?->name,
+                ],
+            ])
+            ->values();
 
         return Inertia::render('Office/Dashboard/Index', [
             'role' => $user?->role?->value,
             'metricCards' => $this->metricCards($user?->role),
             'recentOrders' => $recentOrders,
+            'orderStatusDistribution' => $this->statusDistribution(),
+            'pendingPayments' => $pendingPayments,
+            'productionPulse' => [
+                'active_count' => Order::query()
+                    ->where('status', OrderStatus::InProgress)
+                    ->count(),
+                'stages' => $this->productionPulseStages(),
+            ],
+            'can' => [
+                'view_payments' => $user?->hasAnyRole([
+                    UserRole::Kasir,
+                    UserRole::Admin,
+                    UserRole::Owner,
+                ]) ?? false,
+                'verify_payments' => $user?->hasAnyRole([
+                    UserRole::Kasir,
+                    UserRole::Admin,
+                ]) ?? false,
+            ],
             'alerts' => [
                 'overdue_orders' => Order::query()
                     ->where('status', OrderStatus::InProgress)
@@ -198,5 +238,86 @@ class DashboardController extends Controller
                 ],
             ],
         };
+    }
+
+    /**
+     * @return array<int, array{key: string, label: string, count: int}>
+     */
+    protected function statusDistribution(): array
+    {
+        return [
+            [
+                'key' => OrderStatus::Draft->value,
+                'label' => 'Draft',
+                'count' => Order::query()->where('status', OrderStatus::Draft)->count(),
+            ],
+            [
+                'key' => OrderStatus::PendingPayment->value,
+                'label' => 'Pending',
+                'count' => Order::query()->where('status', OrderStatus::PendingPayment)->count(),
+            ],
+            [
+                'key' => OrderStatus::InProgress->value,
+                'label' => 'In Progress',
+                'count' => Order::query()->where('status', OrderStatus::InProgress)->count(),
+            ],
+            [
+                'key' => OrderStatus::Done->value,
+                'label' => 'Done',
+                'count' => Order::query()->where('status', OrderStatus::Done)->count(),
+            ],
+            [
+                'key' => OrderStatus::Closed->value,
+                'label' => 'Closed',
+                'count' => Order::query()->where('status', OrderStatus::Closed)->count(),
+            ],
+        ];
+    }
+
+    /**
+     * @return array<int, array{key: string, label: string, count: int, orders: array<int, array{id: int, order_number: string, customer_name: string|null}>}>
+     */
+    protected function productionPulseStages(): array
+    {
+        return [
+            $this->productionStageSummary(ProductionStage::Material, 'Queue'),
+            $this->productionStageSummary(ProductionStage::Production, 'In Progress'),
+            $this->productionStageSummary(ProductionStage::QC, 'QC'),
+            $this->productionStageSummary(ProductionStage::Packing, 'Packing'),
+            $this->productionStageSummary(ProductionStage::Shipping, 'Ready'),
+        ];
+    }
+
+    /**
+     * @return array{key: string, label: string, count: int, orders: array<int, array{id: int, order_number: string, customer_name: string|null}>}
+     */
+    protected function productionStageSummary(
+        ProductionStage $stage,
+        string $label,
+    ): array {
+        $orders = Order::query()
+            ->with(['customer:id,name'])
+            ->where('status', OrderStatus::InProgress)
+            ->where('production_stage', $stage)
+            ->latest()
+            ->limit(2)
+            ->get();
+
+        return [
+            'key' => $stage->value,
+            'label' => $label,
+            'count' => Order::query()
+                ->where('status', OrderStatus::InProgress)
+                ->where('production_stage', $stage)
+                ->count(),
+            'orders' => $orders
+                ->map(fn (Order $order): array => [
+                    'id' => $order->id,
+                    'order_number' => $order->order_number,
+                    'customer_name' => $order->customer?->name,
+                ])
+                ->values()
+                ->all(),
+        ];
     }
 }

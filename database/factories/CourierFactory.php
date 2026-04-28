@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\Courier;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -19,6 +18,7 @@ class CourierFactory extends Factory
     {
         return [
             'name' => fake()->randomElement(['JNE', 'J&T Express', 'SiCepat', 'AnterAja']),
+            'base_fee' => fake()->randomFloat(2, 12000, 45000),
             'is_active' => true,
         ];
     }

@@ -36,6 +36,8 @@ test('production starter seeder creates baseline internal accounts and master da
             'J&T Express',
             'SiCepat',
         ])->count())->toBe(3);
+
+    expect((float) Courier::query()->where('name', 'JNE')->value('base_fee'))->toBe(18000.0);
 });
 
 test('production starter seeder is idempotent and preserves existing passwords', function () {

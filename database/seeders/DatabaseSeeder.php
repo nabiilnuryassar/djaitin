@@ -7,8 +7,8 @@ use App\Models\DiscountPolicy;
 use App\Models\Fabric;
 use App\Models\GarmentModel;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -41,7 +41,7 @@ class DatabaseSeeder extends Seeder
             ['key' => 'loyalty_order_threshold'],
             [
                 'value' => '5',
-                'description' => 'Jumlah closed tailor order sebelum pelanggan dianggap loyal.',
+                'description' => 'Diskon aktif setelah closed tailor order pelanggan lebih dari nilai ini.',
                 'updated_by' => $admin->id,
             ],
         );

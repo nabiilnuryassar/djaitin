@@ -25,7 +25,9 @@ type Fabric = BaseItem & {
     price_adjustment: number;
 };
 
-type Courier = BaseItem;
+type Courier = BaseItem & {
+    base_fee: number;
+};
 
 type Props = {
     activeTab: 'garment-models' | 'fabrics' | 'couriers';
@@ -363,18 +365,25 @@ export default function MasterDataIndex({
                         {activeTab === 'couriers' && (
                             <TableShell
                                 title="Kurir"
-                                headers={['Nama', 'Status', 'Aksi']}
+                                headers={['Nama', 'Biaya jasa', 'Status', 'Aksi']}
                                 createRow={
                                     can.manage ? (
                                         <tr className="bg-[#F8FAFF]">
-                                            <td className="px-4 py-4" colSpan={3}>
+                                            <td className="px-4 py-4" colSpan={4}>
                                                 <form
                                                     {...office.admin.couriers.store.form()}
-                                                    className="grid gap-3 md:grid-cols-[1.2fr_auto_auto]"
+                                                    className="grid gap-3 md:grid-cols-[1.2fr_180px_auto_auto]"
                                                 >
                                                     <input
                                                         name="name"
                                                         placeholder="Nama kurir"
+                                                        className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"
+                                                    />
+                                                    <input
+                                                        name="base_fee"
+                                                        type="number"
+                                                        min="0"
+                                                        placeholder="Biaya jasa"
                                                         className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"
                                                     />
                                                     <div className="rounded-md border border-slate-200 bg-white px-3">
@@ -403,17 +412,24 @@ export default function MasterDataIndex({
                                 }
                                 rows={couriers.map((item) => (
                                     <tr key={item.id}>
-                                        <td className="px-4 py-4" colSpan={3}>
+                                        <td className="px-4 py-4" colSpan={4}>
                                             <div className="grid gap-2">
                                                 <form
                                                     {...office.admin.couriers.update.form(
                                                         item.id,
                                                     )}
-                                                    className="grid gap-3 md:grid-cols-[1.2fr_auto_auto]"
+                                                    className="grid gap-3 md:grid-cols-[1.2fr_180px_auto_auto]"
                                                 >
                                                     <input
                                                         name="name"
                                                         defaultValue={item.name}
+                                                        className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"
+                                                    />
+                                                    <input
+                                                        name="base_fee"
+                                                        type="number"
+                                                        min="0"
+                                                        defaultValue={item.base_fee}
                                                         className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"
                                                     />
                                                     <div className="rounded-md border border-slate-200 bg-white px-3">

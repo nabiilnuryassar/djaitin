@@ -19,6 +19,11 @@ class SaveDraftRequest extends FormRequest
         return [
             'garment_model_id' => ['nullable', 'integer', 'exists:garment_models,id'],
             'fabric_id' => ['nullable', 'integer', 'exists:fabrics,id'],
+            'wizard_preferences' => ['nullable', 'array'],
+            'wizard_preferences.desired_fit' => ['nullable', Rule::in(['Slim', 'Regular', 'Relaxed'])],
+            'wizard_preferences.occasion' => ['nullable', Rule::in(['Office', 'Wedding', 'Daily', 'Event', 'Uniform'])],
+            'wizard_preferences.style_traits' => ['nullable', 'array'],
+            'wizard_preferences.style_traits.*' => ['string', Rule::in(['Wibawa', 'Kreatif', 'Efisien', 'Inovatif'])],
             'measurement_mode' => ['nullable', Rule::in(['saved', 'manual', 'offline'])],
             'measurement_id' => ['nullable', 'integer', 'exists:measurements,id'],
             'manual_measurement.label' => ['nullable', 'string', 'max:100'],

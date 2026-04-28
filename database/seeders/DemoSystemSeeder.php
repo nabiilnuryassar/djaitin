@@ -253,9 +253,9 @@ class DemoSystemSeeder extends Seeder
     protected function seedCouriers(): array
     {
         return [
-            'jne' => Courier::query()->firstOrCreate(['name' => 'JNE'], ['is_active' => true]),
-            'jnt' => Courier::query()->firstOrCreate(['name' => 'J&T Express'], ['is_active' => true]),
-            'sicepat' => Courier::query()->firstOrCreate(['name' => 'SiCepat'], ['is_active' => true]),
+            'jne' => Courier::query()->updateOrCreate(['name' => 'JNE'], ['base_fee' => 18000, 'is_active' => true]),
+            'jnt' => Courier::query()->updateOrCreate(['name' => 'J&T Express'], ['base_fee' => 20000, 'is_active' => true]),
+            'sicepat' => Courier::query()->updateOrCreate(['name' => 'SiCepat'], ['base_fee' => 22000, 'is_active' => true]),
         ];
     }
 

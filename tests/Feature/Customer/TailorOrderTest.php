@@ -103,7 +103,7 @@ test('customer tailor submit uses backend pricing and loyalty discount', functio
             'qty' => 2,
             'payment' => [
                 'method' => PaymentMethod::Transfer->value,
-                'amount' => 200000,
+                'amount' => 280000,
                 'reference_number' => 'TRX-CUSTOMER-001',
                 'notes' => 'DP awal',
                 'proof' => UploadedFile::fake()->image('proof.jpg'),
@@ -177,7 +177,7 @@ test('customer can save draft and later submit it with manual measurement', func
             'qty' => 1,
             'payment' => [
                 'method' => PaymentMethod::Transfer->value,
-                'amount' => 100000,
+                'amount' => 150000,
                 'reference_number' => 'TRX-DRAFT-001',
                 'proof' => UploadedFile::fake()->image('draft-proof.jpg'),
             ],
@@ -196,4 +196,39 @@ test('customer can save draft and later submit it with manual measurement', func
         ->and($draft->draft_payload)->toBeNull()
         ->and($draft->measurement_mode)->toBe('manual')
         ->and($draft->measurement_id)->toBe($manualMeasurement->id);
+});
+
+test('customer tailor submit requires minimum fifty percent down payment', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->customer()->create();
+    $customer = $user->customer()->firstOrFail();
+    $measurement = Measurement::factory()->for($customer)->create();
+    $garmentModel = GarmentModel::factory()->create([
+        'base_price' => 300000,
+    ]);
+    $fabric = Fabric::factory()->create([
+        'price_adjustment' => 100000,
+    ]);
+
+    $this->actingAs($user)
+        ->post(route('customer.orders.tailor.store'), [
+            'garment_model_id' => $garmentModel->id,
+            'fabric_id' => $fabric->id,
+            'measurement_mode' => 'saved',
+            'measurement_id' => $measurement->id,
+            'qty' => 1,
+            'payment' => [
+                'method' => PaymentMethod::Transfer->value,
+                'amount' => 150000,
+                'reference_number' => 'TRX-DP-LOW',
+                'proof' => UploadedFile::fake()->image('proof-low.jpg'),
+            ],
+        ])
+        ->assertSessionHasErrors('payment.amount');
+
+    expect(Order::query()
+        ->where('order_type', OrderType::Tailor)
+        ->where('status', OrderStatus::PendingPayment)
+        ->count())->toBe(0);
 });

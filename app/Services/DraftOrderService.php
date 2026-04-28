@@ -21,8 +21,7 @@ class DraftOrderService
         protected AuditLogService $auditLogService,
         protected PaymentService $paymentService,
         protected TailorPricingService $tailorPricingService,
-    ) {
-    }
+    ) {}
 
     /**
      * @param  array<string, mixed>  $payload
@@ -33,8 +32,7 @@ class DraftOrderService
         array $payload,
         ?Order $draft = null,
         ?string $ipAddress = null,
-    ): Order
-    {
+    ): Order {
         return DB::transaction(function () use ($user, $customer, $payload, $draft, $ipAddress): Order {
             $draftPayload = $this->sanitizeDraftPayload($payload);
             $draftOrder = $draft ?? Order::query()->create([
@@ -89,8 +87,7 @@ class DraftOrderService
         User $user,
         array $payload,
         ?string $ipAddress = null,
-    ): Order
-    {
+    ): Order {
         /** @var Customer $customer */
         $customer = $user->customer()->firstOrFail();
 
@@ -100,6 +97,10 @@ class DraftOrderService
             $qty = (int) $payload['qty'];
             $pricing = $this->tailorPricingService->quote($customer, $garmentModel, $fabric, $qty);
             $measurement = $this->resolveMeasurement($customer, $payload);
+            $this->validateMinimumDownPayment(
+                round((float) $payload['payment']['amount'], 2),
+                $pricing['total_amount'],
+            );
 
             $draft->update([
                 'order_type' => OrderType::Tailor,
@@ -224,5 +225,16 @@ class DraftOrderService
         }
 
         return $proof->store('payments/proofs', 'public');
+    }
+
+    protected function validateMinimumDownPayment(float $paymentAmount, float $totalAmount): void
+    {
+        $minimumDownPayment = round($totalAmount * 0.5, 2);
+
+        if ($paymentAmount < $minimumDownPayment) {
+            throw ValidationException::withMessages([
+                'payment.amount' => 'Order tailor wajib membayar DP minimal 50% dari total biaya.',
+            ]);
+        }
     }
 }

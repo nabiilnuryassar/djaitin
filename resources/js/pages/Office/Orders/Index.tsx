@@ -32,6 +32,8 @@ type Props = {
         data: Array<{
             id: number;
             order_number: string;
+            order_type: string;
+            company_name: string | null;
             customer_name: string | null;
             garment_model_name: string | null;
             status: string;
@@ -85,10 +87,11 @@ export default function OrdersIndex({ filters, statuses, orders, can }: Props) {
                     <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div>
                             <CardTitle className="[font-family:var(--font-heading)] text-xl font-semibold text-[#0F172A]">
-                                Order tailor
+                                Order masuk
                             </CardTitle>
                             <CardDescription>
-                                Filter order berdasarkan status atau pelanggan.
+                                Filter order tailor dan konveksi berdasarkan
+                                status atau pelanggan.
                             </CardDescription>
                         </div>
                         {can.create && (
@@ -147,16 +150,27 @@ export default function OrdersIndex({ filters, statuses, orders, can }: Props) {
                                         className="grid gap-3 rounded-xl border p-4 transition hover:border-primary/40 md:grid-cols-[1.2fr_1fr_180px]"
                                     >
                                         <div>
-                                            <p className="font-medium">
-                                                {order.order_number}
-                                            </p>
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <p className="font-medium">
+                                                    {order.order_number}
+                                                </p>
+                                                <Badge variant="outline">
+                                                    {orderTypeLabel(
+                                                        order.order_type,
+                                                    )}
+                                                </Badge>
+                                            </div>
                                             <p className="text-sm text-muted-foreground">
                                                 {order.customer_name ??
                                                     'Pelanggan tidak diketahui'}
                                             </p>
                                             <p className="text-xs text-muted-foreground">
-                                                {order.garment_model_name ??
-                                                    'Model belum terisi'}
+                                                {order.order_type ===
+                                                'convection'
+                                                    ? (order.company_name ??
+                                                      'Perusahaan belum terisi')
+                                                    : (order.garment_model_name ??
+                                                      'Model belum terisi')}
                                             </p>
                                         </div>
                                         <div className="text-sm text-muted-foreground">
@@ -198,4 +212,16 @@ function formatCurrency(value: number) {
         currency: 'IDR',
         maximumFractionDigits: 0,
     }).format(value);
+}
+
+function orderTypeLabel(orderType: string): string {
+    if (orderType === 'convection') {
+        return 'Convection';
+    }
+
+    if (orderType === 'ready_wear') {
+        return 'Ready-to-Wear';
+    }
+
+    return 'Tailor';
 }

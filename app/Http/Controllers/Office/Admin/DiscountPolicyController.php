@@ -24,7 +24,7 @@ class DiscountPolicyController extends Controller
 
         $thresholdPolicy = DiscountPolicy::query()->firstOrCreate(
             ['key' => 'loyalty_order_threshold'],
-            ['value' => '5', 'description' => 'Minimal order closed agar loyalty aktif.'],
+            ['value' => '5', 'description' => 'Diskon aktif setelah order tailor closed lebih dari threshold ini.'],
         );
 
         $discountPolicy = DiscountPolicy::query()->firstOrCreate(
@@ -62,7 +62,7 @@ class DiscountPolicyController extends Controller
     {
         $thresholdPolicy = DiscountPolicy::query()->firstOrCreate(
             ['key' => 'loyalty_order_threshold'],
-            ['value' => '5', 'description' => 'Minimal order closed agar loyalty aktif.'],
+            ['value' => '5', 'description' => 'Diskon aktif setelah order tailor closed lebih dari threshold ini.'],
         );
 
         $discountPolicy = DiscountPolicy::query()->firstOrCreate(

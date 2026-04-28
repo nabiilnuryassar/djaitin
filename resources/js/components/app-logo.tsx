@@ -1,16 +1,30 @@
-import AppLogoIcon from '@/components/app-logo-icon';
+import { useSidebar } from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils';
+import logo from '../../images/logo/logo-djaitin-transparan.png';
 
-export default function AppLogo() {
+export default function AppLogo({ className, logoClassName }: { className?: string; logoClassName?: string }) {
+    // We use a try-catch or a check because AppLogo might be used outside of SidebarProvider
+    let sidebar: any = null;
+    try {
+        sidebar = useSidebar();
+    } catch (e) {
+        // Not in a sidebar context
+    }
+
+    const isCollapsed = sidebar?.state === 'collapsed';
+
     return (
-        <>
-            <div className="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-                <AppLogoIcon className="size-5 fill-current text-white dark:text-black" />
-            </div>
-            <div className="ml-1 grid flex-1 text-left text-sm">
-                <span className="mb-0.5 truncate leading-tight font-semibold">
-                    djaitin
+        <div className={cn("flex items-center gap-3", className)}>
+            <img
+                src={logo}
+                alt="Djaitin Logo"
+                className={cn("transition-all duration-300 object-contain", isCollapsed ? "h-8" : "h-10", logoClassName)}
+            />
+            {!isCollapsed && (
+                <span className="font-heading text-2xl leading-none font-bold tracking-wider text-[#2a6bb2] dark:text-white animate-in fade-in duration-500">
+                    DJAITIN
                 </span>
-            </div>
-        </>
+            )}
+        </div>
     );
 }

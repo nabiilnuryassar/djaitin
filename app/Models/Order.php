@@ -31,6 +31,7 @@ class Order extends Model
         'due_date',
         'company_name',
         'spec_notes',
+        'quotation_notes',
         'subtotal',
         'discount_amount',
         'shipping_cost',
@@ -38,6 +39,8 @@ class Order extends Model
         'paid_amount',
         'outstanding_amount',
         'is_loyalty_applied',
+        'quoted_by',
+        'quoted_at',
         'loyalty_overridden_by',
         'cancellation_reason',
         'draft_payload',
@@ -53,6 +56,7 @@ class Order extends Model
             'production_stage' => ProductionStage::class,
             'draft_payload' => 'array',
             'due_date' => 'date',
+            'quoted_at' => 'datetime',
             'subtotal' => 'decimal:2',
             'discount_amount' => 'decimal:2',
             'shipping_cost' => 'decimal:2',
@@ -97,6 +101,11 @@ class Order extends Model
     public function loyaltyOverriddenBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'loyalty_overridden_by');
+    }
+
+    public function quotedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'quoted_by');
     }
 
     public function cancelledBy(): BelongsTo

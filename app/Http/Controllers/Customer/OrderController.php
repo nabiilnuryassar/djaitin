@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Customer;
 
+use App\Enums\OrderAttachmentType;
 use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\SaveDraftRequest;
@@ -61,6 +62,7 @@ class OrderController extends Controller
             'garmentModel',
             'fabric',
             'measurement',
+
             'items',
             'payments',
             'shipment.courier',
@@ -79,6 +81,7 @@ class OrderController extends Controller
                 'measurement_mode' => $order->measurement_mode,
                 'due_date' => $order->due_date?->toDateString(),
                 'spec_notes' => $order->spec_notes,
+
                 'subtotal' => (float) $order->subtotal,
                 'discount_amount' => (float) $order->discount_amount,
                 'total_amount' => (float) $order->total_amount,
@@ -107,14 +110,10 @@ class OrderController extends Controller
                     'payment_date' => $payment->payment_date?->format('Y-m-d H:i'),
                     'rejection_reason' => $payment->rejection_reason,
                 ])->values(),
-                'attachments' => $order->attachments->map(fn (OrderAttachment $attachment): array => [
-                    'id' => $attachment->id,
-                    'file_name' => $attachment->file_name,
-                    'file_type' => $attachment->file_type,
-                    'url' => asset('storage/'.$attachment->file_path),
-                    'uploaded_by' => $attachment->uploadedBy?->name,
-                    'uploaded_at' => $attachment->created_at?->format('Y-m-d H:i'),
-                ])->values(),
+                'attachments' => $order->attachments
+                    ->sortByDesc('created_at')
+                    ->values()
+                    ->map(fn (OrderAttachment $attachment): array => $this->serializeAttachment($attachment)),
                 'shipment' => $order->shipment === null
                     ? null
                     : [
@@ -144,6 +143,11 @@ class OrderController extends Controller
             $order,
             $request->file('file'),
             $request->user(),
+            [
+                'title' => $request->string('title')->value() ?: null,
+                'notes' => $request->string('notes')->value() ?: null,
+                'attachment_type' => $request->string('attachment_type')->value(),
+            ],
             $request->ip(),
         );
 
@@ -216,6 +220,7 @@ class OrderController extends Controller
     {
         return match ($status) {
             OrderStatus::Draft => 'Draft',
+            OrderStatus::AwaitingPrice => 'Menunggu Pembayaran',
             OrderStatus::PendingPayment => 'Menunggu Pembayaran',
             OrderStatus::InProgress => 'Sedang Diproses',
             OrderStatus::Done => 'Siap Diambil / Siap Dikirim',
@@ -223,6 +228,37 @@ class OrderController extends Controller
             OrderStatus::Pickup => 'Menunggu Pickup',
             OrderStatus::Closed => 'Selesai',
             OrderStatus::Cancelled => 'Dibatalkan',
+        };
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function serializeAttachment(OrderAttachment $attachment): array
+    {
+        return [
+            'id' => $attachment->id,
+            'file_name' => $attachment->file_name,
+            'title' => $attachment->title ?: $attachment->file_name,
+            'notes' => $attachment->notes,
+            'attachment_type' => $attachment->attachment_type->value,
+            'attachment_type_label' => $this->attachmentTypeLabel($attachment->attachment_type),
+            'file_type' => $attachment->file_type,
+            'url' => asset('storage/'.$attachment->file_path),
+            'uploaded_by' => $attachment->uploadedBy?->name,
+            'uploaded_by_role' => $attachment->uploadedBy?->role?->value,
+            'uploaded_at' => $attachment->created_at?->format('Y-m-d H:i'),
+        ];
+    }
+
+    protected function attachmentTypeLabel(OrderAttachmentType $type): string
+    {
+        return match ($type) {
+            OrderAttachmentType::Reference => 'Referensi',
+            OrderAttachmentType::DesignProposal => 'Proposal Desain',
+            OrderAttachmentType::Revision => 'Revisi',
+            OrderAttachmentType::FinalArtwork => 'Final Artwork',
+            OrderAttachmentType::Other => 'Lainnya',
         };
     }
 }

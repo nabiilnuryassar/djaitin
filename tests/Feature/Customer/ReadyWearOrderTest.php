@@ -147,7 +147,9 @@ test('delivery checkout requires customer address and pickup does not', function
         'stock' => 4,
         'is_active' => true,
     ]);
-    $courier = Courier::factory()->create();
+    $courier = Courier::factory()->create([
+        'base_fee' => 18000,
+    ]);
     $address = Address::factory()->for($customer)->default()->create();
 
     $this->actingAs($user)
@@ -209,5 +211,5 @@ test('delivery checkout requires customer address and pickup does not', function
     $deliveryOrder = Order::query()->latest('id')->firstOrFail();
     /** @var \App\Models\Order $deliveryOrder */
     expect($deliveryOrder->shipment()->exists())->toBeTrue()
-        ->and((float) $deliveryOrder->shipping_cost)->toBe(20000.0);
+        ->and((float) $deliveryOrder->shipping_cost)->toBe(18000.0);
 });
