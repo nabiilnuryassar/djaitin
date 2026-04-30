@@ -12,6 +12,9 @@ import { Input } from '@/components/ui/input';
 import CustomerLayout from '@/layouts/customer-layout';
 import customer from '@/routes/customer';
 import { login } from '@/routes';
+import catalogBatikImage from '../../../../images/generated/catalog-product-batik.jpg';
+import catalogCasualImage from '../../../../images/generated/catalog-product-casual.jpg';
+import catalogUniformImage from '../../../../images/generated/catalog-product-uniform.jpg';
 import type { User } from '@/types/auth';
 
 type Product = {
@@ -61,19 +64,27 @@ export default function CustomerCatalogShow({ product, variants }: Props) {
                     </Link>
                 </Button>
 
-                <section className="grid gap-6 rounded-[2rem] border border-[#DBEAFE] bg-white p-8 shadow-[0_20px_80px_rgba(37,99,235,0.08)] lg:grid-cols-[1.05fr_0.95fr]">
-                    <div className="rounded-[1.75rem] bg-gradient-to-br from-[#EFF4FF] to-[#DBEAFE] p-8">
-                        <p className="text-sm font-semibold tracking-[0.18em] text-[#2563EB] uppercase">
-                            {product.sku}
-                        </p>
-                        <div className="mt-6 space-y-4">
-                            <h1 className="[font-family:var(--font-heading)] text-4xl font-semibold tracking-tight text-[#0F172A]">
-                                {product.name}
-                            </h1>
-                            <p className="max-w-2xl text-base leading-7 text-slate-600">
-                                {product.description ??
-                                    'Produk ready-to-wear untuk customer yang butuh proses lebih cepat dibanding tailor custom.'}
-                            </p>
+                <section className="grid gap-6 rounded-[2rem] border border-[#DBEAFE] bg-white p-5 shadow-[0_20px_80px_rgba(37,99,235,0.08)] lg:grid-cols-[1.05fr_0.95fr] lg:p-8">
+                    <div className="overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-[#EFF4FF] to-[#DBEAFE]">
+                        <div className="relative h-80 overflow-hidden">
+                            <img
+                                src={resolveProductImage(product)}
+                                alt={product.name}
+                                className="h-full w-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-[linear-gradient(180deg,_rgba(15,23,42,0.04)_0%,_rgba(15,23,42,0.58)_100%)]" />
+                            <div className="absolute right-5 bottom-5 left-5 rounded-[1.35rem] border border-white/20 bg-white/90 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.16)] backdrop-blur-md">
+                                <p className="text-xs font-semibold tracking-[0.18em] text-[#2563EB] uppercase">
+                                    {product.sku}
+                                </p>
+                                <h1 className="mt-3 [font-family:var(--font-heading)] text-3xl font-semibold tracking-tight text-[#0F172A]">
+                                    {product.name}
+                                </h1>
+                                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                                    {product.description ??
+                                        'Produk ready-to-wear untuk customer yang butuh proses lebih cepat dibanding tailor custom.'}
+                                </p>
+                            </div>
                         </div>
                     </div>
 
@@ -223,4 +234,31 @@ function formatCurrency(value: number): string {
         currency: 'IDR',
         maximumFractionDigits: 0,
     }).format(value);
+}
+
+function resolveProductImage(product: Product): string {
+    if (product.image_path) {
+        return product.image_path;
+    }
+
+    const category = product.category.toLowerCase();
+    const name = product.name.toLowerCase();
+
+    if (
+        category.includes('uniform') ||
+        name.includes('seragam') ||
+        name.includes('kantor')
+    ) {
+        return catalogUniformImage;
+    }
+
+    if (
+        category.includes('batik') ||
+        name.includes('batik') ||
+        name.includes('kemeja')
+    ) {
+        return catalogBatikImage;
+    }
+
+    return catalogCasualImage;
 }

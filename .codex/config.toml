@@ -1,7 +1,7 @@
 [mcp_servers.laravel-boost]
 command = "php"
 args = ["artisan", "boost:mcp"]
-cwd = "/home/nabiil-mint/self-project/sim-convection-taylor/djaitin-app"
+cwd = "/home/karvy-pc/Projects/personal/sim-convection-taylor/djaitin-app"
 
 [mcp_servers.shadcn]
 command = "npx"

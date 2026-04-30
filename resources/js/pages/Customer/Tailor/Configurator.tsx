@@ -35,6 +35,7 @@ import CustomerLayout from '@/layouts/customer-layout';
 import { cn } from '@/lib/utils';
 import customer from '@/routes/customer';
 import { login, register } from '@/routes';
+import tailorProfilePreviewImage from '../../../../images/generated/tailor-profile-preview.jpg';
 import type { User } from '@/types/auth';
 
 type Option = {
@@ -1407,31 +1408,24 @@ export default function CustomerTailorConfigurator({
                                 </span>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="rounded-[24px] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.15),_transparent_35%),linear-gradient(180deg,#3f4e67_0%,#253346_100%)] p-4">
-                                    <div className="relative flex h-64 items-end justify-center overflow-hidden rounded-[22px] border border-white/10 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.08),_transparent_48%)]">
-                                        <div className="absolute inset-6 rounded-full border border-white/10" />
-                                        <div className="absolute inset-10 rounded-full border border-white/8" />
-                                        <div className="relative flex h-52 w-32 flex-col items-center">
-                                            <div className="h-10 w-10 rounded-full bg-[#f0e2cc]" />
-                                            <div className="relative mt-2 h-36 w-24 rounded-t-[34px] rounded-b-[18px] bg-[linear-gradient(180deg,#2f5c8a_0%,#183657_100%)]">
-                                                <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-white/25" />
-                                                <div className="absolute top-6 right-0 left-0 h-10 bg-[linear-gradient(135deg,transparent_44%,#b93a3a_44%,#b93a3a_58%,transparent_58%)] opacity-85" />
-                                            </div>
-                                            <div className="mt-2 flex gap-3">
-                                                <div className="h-16 w-4 rounded-full bg-[#173657]" />
-                                                <div className="h-16 w-4 rounded-full bg-[#173657]" />
-                                            </div>
+                                <div className="rounded-[24px] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.16),_transparent_35%),linear-gradient(180deg,#3f4e67_0%,#253346_100%)] p-4">
+                                    <div className="relative h-64 overflow-hidden rounded-[22px] border border-white/10 bg-[#162235]">
+                                        <img
+                                            src={tailorProfilePreviewImage}
+                                            alt="Preview visual profil tailor Djaitin"
+                                            className="h-full w-full object-cover object-center"
+                                        />
+                                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_35%,_rgba(6,12,28,0.52)_100%)]" />
+                                        <div className="absolute inset-x-4 bottom-4 rounded-2xl border border-white/10 bg-[#071225]/70 px-3 py-2 text-white shadow-[0_18px_40px_rgba(0,0,0,0.28)] backdrop-blur-md">
+                                            <p className="text-[10px] font-semibold tracking-[0.14em] text-white/70 uppercase">
+                                                Live Preview
+                                            </p>
+                                            <p className="mt-1 text-sm font-medium">
+                                                {selectedIdentity?.title ??
+                                                    'Executive Sharp'}{' '}
+                                                x {form.data.desired_fit} Fit
+                                            </p>
                                         </div>
-                                    </div>
-                                    <div className="mt-3 rounded-2xl bg-[#1d5fd3] px-3 py-2 text-white">
-                                        <p className="text-[10px] font-semibold tracking-[0.14em] text-white/70 uppercase">
-                                            Live Preview
-                                        </p>
-                                        <p className="mt-1 text-sm font-medium">
-                                            {selectedIdentity?.title ??
-                                                'Executive Sharp'}{' '}
-                                            x {form.data.desired_fit} Fit
-                                        </p>
                                     </div>
                                 </div>
 

@@ -11,6 +11,10 @@ import {
 import CustomerLayout from '@/layouts/customer-layout';
 import customer from '@/routes/customer';
 import { login } from '@/routes';
+import catalogHeroImage from '../../../../images/generated/catalog-hero-rtw.jpg';
+import catalogBatikImage from '../../../../images/generated/catalog-product-batik.jpg';
+import catalogCasualImage from '../../../../images/generated/catalog-product-casual.jpg';
+import catalogUniformImage from '../../../../images/generated/catalog-product-uniform.jpg';
 import type { User } from '@/types/auth';
 
 type Product = {
@@ -88,8 +92,8 @@ export default function CustomerCatalogIndex({
             <Head title="Katalog RTW" />
 
             <div className="space-y-6">
-                <section className="grid gap-6 rounded-[2rem] border border-[#DBEAFE] bg-gradient-to-br from-white to-[#EFF4FF] p-8 shadow-[0_20px_80px_rgba(37,99,235,0.08)] lg:grid-cols-[1.1fr_0.9fr]">
-                    <div className="space-y-4">
+                <section className="grid gap-6 overflow-hidden rounded-[2rem] border border-[#DBEAFE] bg-gradient-to-br from-white to-[#EFF4FF] p-5 shadow-[0_20px_80px_rgba(37,99,235,0.08)] lg:grid-cols-[1.05fr_0.95fr] lg:p-8">
+                    <div className="space-y-4 px-3 py-3 lg:px-0 lg:py-0">
                         <p className="text-sm font-semibold tracking-[0.22em] text-[#2563EB] uppercase">
                             Ready-to-Wear Catalog
                         </p>
@@ -120,29 +124,26 @@ export default function CustomerCatalogIndex({
                         </div>
                     </div>
 
-                    <Card className="border-0 bg-[#162044] text-white shadow-none">
-                        <CardHeader>
-                            <CardTitle className="[font-family:var(--font-heading)] text-2xl">
-                                Fokus Phase 3
-                            </CardTitle>
-                            <CardDescription className="text-white/80">
-                                Cart, checkout, pickup/delivery, dan kontrol stok.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-3 text-sm leading-6 text-white/85">
-                            {[
-                                'Clearance product ditandai langsung di katalog.',
-                                'Produk low stock diberi peringatan sebelum checkout.',
-                                'Guest tetap bisa browse, tetapi add to cart diarahkan ke login.',
-                                'Keranjang dan checkout terisolasi per customer account.',
-                            ].map((item) => (
-                                <div key={item} className="flex gap-3">
-                                    <div className="mt-2 size-2 rounded-full bg-[#F9C11A]" />
-                                    <p>{item}</p>
-                                </div>
-                            ))}
-                        </CardContent>
-                    </Card>
+                    <div className="relative min-h-[280px] overflow-hidden rounded-[1.75rem] bg-[#162044] text-white shadow-[0_24px_70px_rgba(22,32,68,0.18)]">
+                        <img
+                            src={catalogHeroImage}
+                            alt="Display katalog ready-to-wear Djaitin"
+                            className="absolute inset-0 h-full w-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-[linear-gradient(90deg,_rgba(15,23,42,0.82)_0%,_rgba(15,23,42,0.5)_38%,_rgba(15,23,42,0.08)_100%)]" />
+                        <div className="relative flex h-full min-h-[280px] flex-col justify-end p-6">
+                            <p className="text-xs font-semibold tracking-[0.18em] text-[#F9C11A] uppercase">
+                                Curated Stock
+                            </p>
+                            <h2 className="mt-3 max-w-sm [font-family:var(--font-heading)] text-2xl font-semibold">
+                                Koleksi siap pakai dengan stok dan ukuran yang jelas.
+                            </h2>
+                            <div className="mt-5 grid gap-2 text-sm leading-6 text-white/85">
+                                <p>Clearance dan low stock ditandai langsung.</p>
+                                <p>Checkout tetap tervalidasi dari sisi backend.</p>
+                            </div>
+                        </div>
+                    </div>
                 </section>
 
                 <Card className="border-0 bg-white shadow-[0_16px_50px_rgba(37,99,235,0.06)]">
@@ -208,6 +209,17 @@ export default function CustomerCatalogIndex({
                             key={product.id}
                             className="border-0 bg-white shadow-[0_16px_50px_rgba(37,99,235,0.06)]"
                         >
+                            <div className="relative h-56 overflow-hidden rounded-t-xl bg-[#EFF4FF]">
+                                <img
+                                    src={resolveProductImage(product)}
+                                    alt={product.name}
+                                    className="h-full w-full object-cover transition duration-500 hover:scale-105"
+                                />
+                                <div className="absolute inset-0 bg-[linear-gradient(180deg,_transparent_45%,_rgba(15,23,42,0.42)_100%)]" />
+                                <span className="absolute bottom-4 left-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-[#1B5EC5] shadow-sm backdrop-blur">
+                                    {formatLabel(product.category)}
+                                </span>
+                            </div>
                             <CardHeader className="space-y-4">
                                 <div className="flex items-start justify-between gap-3">
                                     <div>
@@ -367,4 +379,31 @@ function formatCurrency(value: number): string {
         currency: 'IDR',
         maximumFractionDigits: 0,
     }).format(value);
+}
+
+function resolveProductImage(product: Product): string {
+    if (product.image_path) {
+        return product.image_path;
+    }
+
+    const category = product.category.toLowerCase();
+    const name = product.name.toLowerCase();
+
+    if (
+        category.includes('uniform') ||
+        name.includes('seragam') ||
+        name.includes('kantor')
+    ) {
+        return catalogUniformImage;
+    }
+
+    if (
+        category.includes('batik') ||
+        name.includes('batik') ||
+        name.includes('kemeja')
+    ) {
+        return catalogBatikImage;
+    }
+
+    return catalogCasualImage;
 }
