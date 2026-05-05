@@ -615,98 +615,163 @@ sequenceDiagram
     DB-->>Customer: Customer melihat status pengiriman
 ```
 
-## 14. Activity Diagram - Customer Order Flow
+## 14. Activity Diagram (Swimlane) - Customer Order Flow
+
+> **Format swimlane UML.** Setiap kolom (lane) merepresentasikan satu aktor; alur aktivitas mengalir dari atas ke bawah dalam masing-masing lane dan berpindah antar lane saat terjadi handoff tanggung jawab.
+>
+> **Aktor (lane):** Customer · System · Office (Kasir / Produksi / Pengiriman)
 
 ```mermaid
-flowchart TD
-    A([Start]) --> B{Customer sudah login?}
-    B -- Tidak --> C[Register / Login]
-    B -- Ya --> D[Pilih layanan]
-    C --> D
-    D --> E{Jenis layanan}
-    E -- Tailor --> F[Isi tailor wizard]
-    F --> G[Simpan draft atau submit order]
-    G --> H[Catat payment DP / transfer]
-    E -- Ready-to-Wear --> I[Pilih produk katalog]
-    I --> J[Cart dan checkout]
-    J --> K[Pilih pickup/delivery dan payment]
-    E -- Konveksi --> L[Isi brief, item, qty, harga, referensi file]
-    L --> M[Wajib full payment sesuai total]
-    H --> N[Order pending_payment setelah DP minimal 50%]
-    K --> N
-    M --> N
-    N --> O{Payment transfer?}
-    O -- Ya --> P[Upload proof]
-    O -- Tidak / Cash --> Q[Menunggu proses office]
-    P --> R[Kasir verifikasi]
-    R --> S{Valid?}
-    S -- Tidak --> T[Payment rejected, customer upload ulang]
-    T --> P
-    S -- Ya --> U[Payment verified]
-    Q --> U
-    U --> V[Produksi / fulfillment berjalan]
-    V --> W[Order done]
-    W --> X{Pickup atau delivery?}
-    X -- Pickup --> Y[Customer ambil pesanan setelah lunas]
-    X -- Delivery --> Z[Office update shipment]
-    Y --> AA([Closed])
-    Z --> AA
+flowchart TB
+    subgraph CUST["Customer"]
+        direction LR
+        cStart([Mulai])
+        cLogin{Sudah login?}
+        cReg[Register / Login]
+        cPilih[Pilih layanan]
+        cJenis{Jenis layanan?}
+        cTailor[Isi tailor wizard]
+        cRTW[Pilih produk RTW & checkout]
+        cKonv[Isi brief konveksi]
+        cBayar[Catat DP / transfer]
+        cUpload[Upload bukti transfer]
+        cReUpload[Upload bukti ulang]
+        cAmbil[Ambil / terima pesanan]
+        cEnd([Selesai])
+    end
+
+    subgraph SYS["System"]
+        direction LR
+        sAuth[Validasi kredensial]
+        sSimpan[Simpan order]
+        sStatus[Set order = pending_payment]
+        sVerified[Update payment = verified]
+        sDone[Set order = done]
+        sNotif[Notifikasi rejection ke customer]
+    end
+
+    subgraph OFF["Office (Kasir / Produksi / Pengiriman)"]
+        direction LR
+        oQueue[Buka payment queue]
+        oCek{Bukti & nominal valid?}
+        oReject[Reject + alasan]
+        oVerify[Verify payment]
+        oProd[Jalankan produksi & fulfillment]
+        oShip[Update pickup / shipment]
+    end
+
+    cStart --> cLogin
+    cLogin -- Tidak --> cReg --> sAuth --> cPilih
+    cLogin -- Ya --> cPilih
+    cPilih --> cJenis
+    cJenis -- Tailor --> cTailor --> cBayar
+    cJenis -- RTW --> cRTW --> cBayar
+    cJenis -- Konveksi --> cKonv --> cBayar
+    cBayar --> sSimpan --> sStatus --> cUpload
+    cUpload --> oQueue --> oCek
+    oCek -- Tidak --> oReject --> sNotif --> cReUpload --> oQueue
+    oCek -- Ya --> oVerify --> sVerified --> oProd --> oShip --> sDone --> cAmbil --> cEnd
 ```
 
-## 15. Activity Diagram - Office Payment Verification
+## 15. Activity Diagram (Swimlane) - Office Payment Verification
+
+> **Aktor (lane):** Customer · System · Kasir
 
 ```mermaid
-flowchart TD
-    A([Start]) --> B[Kasir buka payment queue]
-    B --> C[Review order, nominal, reference, proof]
-    C --> D{Metode payment}
-    D -- Cash --> E[Record payment otomatis verified]
-    D -- Transfer --> F{Bukti valid dan dana diterima?}
-    F -- Tidak --> G[Reject payment dengan alasan]
-    G --> H[Kirim notifikasi rejection ke customer]
-    H --> I[Customer upload proof ulang]
-    I --> B
-    F -- Ya --> J[Verify transfer]
-    E --> K[Update paid_amount dan outstanding_amount]
-    J --> K
-    K --> L{Order RTW?}
-    L -- Ya --> M[Kurangi stok jika verified payment pertama]
-    L -- Tidak --> N[Lanjut gate produksi]
-    M --> N
-    N --> O{Outstanding 0?}
-    O -- Ya --> P[Nota/kwitansi tersedia sesuai rule]
-    O -- Tidak --> Q[Order tetap punya sisa tagihan]
-    P --> R([End])
-    Q --> R
+flowchart TB
+    subgraph CUST["Customer"]
+        direction LR
+        cUpload[Upload bukti transfer]
+        cReUpload[Upload bukti ulang]
+        cEnd([Selesai])
+    end
+
+    subgraph SYS["System"]
+        direction LR
+        sQueue[Tampilkan payment queue]
+        sUpdate[Update paid_amount & outstanding]
+        sStock[Kurangi stok RTW jika verified pertama]
+        sGate[Lanjut gate produksi]
+        sCheck{Outstanding = 0?}
+        sNota[Nota / kwitansi tersedia]
+        sSisa[Order tetap punya sisa tagihan]
+        sNotif[Kirim notifikasi rejection]
+    end
+
+    subgraph KAS["Kasir"]
+        direction LR
+        kStart([Mulai])
+        kReview[Review order, nominal, bukti]
+        kMetode{Metode payment?}
+        kCash[Catat cash = verified]
+        kValid{Bukti valid & dana diterima?}
+        kReject[Reject dengan alasan]
+        kVerify[Verify transfer]
+    end
+
+    kStart --> sQueue --> kReview --> kMetode
+    cUpload --> sQueue
+    kMetode -- Cash --> kCash --> sUpdate
+    kMetode -- Transfer --> kValid
+    kValid -- Tidak --> kReject --> sNotif --> cReUpload --> sQueue
+    kValid -- Ya --> kVerify --> sUpdate
+    sUpdate --> sStock --> sGate --> sCheck
+    sCheck -- Ya --> sNota --> cEnd
+    sCheck -- Tidak --> sSisa --> cEnd
 ```
 
-## 16. Activity Diagram - Production and Fulfillment
+## 16. Activity Diagram (Swimlane) - Production and Fulfillment
+
+> **Aktor (lane):** Customer · System · Office (Produksi / Pengiriman)
 
 ```mermaid
-flowchart TD
-    A([Start]) --> B[Office melihat order aktif]
-    B --> C{Order type}
-    C -- Tailor --> D{DP minimal 50% verified?}
-    C -- Convection --> E{Full payment verified?}
-    C -- Ready-to-Wear --> F{Payment verified?}
-    D -- Tidak --> G[Tahan di pending_payment]
-    E -- Tidak --> G
-    F -- Tidak --> G
-    D -- Ya --> H[Set status in_progress]
-    E -- Ya --> H
-    F -- Ya --> I[Pick/pack item RTW]
-    H --> J[Update production stage: design/material/production/qc/packing]
-    J --> K{QC selesai?}
-    K -- Tidak --> J
-    K -- Ya --> L[Set order done]
-    I --> L
-    L --> M{Pengambilan}
-    M -- Pickup --> N[Customer ambil pesanan]
-    M -- Delivery --> O[Update shipment courier dan resi]
-    N --> P[Set pickup/closed]
-    O --> Q[Set shipped/delivered]
-    P --> R([End])
-    Q --> R
+flowchart TB
+    subgraph CUST["Customer"]
+        direction LR
+        cMode{Metode pengambilan?}
+        cPickup[Customer ambil pesanan]
+        cTerima[Customer terima pengiriman]
+        cEnd([Selesai])
+    end
+
+    subgraph SYS["System"]
+        direction LR
+        sStart([Mulai])
+        sType{Order type?}
+        sTailorPaid{DP &ge; 50% verified?}
+        sConvPaid{Lunas verified?}
+        sRTWPaid{Payment verified?}
+        sHold[Tahan di pending_payment]
+        sInProgress[Set status = in_progress]
+        sDone[Set order = done]
+        sShipped[Set shipped / delivered]
+        sClosed[Set pickup / closed]
+    end
+
+    subgraph OFF["Office (Produksi / Pengiriman)"]
+        direction LR
+        oRTW[Pick & pack item RTW]
+        oStage[Update production stage]
+        oQC{QC selesai?}
+        oShip[Update shipment courier & resi]
+    end
+
+    sStart --> sType
+    sType -- Tailor --> sTailorPaid
+    sType -- Convection --> sConvPaid
+    sType -- RTW --> sRTWPaid
+    sTailorPaid -- Tidak --> sHold
+    sConvPaid -- Tidak --> sHold
+    sRTWPaid -- Tidak --> sHold
+    sTailorPaid -- Ya --> sInProgress
+    sConvPaid -- Ya --> sInProgress
+    sRTWPaid -- Ya --> oRTW --> sDone
+    sInProgress --> oStage --> oQC
+    oQC -- Tidak --> oStage
+    oQC -- Ya --> sDone
+    sDone --> cMode
+    cMode -- Pickup --> cPickup --> sClosed --> cEnd
+    cMode -- Delivery --> oShip --> sShipped --> cTerima --> cEnd
 ```
 
 ## 17. Status Route MVP
