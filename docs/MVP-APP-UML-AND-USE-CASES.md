@@ -3,6 +3,7 @@
 **Tanggal:** 2026-04-28  
 **Basis evaluasi:** `docs/PRD.md`, `docs/MVP-READINESS.md`, route `/app`, route `/office`, model Eloquent, service order/payment, dan skema database saat ini.  
 **Status:** MVP operasional layak, dengan catatan go-live dan beberapa cleanup non-blocking.
+**Update:** 2026-05-24 — UC-17 s/d UC-20 ditambahkan; class diagram disinkronkan dengan kode aktual; OrderStatus ditambah `awaiting_price`.
 
 ## 1. Ringkasan MVP
 
@@ -94,6 +95,10 @@ Catatan teknis non-blocking: model `Order` masih menyimpan field kompatibilitas 
 | UC-14 | Kelola pengiriman | Kasir, Admin | Menambah courier, resi, status shipped/delivered/pickup | Shipment terbaru |
 | UC-15 | Kelola master data | Admin | Mengatur user internal, produk, kain, model, courier, discount | Master data siap digunakan |
 | UC-16 | Lihat laporan dan audit | Admin, Owner | Memantau omzet, order, payment, dan perubahan penting | Report/export dan audit trail |
+| UC-17 | Setup Two-Factor Authentication | Customer, Staff | Mengaktifkan 2FA via Fortify | 2FA aktif di akun |
+| UC-18 | Simpan / Lanjutkan Draft Order | Customer | Menyimpan konfigurasi tailor sebagai draft sebelum submit | Draft order tersimpan di jsonb payload |
+| UC-19 | Batalkan Order | Customer, Admin | Membatalkan order dengan alasan, audit trail tersimpan | Order cancelled + cancellation_reason/cancelled_by/cancelled_at |
+| UC-20 | Review Attachment Konveksi | Kasir, Admin | Mereview lampiran desain (reference→proposal→revision→final_artwork) | Attachment approval_status updated |
 
 ## 6. Use Case Diagram
 
@@ -119,6 +124,9 @@ flowchart LR
         UC06["UC-06 Submit Order Konveksi"]
         UC07["UC-07 Upload Bukti Pembayaran"]
         UC08["UC-08 Track Order & Notification"]
+        UC17["UC-17 Setup Two-Factor Authentication"]
+        UC18["UC-18 Simpan / Lanjutkan Draft Order"]
+        UC19["UC-19 Batalkan Order"]
     end
 
     subgraph OfficeApp["Office App (/office)"]
@@ -129,6 +137,9 @@ flowchart LR
         UC13["UC-13 Update Produksi"]
         UC14["UC-14 Kelola Shipping"]
         UC16["UC-16 Report & Audit"]
+        UC17O["UC-17 Setup Two-Factor Authentication"]
+        UC19O["UC-19 Batalkan Order"]
+        UC20["UC-20 Review Attachment Konveksi"]
     end
 
     subgraph AdminApp["Admin Modules (/office/admin)"]
@@ -144,20 +155,30 @@ flowchart LR
     Customer --> UC06
     Customer --> UC07
     Customer --> UC08
+    Customer --> UC17
+    Customer --> UC18
+    Customer --> UC19
     Kasir --> UC09
     Kasir --> UC10
     Kasir --> UC11
     Kasir --> UC12
     Kasir --> UC14
+    Kasir --> UC17O
+    Kasir --> UC20
     Produksi --> UC13
+    Produksi --> UC17O
     Admin --> UC09
     Admin --> UC10
     Admin --> UC11
     Admin --> UC12
     Admin --> UC13
     Admin --> UC14
+    Admin --> UC17O
+    Admin --> UC19O
+    Admin --> UC20
     Admin --> UC15
     Admin --> UC16
+    Owner --> UC17O
     Owner --> UC16
 ```
 
@@ -263,7 +284,11 @@ classDiagram
         +string size
         +decimal base_price
         +decimal selling_price
+        +bool is_clearance
+        +decimal discount_percent
         +decimal discount_amount
+        +string description
+        +string image_path
         +int stock
         +bool is_active
         +finalPrice() float
@@ -280,6 +305,16 @@ classDiagram
         +decimal total_amount
         +decimal paid_amount
         +decimal outstanding_amount
+        +string loyalty_overridden_by
+        +string cancellation_reason
+        +int cancelled_by
+        +timestamp cancelled_at
+        +bool is_loyalty_applied
+        +decimal subtotal
+        +decimal discount_amount
+        +decimal shipping_cost
+        +string measurement_mode
+        +string spec_notes
         +json draft_payload
     }
 
@@ -300,8 +335,13 @@ classDiagram
         +PaymentMethod method
         +PaymentStatus status
         +decimal amount
+        +date payment_date
         +string reference_number
         +string proof_image_path
+        +int created_by
+        +int verified_by
+        +string rejection_reason
+        +string notes
         +datetime verified_at
     }
 
@@ -320,8 +360,9 @@ classDiagram
         +string file_path
         +string file_name
         +OrderAttachmentType attachment_type
-        +string approval_status
-        +string review_notes
+        +string title
+        +string file_type
+        +int uploaded_by
     }
 
     class AuditLog {
@@ -382,6 +423,7 @@ classDiagram
     class OrderStatus {
         <<enumeration>>
         draft
+        awaiting_price
         pending_payment
         in_progress
         done

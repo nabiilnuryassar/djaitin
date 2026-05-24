@@ -64,6 +64,69 @@ class DatabaseSeeder extends Seeder
             ],
         );
 
+        GarmentModel::query()->updateOrCreate(
+            ['name' => 'Jaket Formal'],
+            [
+                'description' => 'Model jaket formal untuk seragam korporat dan instansi.',
+                'base_price' => 350000,
+                'is_active' => true,
+            ],
+        );
+
+        GarmentModel::query()->updateOrCreate(
+            ['name' => 'Topi Bordir'],
+            [
+                'description' => 'Model topi dengan area bordir custom untuk identitas perusahaan.',
+                'base_price' => 85000,
+                'is_active' => true,
+            ],
+        );
+
+        GarmentModel::query()->updateOrCreate(
+            ['name' => 'Kaos Polos'],
+            [
+                'description' => 'Model kaos polos siap sablon atau bordir untuk kebutuhan event dan internal.',
+                'base_price' => 95000,
+                'is_active' => true,
+            ],
+        );
+
+        GarmentModel::query()->updateOrCreate(
+            ['name' => 'Seragam Sekolah'],
+            [
+                'description' => 'Model seragam sekolah dengan emblem opsional, mengikuti standar institusi.',
+                'base_price' => 220000,
+                'is_active' => true,
+            ],
+        );
+
+        GarmentModel::query()->updateOrCreate(
+            ['name' => 'Seragam Kerja'],
+            [
+                'description' => 'Model seragam kerja untuk instansi swasta maupun pemerintah dengan opsi emblem.',
+                'base_price' => 285000,
+                'is_active' => true,
+            ],
+        );
+
+        GarmentModel::query()->updateOrCreate(
+            ['name' => 'Rok Formal'],
+            [
+                'description' => 'Model rok formal untuk seragam wanita dengan penyesuaian ukuran.',
+                'base_price' => 195000,
+                'is_active' => true,
+            ],
+        );
+
+        GarmentModel::query()->updateOrCreate(
+            ['name' => 'Celana Bahan'],
+            [
+                'description' => 'Model celana bahan formal untuk seragam kerja pria.',
+                'base_price' => 235000,
+                'is_active' => true,
+            ],
+        );
+
         Fabric::query()->updateOrCreate(
             ['name' => 'Katun Premium'],
             [

@@ -30,4 +30,26 @@ class StoreProductRequest extends FormRequest
             'is_active' => ['sometimes', 'boolean'],
         ];
     }
+
+    /**
+     * Cross-field validation: harga jual akhir (selling_price - discount_amount)
+     * tidak boleh di bawah harga pokok (base_price). Sesuai narasi PRD:
+     * "kalau perlu bahkan dijual sesuai dengan harga pokoknya" — HPP adalah floor.
+     */
+    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    {
+        $validator->after(function ($v) {
+            $basePrice = (float) $this->input('base_price', 0);
+            $sellingPrice = (float) $this->input('selling_price', 0);
+            $discountAmount = (float) $this->input('discount_amount', 0);
+            $finalPrice = round($sellingPrice - $discountAmount, 2);
+
+            if ($finalPrice < $basePrice) {
+                $v->errors()->add(
+                    'discount_amount',
+                    'Harga jual akhir tidak boleh di bawah harga pokok ('.number_format($basePrice, 0, ',', '.').'). Sesuai aturan, clearance maksimum dijual sama dengan harga pokok.',
+                );
+            }
+        });
+    }
 }
