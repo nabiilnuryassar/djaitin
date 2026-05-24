@@ -1,4 +1,5 @@
-import { Form, Head, Link, useForm } from '@inertiajs/react';
+import { Form, Head, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 import DashboardController from '@/actions/App/Http/Controllers/Office/DashboardController';
 import {
     index as ordersIndex,
@@ -11,8 +12,8 @@ import {
     store as storePayment,
     verify as verifyPayment,
 } from '@/actions/App/Http/Controllers/Office/PaymentController';
-import InputError from '@/components/input-error';
 import { FlashMessage } from '@/components/flash-message';
+import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,7 +40,6 @@ import {
 } from '@/routes/office/orders';
 import { kwitansi as printReceiptRoute } from '@/routes/office/payments';
 import type { BreadcrumbItem } from '@/types';
-import { useState } from 'react';
 
 type Payment = {
     id: number;
@@ -53,6 +53,8 @@ type Payment = {
     payment_date: string | null;
     verified_at: string | null;
     can_print_receipt: boolean;
+    proof_image_path: string | null;
+    proof_image_url: string | null;
 };
 
 type Props = {
@@ -395,9 +397,9 @@ export default function OrdersShow({
                                     <CardTitle>Ringkasan aksi</CardTitle>
                                     <CardDescription>
                                         Gunakan tab di atas untuk membuka
-                                        produksi & file, pembayaran, dokumen produksi,
-                                        dan activity log tanpa menumpuk semua
-                                        panel sekaligus.
+                                        produksi & file, pembayaran, dokumen
+                                        produksi, dan activity log tanpa
+                                        menumpuk semua panel sekaligus.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="grid gap-3 text-sm text-slate-600">
@@ -794,6 +796,9 @@ export default function OrdersShow({
                                                         }
                                                     </p>
                                                 )}
+                                                <PaymentProofPreview
+                                                    payment={payment}
+                                                />
                                             </div>
 
                                             {(can.verify_payment ||
@@ -1229,6 +1234,51 @@ function formatLabel(value: string): string {
         .split('_')
         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
         .join(' ');
+}
+
+function PaymentProofPreview({ payment }: { payment: Payment }) {
+    if (!payment.proof_image_url) {
+        return (
+            <div className="rounded-md border border-dashed bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+                Customer belum mengunggah bukti transfer.
+            </div>
+        );
+    }
+
+    const isPdf = payment.proof_image_path?.toLowerCase().endsWith('.pdf');
+
+    return (
+        <div className="space-y-2 pt-1">
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                Bukti transfer
+            </p>
+            {isPdf ? (
+                <a
+                    href={payment.proof_image_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm font-medium text-[#2563EB] hover:bg-muted/60"
+                >
+                    Buka bukti (PDF)
+                </a>
+            ) : (
+                <a
+                    href={payment.proof_image_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block w-fit overflow-hidden rounded-md border"
+                    title="Klik untuk perbesar"
+                >
+                    <img
+                        src={payment.proof_image_url}
+                        alt={`Bukti transfer ${payment.payment_number}`}
+                        className="h-40 w-auto max-w-xs object-cover"
+                        loading="lazy"
+                    />
+                </a>
+            )}
+        </div>
+    );
 }
 
 function SectionTabs({

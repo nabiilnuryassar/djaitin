@@ -18,8 +18,7 @@ class PaymentController extends Controller
 {
     public function __construct(
         protected PaymentService $paymentService,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): Response
     {
@@ -100,6 +99,11 @@ class PaymentController extends Controller
             'amount' => (float) $payment->amount,
             'reference_number' => $payment->reference_number,
             'rejection_reason' => $payment->rejection_reason,
+            'proof_image_path' => $payment->proof_image_path,
+            'proof_image_url' => $payment->proof_image_path
+                ? asset('storage/'.$payment->proof_image_path)
+                : null,
+            'notes' => $payment->notes,
             'order' => [
                 'id' => $payment->order?->id,
                 'order_number' => $payment->order?->order_number,

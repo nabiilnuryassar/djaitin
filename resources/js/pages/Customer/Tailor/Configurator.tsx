@@ -35,6 +35,7 @@ import CustomerLayout from '@/layouts/customer-layout';
 import { cn } from '@/lib/utils';
 import customer from '@/routes/customer';
 import { login, register } from '@/routes';
+import { FabricSizeChartHelper } from '@/components/customer/fabric-size-chart-helper';
 import tailorProfilePreviewImage from '../../../../images/generated/tailor-profile-preview.jpg';
 import type { User } from '@/types/auth';
 
@@ -188,8 +189,7 @@ export default function CustomerTailorConfigurator({
     const total = Math.max(subtotal - discount, 0);
     const minimumDeposit = Math.ceil(total * 0.5);
     const paymentAmount = toNumber(form.data.payment_amount);
-    const depositMeetsMinimum =
-        total > 0 && paymentAmount >= minimumDeposit;
+    const depositMeetsMinimum = total > 0 && paymentAmount >= minimumDeposit;
     const latestDraft = form.data.draft_id
         ? Number(form.data.draft_id)
         : (draft?.id ?? null);
@@ -681,6 +681,7 @@ export default function CustomerTailorConfigurator({
                                 title="Step 2. Fabric & Silhouette"
                                 description="Tentukan bahan utama untuk menegaskan jatuhnya struktur tailor Anda."
                             >
+                                <FabricSizeChartHelper />
                                 <div className="grid gap-4 md:grid-cols-2">
                                     {fabrics.map((fabric) => {
                                         const isSelected =

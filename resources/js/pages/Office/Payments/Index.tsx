@@ -28,6 +28,8 @@ type Payment = {
     amount: number;
     reference_number: string | null;
     rejection_reason: string | null;
+    proof_image_path: string | null;
+    proof_image_url: string | null;
     order: {
         id: number | null;
         order_number: string | null;
@@ -174,6 +176,7 @@ function PaymentCard({
                         Ref: {payment.reference_number}
                     </p>
                 )}
+                <PaymentProofPreview payment={payment} />
             </div>
 
             <div className="grid gap-3">
@@ -215,6 +218,51 @@ function PaymentCard({
                     </Form>
                 )}
             </div>
+        </div>
+    );
+}
+
+function PaymentProofPreview({ payment }: { payment: Payment }) {
+    if (!payment.proof_image_url) {
+        return (
+            <div className="rounded-md border border-dashed bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+                Customer belum mengunggah bukti transfer.
+            </div>
+        );
+    }
+
+    const isPdf = payment.proof_image_path?.toLowerCase().endsWith('.pdf');
+
+    return (
+        <div className="space-y-2">
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                Bukti transfer
+            </p>
+            {isPdf ? (
+                <a
+                    href={payment.proof_image_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm font-medium text-[#2563EB] hover:bg-muted/60"
+                >
+                    Buka bukti (PDF)
+                </a>
+            ) : (
+                <a
+                    href={payment.proof_image_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block w-fit overflow-hidden rounded-md border"
+                    title="Klik untuk perbesar"
+                >
+                    <img
+                        src={payment.proof_image_url}
+                        alt={`Bukti transfer ${payment.payment_number}`}
+                        className="h-40 w-auto max-w-xs object-cover"
+                        loading="lazy"
+                    />
+                </a>
+            )}
         </div>
     );
 }

@@ -1,0 +1,4 @@
+{
+  "signature": "resources/js/pages/Office/Orders/Show.tsx::Unresolved from this turn — resources/js/pages/Office/Orders/Show.tsx:\n🔴 STOP — 3 issue(s) must be fixed:\n  L1: @typescript-eslint/no-unused-vars: 'Link' is defined but never used.\n  L15: import/order: `@/components/flash-message` import should occur before import of `@/components/input-error`\n  L42: import/order: `react` import should occur before import of `@/actions/App/Http/Controllers/Office/DashboardController`",
+  "sessionId": "lens-mpjypju2-f80b2774"
+}

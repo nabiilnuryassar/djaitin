@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "files": {
+    "resources\\js\\pages\\Office\\Payments\\Index.tsx": {
+      "latest": {
+        "commit": "c8c2123",
+        "timestamp": "2026-05-24T16:03:46.005Z",
+        "mi": 24.9,
+        "cognitive": 7,
+        "nesting": 2,
+        "lines": 218,
+        "maxCyclomatic": 9,
+        "entropy": 5.9
+      },
+      "history": [
+        {
+          "commit": "c8c2123",
+          "timestamp": "2026-05-24T16:03:46.005Z",
+          "mi": 24.9,
+          "cognitive": 7,
+          "nesting": 2,
+          "lines": 218,
+          "maxCyclomatic": 9,
+          "entropy": 5.9
+        }
+      ],
+      "trend": "stable"
+    },
+    "resources\\js\\pages\\Customer\\Payments\\Index.tsx": {
+      "latest": {
+        "commit": "c8c2123",
+        "timestamp": "2026-05-24T16:04:26.178Z",
+        "mi": 30.2,
+        "cognitive": 5,
+        "nesting": 2,
+        "lines": 132,
+        "maxCyclomatic": 14,
+        "entropy": 6.04
+      },
+      "history": [
+        {
+          "commit": "c8c2123",
+          "timestamp": "2026-05-24T16:04:26.178Z",
+          "mi": 30.2,
+          "cognitive": 5,
+          "nesting": 2,
+          "lines": 132,
+          "maxCyclomatic": 14,
+          "entropy": 6.04
+        }
+      ],
+      "trend": "stable"
+    },
+    "resources\\js\\pages\\Customer\\Orders\\Show.tsx": {
+      "latest": {
+        "commit": "c8c2123",
+        "timestamp": "2026-05-24T16:04:38.778Z",
+        "mi": 5.9,
+        "cognitive": 49,
+        "nesting": 3,
+        "lines": 947,
+        "maxCyclomatic": 72,
+        "entropy": 6.51
+      },
+      "history": [
+        {
+          "commit": "c8c2123",
+          "timestamp": "2026-05-24T16:04:38.778Z",
+          "mi": 5.9,
+          "cognitive": 49,
+          "nesting": 3,
+          "lines": 947,
+          "maxCyclomatic": 72,
+          "entropy": 6.51
+        }
+      ],
+      "trend": "stable"
+    },
+    "resources\\js\\pages\\Office\\Orders\\Show.tsx": {
+      "latest": {
+        "commit": "c8c2123",
+        "timestamp": "2026-05-24T16:05:04.590Z",
+        "mi": 2.8,
+        "cognitive": 63,
+        "nesting": 3,
+        "lines": 1218,
+        "maxCyclomatic": 78,
+        "entropy": 6.73
+      },
+      "history": [
+        {
+          "commit": "c8c2123",
+          "timestamp": "2026-05-24T16:05:04.590Z",
+          "mi": 2.8,
+          "cognitive": 63,
+          "nesting": 3,
+          "lines": 1218,
+          "maxCyclomatic": 78,
+          "entropy": 6.73
+        }
+      ],
+      "trend": "stable"
+    }
+  },
+  "capturedAt": "2026-05-24T16:05:09.601Z"
+}
