@@ -47,7 +47,9 @@ export default function Register() {
                             id="name"
                             name="name"
                             value={form.data.name}
-                            onChange={(event) => form.setData('name', event.target.value)}
+                            onChange={(event) =>
+                                form.setData('name', event.target.value)
+                            }
                             required
                             autoFocus
                             autoComplete="name"
@@ -63,7 +65,9 @@ export default function Register() {
                             type="email"
                             name="email"
                             value={form.data.email}
-                            onChange={(event) => form.setData('email', event.target.value)}
+                            onChange={(event) =>
+                                form.setData('email', event.target.value)
+                            }
                             required
                             autoComplete="email"
                             placeholder="email@example.com"
@@ -78,7 +82,9 @@ export default function Register() {
                             type="password"
                             name="password"
                             value={form.data.password}
-                            onChange={(event) => form.setData('password', event.target.value)}
+                            onChange={(event) =>
+                                form.setData('password', event.target.value)
+                            }
                             required
                             autoComplete="new-password"
                             placeholder="Minimal 8 karakter"
@@ -87,21 +93,34 @@ export default function Register() {
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="password_confirmation">Konfirmasi Password</Label>
+                        <Label htmlFor="password_confirmation">
+                            Konfirmasi Password
+                        </Label>
                         <Input
                             id="password_confirmation"
                             type="password"
                             name="password_confirmation"
                             value={form.data.password_confirmation}
-                            onChange={(event) => form.setData('password_confirmation', event.target.value)}
+                            onChange={(event) =>
+                                form.setData(
+                                    'password_confirmation',
+                                    event.target.value,
+                                )
+                            }
                             required
                             autoComplete="new-password"
                             placeholder="Ulangi password"
                         />
-                        <InputError message={form.errors.password_confirmation} />
+                        <InputError
+                            message={form.errors.password_confirmation}
+                        />
                     </div>
 
-                    <Button className="mt-2 w-full" type="submit" disabled={form.processing}>
+                    <Button
+                        className="mt-2 w-full"
+                        type="submit"
+                        disabled={form.processing}
+                    >
                         {form.processing && <Spinner />}
                         Daftar
                     </Button>

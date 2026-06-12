@@ -6,7 +6,7 @@ use App\Models\User;
 use App\Notifications\PaymentVerifiedNotification;
 use Inertia\Testing\AssertableInertia as Assert;
 
-test('customer only sees their own notifications', function () {
+test('customer only sees their own notifications via shared inertia props', function () {
     $customerUser = User::factory()->customer()->create();
     $otherCustomerUser = User::factory()->customer()->create();
     $order = Order::factory()->for($customerUser->customer()->firstOrFail())->create();
@@ -22,12 +22,11 @@ test('customer only sees their own notifications', function () {
     $otherCustomerUser->notify(new PaymentVerifiedNotification($otherOrder, $otherPayment));
 
     $this->actingAs($customerUser)
-        ->get(route('customer.notifications.index'))
+        ->get(route('customer.dashboard'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('Customer/Notifications/Index')
             ->where('unread_notifications_count', 1)
-            ->has('notifications.data', 1, fn (Assert $notification) => $notification
+            ->has('recent_notifications', 1, fn (Assert $notification) => $notification
                 ->where('order_id', $order->id)
                 ->where('order_number', $order->order_number)
                 ->where('type', 'payment_verified')

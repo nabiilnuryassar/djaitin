@@ -145,6 +145,7 @@ class OrderController extends Controller
             'items',
             'payments.createdBy',
             'payments.verifiedBy',
+            'payments.refundedBy',
             'shipment.courier',
             'attachments.uploadedBy',
             'auditLogs.user',
@@ -198,6 +199,9 @@ class OrderController extends Controller
                     'notes' => $payment->notes,
                     'payment_date' => $payment->payment_date?->format('Y-m-d H:i'),
                     'verified_at' => $payment->verified_at?->format('Y-m-d H:i'),
+                    'refunded_at' => $payment->refunded_at?->format('Y-m-d H:i'),
+                    'refunded_by_name' => $payment->refundedBy?->name,
+                    'refund_reason' => $payment->refund_reason,
                     'can_print_receipt' => $payment->status === \App\Enums\PaymentStatus::Verified,
                 ])->values(),
                 'attachments' => $order->attachments
@@ -235,6 +239,7 @@ class OrderController extends Controller
                     \App\Enums\UserRole::Admin,
                 ]) ?? false,
                 'reject_payment' => $request->user()?->hasRole(\App\Enums\UserRole::Admin) ?? false,
+                'refund_payment' => $request->user()?->hasRole(\App\Enums\UserRole::Admin) ?? false,
                 'print_nota' => $order->payments->contains(fn ($payment) => $payment->status === \App\Enums\PaymentStatus::Verified),
             ],
         ]);
@@ -271,12 +276,23 @@ class OrderController extends Controller
         UpdateOrderStatusRequest $request,
         Order $order,
     ): RedirectResponse {
-        $this->orderStatusService->transition(
-            $order,
-            OrderStatus::from($request->string('status')->value()),
-            $request->user(),
-            $request->ip(),
-        );
+        $targetStatus = OrderStatus::from($request->string('status')->value());
+
+        if ($targetStatus === OrderStatus::Cancelled) {
+            $this->orderStatusService->cancelOrder(
+                $order,
+                $request->user(),
+                'Status dibatalkan dari panel office.',
+                $request->ip(),
+            );
+        } else {
+            $this->orderStatusService->transition(
+                $order,
+                $targetStatus,
+                $request->user(),
+                $request->ip(),
+            );
+        }
 
         return back()->with('success', 'Status order berhasil diperbarui.');
     }

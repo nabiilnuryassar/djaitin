@@ -1,16 +1,31 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowRight, ClipboardList, Factory, Ruler, Shirt, ShoppingBag } from 'lucide-react';
+import {
+    ArrowRight,
+    ClipboardList,
+    Factory,
+    Ruler,
+    Shirt,
+    ShoppingBag,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import CustomerLayout from '@/layouts/customer-layout';
+import { login } from '@/routes';
 import customer from '@/routes/customer';
 import office from '@/routes/office';
-import { login } from '@/routes';
 import type { User } from '@/types/auth';
 
 export default function CustomerHome() {
     const { auth } = usePage<{ auth: { user: User | null } }>().props;
-    const dashboardHref = auth.user?.role === 'customer' ? customer.dashboard() : office.dashboard();
+    const dashboardHref =
+        auth.user?.role === 'customer'
+            ? customer.dashboard()
+            : office.dashboard();
 
     return (
         <CustomerLayout>
@@ -19,15 +34,20 @@ export default function CustomerHome() {
             <div className="space-y-10">
                 <section className="grid gap-6 rounded-[2rem] bg-white p-8 shadow-[0_20px_80px_rgba(31,23,38,0.08)] lg:grid-cols-[1.2fr_0.8fr]">
                     <div className="space-y-5">
-                        <p className="text-sm font-medium uppercase tracking-[0.22em] text-[#a34a2c]">
+                        <p className="text-sm font-medium tracking-[0.22em] text-[#a34a2c] uppercase">
                             Djaitin Customer
                         </p>
                         <h1 className="max-w-3xl text-4xl font-semibold tracking-tight md:text-5xl">
-                            Pesan tailor, belanja RTW, ajukan konveksi, dan pantau pembayaran dari satu portal.
+                            Pesan tailor, belanja RTW, ajukan konveksi, dan
+                            pantau pembayaran dari satu portal.
                         </h1>
                         <p className="max-w-2xl text-base leading-7 text-slate-600">
-                            Surface customer berjalan penuh di <span className="font-medium">/app</span>.
-                            Customer bisa mulai dari layanan tailor, katalog ready-to-wear, atau permintaan konveksi, lalu memantau status order tanpa lagi bercampur dengan workflow office.
+                            Surface customer berjalan penuh di{' '}
+                            <span className="font-medium">/app</span>. Customer
+                            bisa mulai dari layanan tailor, katalog
+                            ready-to-wear, atau permintaan konveksi, lalu
+                            memantau status order tanpa lagi bercampur dengan
+                            workflow office.
                         </p>
                         <div className="flex flex-wrap gap-3">
                             {auth.user ? (
@@ -51,7 +71,9 @@ export default function CustomerHome() {
                                         </Link>
                                     </Button>
                                     <Button asChild variant="outline">
-                                        <Link href={customer.services.convection()}>
+                                        <Link
+                                            href={customer.services.convection()}
+                                        >
                                             Lihat Konveksi
                                         </Link>
                                     </Button>
@@ -64,7 +86,7 @@ export default function CustomerHome() {
                     </div>
 
                     <div className="rounded-[1.5rem] bg-[#f5f1e8] p-6">
-                        <p className="text-sm uppercase tracking-[0.2em] text-[#a34a2c]">
+                        <p className="text-sm tracking-[0.2em] text-[#a34a2c] uppercase">
                             Alur cepat
                         </p>
                         <div className="mt-6 space-y-4">
@@ -78,7 +100,9 @@ export default function CustomerHome() {
                                     <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#1f1726] text-sm font-semibold text-[#f5f1e8]">
                                         0{index + 1}
                                     </div>
-                                    <p className="pt-1 text-sm leading-6 text-slate-700">{step}</p>
+                                    <p className="pt-1 text-sm leading-6 text-slate-700">
+                                        {step}
+                                    </p>
                                 </div>
                             ))}
                         </div>

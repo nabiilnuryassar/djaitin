@@ -21,5 +21,9 @@ export default function CustomerStatusBadge({
     status: string;
     label?: string | null;
 }) {
-    return <Badge variant="secondary">{label ?? customerStatusMap[status] ?? status}</Badge>;
+    return (
+        <Badge variant="secondary">
+            {label ?? customerStatusMap[status] ?? status}
+        </Badge>
+    );
 }

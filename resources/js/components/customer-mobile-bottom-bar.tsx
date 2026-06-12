@@ -1,6 +1,5 @@
 import { Link, router } from '@inertiajs/react';
 import {
-    Bell,
     ClipboardList,
     CreditCard,
     Home,
@@ -14,7 +13,9 @@ import {
     UserCircle2,
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
+import { CustomerNotificationPopover } from '@/components/customer-notification-popover';
 import { Button } from '@/components/ui/button';
 import {
     Sheet,
@@ -24,9 +25,9 @@ import {
     SheetTitle,
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+import { login, logout, register } from '@/routes';
 import customer from '@/routes/customer';
 import office from '@/routes/office';
-import { login, logout, register } from '@/routes';
 import type { SharedPageProps } from '@/types/auth';
 
 type MobileBarProps = {
@@ -78,13 +79,6 @@ const transactionItems: GroupedNavItem[] = [
 
 const accountItems: GroupedNavItem[] = [
     {
-        label: 'Notifikasi',
-        href: customer.notifications.index(),
-        description: 'Lihat update pembayaran, progres order, dan status pengiriman terbaru.',
-        icon: Bell,
-        match: '/app/notifications',
-    },
-    {
         label: 'Ukuran',
         href: customer.profile.edit({
             query: { section: 'measurements' },
@@ -124,6 +118,7 @@ export function CustomerMobileBottomBar({
     const user = pageProps.auth.user;
     const isCustomer = user?.role === 'customer';
     const unreadNotificationsCount = pageProps.unread_notifications_count ?? 0;
+    const recentNotifications = pageProps.recent_notifications ?? [];
 
     const homeHref = isCustomer ? customer.dashboard() : customer.home();
     const tailorHref = isCustomer
@@ -216,15 +211,33 @@ export function CustomerMobileBottomBar({
                 description="Ukuran, alamat, dan profil customer dikelompokkan dalam satu parent menu."
                 footer={
                     isCustomer ? (
-                        <Button
-                            type="button"
-                            variant="outline"
-                            className="w-full justify-start border-[#DBEAFE] bg-white text-[#1B5EC5] hover:bg-[#EFF4FF] hover:text-[#1B5EC5]"
-                            onClick={() => router.post(logout().url)}
-                        >
-                            <LogOut className="size-4" />
-                            Keluar
-                        </Button>
+                        <div className="grid gap-3">
+                            <div className="flex items-center justify-between rounded-2xl border border-[#DBEAFE] bg-white px-4 py-3">
+                                <div>
+                                    <p className="[font-family:var(--font-heading)] text-sm font-semibold text-[#0F172A]">
+                                        Notifikasi
+                                    </p>
+                                    <p className="text-xs text-slate-500">
+                                        {unreadNotificationsCount > 0
+                                            ? `${unreadNotificationsCount} belum dibaca`
+                                            : 'Tidak ada notifikasi baru'}
+                                    </p>
+                                </div>
+                                <CustomerNotificationPopover
+                                    notifications={recentNotifications}
+                                    unreadCount={unreadNotificationsCount}
+                                />
+                            </div>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full justify-start border-[#DBEAFE] bg-white text-[#1B5EC5] hover:bg-[#EFF4FF] hover:text-[#1B5EC5]"
+                                onClick={() => router.post(logout().url)}
+                            >
+                                <LogOut className="size-4" />
+                                Keluar
+                            </Button>
+                        </div>
                     ) : user ? (
                         <Button asChild className="w-full justify-start">
                             <Link href={office.dashboard()}>Buka Office</Link>

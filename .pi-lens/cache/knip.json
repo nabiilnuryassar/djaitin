@@ -78,6 +78,11 @@
     },
     {
       "type": "file",
+      "name": "resources/js/components/customer-notification-popover.tsx",
+      "file": "resources/js/components/customer-notification-popover.tsx"
+    },
+    {
+      "type": "file",
       "name": "resources/js/components/delete-user.tsx",
       "file": "resources/js/components/delete-user.tsx"
     },
@@ -143,6 +148,36 @@
     },
     {
       "type": "file",
+      "name": "resources/js/lib/utils.ts",
+      "file": "resources/js/lib/utils.ts"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/layouts/app-layout.tsx",
+      "file": "resources/js/layouts/app-layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/layouts/auth-layout.tsx",
+      "file": "resources/js/layouts/auth-layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/layouts/customer-layout.tsx",
+      "file": "resources/js/layouts/customer-layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/layouts/landing-layout.tsx",
+      "file": "resources/js/layouts/landing-layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/layouts/office-layout.tsx",
+      "file": "resources/js/layouts/office-layout.tsx"
+    },
+    {
+      "type": "file",
       "name": "resources/js/hooks/use-appearance.tsx",
       "file": "resources/js/hooks/use-appearance.tsx"
     },
@@ -183,11 +218,6 @@
     },
     {
       "type": "file",
-      "name": "resources/js/lib/utils.ts",
-      "file": "resources/js/lib/utils.ts"
-    },
-    {
-      "type": "file",
       "name": "resources/js/pages/dashboard.tsx",
       "file": "resources/js/pages/dashboard.tsx"
     },
@@ -195,31 +225,6 @@
       "type": "file",
       "name": "resources/js/pages/welcome.tsx",
       "file": "resources/js/pages/welcome.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/layouts/app-layout.tsx",
-      "file": "resources/js/layouts/app-layout.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/layouts/auth-layout.tsx",
-      "file": "resources/js/layouts/auth-layout.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/layouts/customer-layout.tsx",
-      "file": "resources/js/layouts/customer-layout.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/layouts/landing-layout.tsx",
-      "file": "resources/js/layouts/landing-layout.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/layouts/office-layout.tsx",
-      "file": "resources/js/layouts/office-layout.tsx"
     },
     {
       "type": "file",
@@ -238,21 +243,6 @@
     },
     {
       "type": "file",
-      "name": "skills/react-components/examples/gold-standard-card.tsx",
-      "file": "skills/react-components/examples/gold-standard-card.tsx"
-    },
-    {
-      "type": "file",
-      "name": "skills/react-components/resources/component-template.tsx",
-      "file": "skills/react-components/resources/component-template.tsx"
-    },
-    {
-      "type": "file",
-      "name": "skills/react-components/scripts/validate.js",
-      "file": "skills/react-components/scripts/validate.js"
-    },
-    {
-      "type": "file",
       "name": "skills/shadcn-ui/examples/auth-layout.tsx",
       "file": "skills/shadcn-ui/examples/auth-layout.tsx"
     },
@@ -268,6 +258,21 @@
     },
     {
       "type": "file",
+      "name": "skills/react-components/examples/gold-standard-card.tsx",
+      "file": "skills/react-components/examples/gold-standard-card.tsx"
+    },
+    {
+      "type": "file",
+      "name": "skills/react-components/resources/component-template.tsx",
+      "file": "skills/react-components/resources/component-template.tsx"
+    },
+    {
+      "type": "file",
+      "name": "skills/react-components/scripts/validate.js",
+      "file": "skills/react-components/scripts/validate.js"
+    },
+    {
+      "type": "file",
       "name": "resources/js/components/customer/CustomerStatusBadge.tsx",
       "file": "resources/js/components/customer/CustomerStatusBadge.tsx"
     },
@@ -280,6 +285,56 @@
       "type": "file",
       "name": "resources/js/components/customer/ProductionStageTracker.tsx",
       "file": "resources/js/components/customer/ProductionStageTracker.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/components/office/data-table.tsx",
+      "file": "resources/js/components/office/data-table.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/components/office/empty-state.tsx",
+      "file": "resources/js/components/office/empty-state.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/components/office/filter-bar.tsx",
+      "file": "resources/js/components/office/filter-bar.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/components/office/kpi-tile.tsx",
+      "file": "resources/js/components/office/kpi-tile.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/components/office/page-header.tsx",
+      "file": "resources/js/components/office/page-header.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/components/office/pagination.tsx",
+      "file": "resources/js/components/office/pagination.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/components/office/premium-card.tsx",
+      "file": "resources/js/components/office/premium-card.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/components/office/section-shell.tsx",
+      "file": "resources/js/components/office/section-shell.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/components/office/segmented-tabs.tsx",
+      "file": "resources/js/components/office/segmented-tabs.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/components/office/status-badge.tsx",
+      "file": "resources/js/components/office/status-badge.tsx"
     },
     {
       "type": "file",
@@ -408,6 +463,36 @@
     },
     {
       "type": "file",
+      "name": "resources/js/layouts/app/app-header-layout.tsx",
+      "file": "resources/js/layouts/app/app-header-layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/layouts/app/app-sidebar-layout.tsx",
+      "file": "resources/js/layouts/app/app-sidebar-layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/layouts/auth/auth-card-layout.tsx",
+      "file": "resources/js/layouts/auth/auth-card-layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/layouts/auth/auth-simple-layout.tsx",
+      "file": "resources/js/layouts/auth/auth-simple-layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/layouts/auth/auth-split-layout.tsx",
+      "file": "resources/js/layouts/auth/auth-split-layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/layouts/settings/layout.tsx",
+      "file": "resources/js/layouts/settings/layout.tsx"
+    },
+    {
+      "type": "file",
       "name": "resources/js/pages/auth/confirm-password.tsx",
       "file": "resources/js/pages/auth/confirm-password.tsx"
     },
@@ -478,36 +563,6 @@
     },
     {
       "type": "file",
-      "name": "resources/js/layouts/app/app-header-layout.tsx",
-      "file": "resources/js/layouts/app/app-header-layout.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/layouts/app/app-sidebar-layout.tsx",
-      "file": "resources/js/layouts/app/app-sidebar-layout.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/layouts/auth/auth-card-layout.tsx",
-      "file": "resources/js/layouts/auth/auth-card-layout.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/layouts/auth/auth-simple-layout.tsx",
-      "file": "resources/js/layouts/auth/auth-simple-layout.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/layouts/auth/auth-split-layout.tsx",
-      "file": "resources/js/layouts/auth/auth-split-layout.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/layouts/settings/layout.tsx",
-      "file": "resources/js/layouts/settings/layout.tsx"
-    },
-    {
-      "type": "file",
       "name": "resources/js/pages/Customer/Addresses/Index.tsx",
       "file": "resources/js/pages/Customer/Addresses/Index.tsx"
     },
@@ -515,11 +570,6 @@
       "type": "file",
       "name": "resources/js/pages/Customer/Cart/Index.tsx",
       "file": "resources/js/pages/Customer/Cart/Index.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/pages/Customer/Checkout/Index.tsx",
-      "file": "resources/js/pages/Customer/Checkout/Index.tsx"
     },
     {
       "type": "file",
@@ -533,6 +583,11 @@
     },
     {
       "type": "file",
+      "name": "resources/js/pages/Customer/Checkout/Index.tsx",
+      "file": "resources/js/pages/Customer/Checkout/Index.tsx"
+    },
+    {
+      "type": "file",
       "name": "resources/js/pages/Customer/Convection/Create.tsx",
       "file": "resources/js/pages/Customer/Convection/Create.tsx"
     },
@@ -543,18 +598,8 @@
     },
     {
       "type": "file",
-      "name": "resources/js/pages/Customer/Notifications/Index.tsx",
-      "file": "resources/js/pages/Customer/Notifications/Index.tsx"
-    },
-    {
-      "type": "file",
       "name": "resources/js/pages/Customer/Measurements/Index.tsx",
       "file": "resources/js/pages/Customer/Measurements/Index.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/pages/Customer/Payments/Index.tsx",
-      "file": "resources/js/pages/Customer/Payments/Index.tsx"
     },
     {
       "type": "file",
@@ -565,6 +610,11 @@
       "type": "file",
       "name": "resources/js/pages/Customer/Orders/Show.tsx",
       "file": "resources/js/pages/Customer/Orders/Show.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/pages/Customer/Payments/Index.tsx",
+      "file": "resources/js/pages/Customer/Payments/Index.tsx"
     },
     {
       "type": "file",
@@ -673,6 +723,11 @@
     },
     {
       "type": "file",
+      "name": "resources/js/pages/Office/Payments/Index.tsx",
+      "file": "resources/js/pages/Office/Payments/Index.tsx"
+    },
+    {
+      "type": "file",
       "name": "resources/js/pages/Office/Orders/Index.tsx",
       "file": "resources/js/pages/Office/Orders/Index.tsx"
     },
@@ -693,11 +748,6 @@
     },
     {
       "type": "file",
-      "name": "resources/js/pages/Office/Payments/Index.tsx",
-      "file": "resources/js/pages/Office/Payments/Index.tsx"
-    },
-    {
-      "type": "file",
       "name": "resources/js/pages/Office/Shipping/Index.tsx",
       "file": "resources/js/pages/Office/Shipping/Index.tsx"
     },
@@ -713,11 +763,6 @@
     },
     {
       "type": "file",
-      "name": "resources/js/pages/Office/Admin/Users/Index.tsx",
-      "file": "resources/js/pages/Office/Admin/Users/Index.tsx"
-    },
-    {
-      "type": "file",
       "name": "resources/js/pages/Office/Admin/MasterData/Index.tsx",
       "file": "resources/js/pages/Office/Admin/MasterData/Index.tsx"
     },
@@ -725,6 +770,11 @@
       "type": "file",
       "name": "resources/js/pages/Office/Admin/Products/Index.tsx",
       "file": "resources/js/pages/Office/Admin/Products/Index.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/pages/Office/Admin/Users/Index.tsx",
+      "file": "resources/js/pages/Office/Admin/Users/Index.tsx"
     },
     {
       "type": "file",
@@ -919,21 +969,27 @@
     },
     {
       "type": "export",
-      "name": "SharedPageProps",
+      "name": "RecentNotification",
       "file": "resources/js/types/auth.ts",
       "line": 24
     },
     {
       "type": "export",
+      "name": "SharedPageProps",
+      "file": "resources/js/types/auth.ts",
+      "line": 35
+    },
+    {
+      "type": "export",
       "name": "TwoFactorSetupData",
       "file": "resources/js/types/auth.ts",
-      "line": 33
+      "line": 45
     },
     {
       "type": "export",
       "name": "TwoFactorSecretKey",
       "file": "resources/js/types/auth.ts",
-      "line": 38
+      "line": 50
     }
   ],
   "unusedExports": [
@@ -945,21 +1001,27 @@
     },
     {
       "type": "export",
-      "name": "SharedPageProps",
+      "name": "RecentNotification",
       "file": "resources/js/types/auth.ts",
       "line": 24
     },
     {
       "type": "export",
+      "name": "SharedPageProps",
+      "file": "resources/js/types/auth.ts",
+      "line": 35
+    },
+    {
+      "type": "export",
       "name": "TwoFactorSetupData",
       "file": "resources/js/types/auth.ts",
-      "line": 33
+      "line": 45
     },
     {
       "type": "export",
       "name": "TwoFactorSecretKey",
       "file": "resources/js/types/auth.ts",
-      "line": 38
+      "line": 50
     }
   ],
   "unusedFiles": [
@@ -1040,6 +1102,11 @@
     },
     {
       "type": "file",
+      "name": "resources/js/components/customer-notification-popover.tsx",
+      "file": "resources/js/components/customer-notification-popover.tsx"
+    },
+    {
+      "type": "file",
       "name": "resources/js/components/delete-user.tsx",
       "file": "resources/js/components/delete-user.tsx"
     },
@@ -1105,6 +1172,36 @@
     },
     {
       "type": "file",
+      "name": "resources/js/lib/utils.ts",
+      "file": "resources/js/lib/utils.ts"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/layouts/app-layout.tsx",
+      "file": "resources/js/layouts/app-layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/layouts/auth-layout.tsx",
+      "file": "resources/js/layouts/auth-layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/layouts/customer-layout.tsx",
+      "file": "resources/js/layouts/customer-layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/layouts/landing-layout.tsx",
+      "file": "resources/js/layouts/landing-layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/layouts/office-layout.tsx",
+      "file": "resources/js/layouts/office-layout.tsx"
+    },
+    {
+      "type": "file",
       "name": "resources/js/hooks/use-appearance.tsx",
       "file": "resources/js/hooks/use-appearance.tsx"
     },
@@ -1145,11 +1242,6 @@
     },
     {
       "type": "file",
-      "name": "resources/js/lib/utils.ts",
-      "file": "resources/js/lib/utils.ts"
-    },
-    {
-      "type": "file",
       "name": "resources/js/pages/dashboard.tsx",
       "file": "resources/js/pages/dashboard.tsx"
     },
@@ -1157,31 +1249,6 @@
       "type": "file",
       "name": "resources/js/pages/welcome.tsx",
       "file": "resources/js/pages/welcome.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/layouts/app-layout.tsx",
-      "file": "resources/js/layouts/app-layout.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/layouts/auth-layout.tsx",
-      "file": "resources/js/layouts/auth-layout.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/layouts/customer-layout.tsx",
-      "file": "resources/js/layouts/customer-layout.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/layouts/landing-layout.tsx",
-      "file": "resources/js/layouts/landing-layout.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/layouts/office-layout.tsx",
-      "file": "resources/js/layouts/office-layout.tsx"
     },
     {
       "type": "file",
@@ -1200,21 +1267,6 @@
     },
     {
       "type": "file",
-      "name": "skills/react-components/examples/gold-standard-card.tsx",
-      "file": "skills/react-components/examples/gold-standard-card.tsx"
-    },
-    {
-      "type": "file",
-      "name": "skills/react-components/resources/component-template.tsx",
-      "file": "skills/react-components/resources/component-template.tsx"
-    },
-    {
-      "type": "file",
-      "name": "skills/react-components/scripts/validate.js",
-      "file": "skills/react-components/scripts/validate.js"
-    },
-    {
-      "type": "file",
       "name": "skills/shadcn-ui/examples/auth-layout.tsx",
       "file": "skills/shadcn-ui/examples/auth-layout.tsx"
     },
@@ -1230,6 +1282,21 @@
     },
     {
       "type": "file",
+      "name": "skills/react-components/examples/gold-standard-card.tsx",
+      "file": "skills/react-components/examples/gold-standard-card.tsx"
+    },
+    {
+      "type": "file",
+      "name": "skills/react-components/resources/component-template.tsx",
+      "file": "skills/react-components/resources/component-template.tsx"
+    },
+    {
+      "type": "file",
+      "name": "skills/react-components/scripts/validate.js",
+      "file": "skills/react-components/scripts/validate.js"
+    },
+    {
+      "type": "file",
       "name": "resources/js/components/customer/CustomerStatusBadge.tsx",
       "file": "resources/js/components/customer/CustomerStatusBadge.tsx"
     },
@@ -1242,6 +1309,56 @@
       "type": "file",
       "name": "resources/js/components/customer/ProductionStageTracker.tsx",
       "file": "resources/js/components/customer/ProductionStageTracker.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/components/office/data-table.tsx",
+      "file": "resources/js/components/office/data-table.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/components/office/empty-state.tsx",
+      "file": "resources/js/components/office/empty-state.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/components/office/filter-bar.tsx",
+      "file": "resources/js/components/office/filter-bar.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/components/office/kpi-tile.tsx",
+      "file": "resources/js/components/office/kpi-tile.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/components/office/page-header.tsx",
+      "file": "resources/js/components/office/page-header.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/components/office/pagination.tsx",
+      "file": "resources/js/components/office/pagination.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/components/office/premium-card.tsx",
+      "file": "resources/js/components/office/premium-card.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/components/office/section-shell.tsx",
+      "file": "resources/js/components/office/section-shell.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/components/office/segmented-tabs.tsx",
+      "file": "resources/js/components/office/segmented-tabs.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/components/office/status-badge.tsx",
+      "file": "resources/js/components/office/status-badge.tsx"
     },
     {
       "type": "file",
@@ -1370,6 +1487,36 @@
     },
     {
       "type": "file",
+      "name": "resources/js/layouts/app/app-header-layout.tsx",
+      "file": "resources/js/layouts/app/app-header-layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/layouts/app/app-sidebar-layout.tsx",
+      "file": "resources/js/layouts/app/app-sidebar-layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/layouts/auth/auth-card-layout.tsx",
+      "file": "resources/js/layouts/auth/auth-card-layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/layouts/auth/auth-simple-layout.tsx",
+      "file": "resources/js/layouts/auth/auth-simple-layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/layouts/auth/auth-split-layout.tsx",
+      "file": "resources/js/layouts/auth/auth-split-layout.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/layouts/settings/layout.tsx",
+      "file": "resources/js/layouts/settings/layout.tsx"
+    },
+    {
+      "type": "file",
       "name": "resources/js/pages/auth/confirm-password.tsx",
       "file": "resources/js/pages/auth/confirm-password.tsx"
     },
@@ -1440,36 +1587,6 @@
     },
     {
       "type": "file",
-      "name": "resources/js/layouts/app/app-header-layout.tsx",
-      "file": "resources/js/layouts/app/app-header-layout.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/layouts/app/app-sidebar-layout.tsx",
-      "file": "resources/js/layouts/app/app-sidebar-layout.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/layouts/auth/auth-card-layout.tsx",
-      "file": "resources/js/layouts/auth/auth-card-layout.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/layouts/auth/auth-simple-layout.tsx",
-      "file": "resources/js/layouts/auth/auth-simple-layout.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/layouts/auth/auth-split-layout.tsx",
-      "file": "resources/js/layouts/auth/auth-split-layout.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/layouts/settings/layout.tsx",
-      "file": "resources/js/layouts/settings/layout.tsx"
-    },
-    {
-      "type": "file",
       "name": "resources/js/pages/Customer/Addresses/Index.tsx",
       "file": "resources/js/pages/Customer/Addresses/Index.tsx"
     },
@@ -1477,11 +1594,6 @@
       "type": "file",
       "name": "resources/js/pages/Customer/Cart/Index.tsx",
       "file": "resources/js/pages/Customer/Cart/Index.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/pages/Customer/Checkout/Index.tsx",
-      "file": "resources/js/pages/Customer/Checkout/Index.tsx"
     },
     {
       "type": "file",
@@ -1495,6 +1607,11 @@
     },
     {
       "type": "file",
+      "name": "resources/js/pages/Customer/Checkout/Index.tsx",
+      "file": "resources/js/pages/Customer/Checkout/Index.tsx"
+    },
+    {
+      "type": "file",
       "name": "resources/js/pages/Customer/Convection/Create.tsx",
       "file": "resources/js/pages/Customer/Convection/Create.tsx"
     },
@@ -1505,18 +1622,8 @@
     },
     {
       "type": "file",
-      "name": "resources/js/pages/Customer/Notifications/Index.tsx",
-      "file": "resources/js/pages/Customer/Notifications/Index.tsx"
-    },
-    {
-      "type": "file",
       "name": "resources/js/pages/Customer/Measurements/Index.tsx",
       "file": "resources/js/pages/Customer/Measurements/Index.tsx"
-    },
-    {
-      "type": "file",
-      "name": "resources/js/pages/Customer/Payments/Index.tsx",
-      "file": "resources/js/pages/Customer/Payments/Index.tsx"
     },
     {
       "type": "file",
@@ -1527,6 +1634,11 @@
       "type": "file",
       "name": "resources/js/pages/Customer/Orders/Show.tsx",
       "file": "resources/js/pages/Customer/Orders/Show.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/pages/Customer/Payments/Index.tsx",
+      "file": "resources/js/pages/Customer/Payments/Index.tsx"
     },
     {
       "type": "file",
@@ -1635,6 +1747,11 @@
     },
     {
       "type": "file",
+      "name": "resources/js/pages/Office/Payments/Index.tsx",
+      "file": "resources/js/pages/Office/Payments/Index.tsx"
+    },
+    {
+      "type": "file",
       "name": "resources/js/pages/Office/Orders/Index.tsx",
       "file": "resources/js/pages/Office/Orders/Index.tsx"
     },
@@ -1655,11 +1772,6 @@
     },
     {
       "type": "file",
-      "name": "resources/js/pages/Office/Payments/Index.tsx",
-      "file": "resources/js/pages/Office/Payments/Index.tsx"
-    },
-    {
-      "type": "file",
       "name": "resources/js/pages/Office/Shipping/Index.tsx",
       "file": "resources/js/pages/Office/Shipping/Index.tsx"
     },
@@ -1675,11 +1787,6 @@
     },
     {
       "type": "file",
-      "name": "resources/js/pages/Office/Admin/Users/Index.tsx",
-      "file": "resources/js/pages/Office/Admin/Users/Index.tsx"
-    },
-    {
-      "type": "file",
       "name": "resources/js/pages/Office/Admin/MasterData/Index.tsx",
       "file": "resources/js/pages/Office/Admin/MasterData/Index.tsx"
     },
@@ -1687,6 +1794,11 @@
       "type": "file",
       "name": "resources/js/pages/Office/Admin/Products/Index.tsx",
       "file": "resources/js/pages/Office/Admin/Products/Index.tsx"
+    },
+    {
+      "type": "file",
+      "name": "resources/js/pages/Office/Admin/Users/Index.tsx",
+      "file": "resources/js/pages/Office/Admin/Users/Index.tsx"
     },
     {
       "type": "file",
@@ -1877,5 +1989,5 @@
     }
   ],
   "unlistedDeps": [],
-  "summary": "Found 180 issues"
+  "summary": "Found 191 issues"
 }

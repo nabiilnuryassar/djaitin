@@ -55,15 +55,18 @@ class ReadyWearOrderService
             }
 
             $customer = $user->customer()->firstOrFail();
+            $sortedItems = $cart->items
+                ->sortBy('product_id')
+                ->values();
 
-            foreach ($cart->items as $item) {
+            foreach ($sortedItems as $item) {
                 if ($item->product === null) {
                     throw ValidationException::withMessages([
                         'cart' => 'Salah satu produk di keranjang tidak lagi tersedia.',
                     ]);
                 }
 
-                $this->stockService->validateStock($item->product, $item->qty);
+                $this->stockService->reserve($item->product, (int) $item->qty);
             }
 
             $courier = $payload['delivery_type'] === 'delivery'

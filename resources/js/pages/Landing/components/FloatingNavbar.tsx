@@ -3,11 +3,11 @@ import type { InertiaLinkProps } from '@inertiajs/react';
 import { Menu } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
+import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { LandingNavItem } from '../types';
 import { FullscreenMenu } from './FullscreenMenu';
-import { Logo } from '@/components/Logo';
 
 type FloatingNavbarProps = {
     actionHref: NonNullable<InertiaLinkProps['href']>;

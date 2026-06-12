@@ -39,4 +39,9 @@ class PaymentPolicy
     {
         return $user->hasRole(UserRole::Admin);
     }
+
+    public function refund(User $user, Payment $payment): bool
+    {
+        return $user->hasRole(UserRole::Admin);
+    }
 }

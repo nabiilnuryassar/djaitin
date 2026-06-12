@@ -114,11 +114,14 @@ class TailorOrderService
 
     protected function validateMinimumDownPayment(float $paymentAmount, float $totalAmount): void
     {
-        $minimumDownPayment = round($totalAmount * 0.5, 2);
+        $minimumRatio = (float) config('djaitin.tailor.minimum_dp_ratio', 0.5);
+        $minimumDownPayment = round($totalAmount * $minimumRatio, 2);
 
         if ($paymentAmount < $minimumDownPayment) {
+            $percentageLabel = (int) round($minimumRatio * 100);
+
             throw ValidationException::withMessages([
-                'payment.amount' => 'Order tailor wajib membayar DP minimal 50% dari total biaya.',
+                'payment.amount' => "Order tailor wajib membayar DP minimal {$percentageLabel}% dari total biaya.",
             ]);
         }
     }

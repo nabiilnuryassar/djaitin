@@ -14,8 +14,7 @@ class CreateNewUser implements CreatesNewUsers
 
     public function __construct(
         protected CustomerRegistrationService $customerRegistrationService,
-    ) {
-    }
+    ) {}
 
     /**
      * Validate and create a newly registered user.

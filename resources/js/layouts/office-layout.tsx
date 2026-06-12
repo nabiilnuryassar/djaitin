@@ -1,5 +1,5 @@
-import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
 import { useForceLightTheme } from '@/hooks/use-force-light-theme';
+import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
 import type { AppLayoutProps } from '@/types';
 
 export default function OfficeLayout({

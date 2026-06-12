@@ -1,20 +1,18 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Inbox } from 'lucide-react';
 import DashboardController from '@/actions/App/Http/Controllers/Office/DashboardController';
 import {
     createTailor,
     index as ordersIndex,
     show as showOrder,
 } from '@/actions/App/Http/Controllers/Office/OrderController';
+import { EmptyState } from '@/components/office/empty-state';
+import { FilterBar } from '@/components/office/filter-bar';
+import { PageHeader } from '@/components/office/page-header';
+import { StatusBadge } from '@/components/office/status-badge';
 import { FlashMessage } from '@/components/flash-message';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import OfficeLayout from '@/layouts/office-layout';
 import type { BreadcrumbItem } from '@/types';
@@ -49,7 +47,7 @@ type Props = {
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: DashboardController() },
-    { title: 'Orders', href: ordersIndex() },
+    { title: 'Pesanan', href: ordersIndex() },
 ];
 
 export default function OrdersIndex({ filters, statuses, orders, can }: Props) {
@@ -78,129 +76,124 @@ export default function OrdersIndex({ filters, statuses, orders, can }: Props) {
 
     return (
         <OfficeLayout breadcrumbs={breadcrumbs}>
-            <Head title="Orders" />
+            <Head title="Pesanan" />
 
-            <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
+            <div className="flex flex-1 flex-col gap-6 bg-brand-mist p-4 md:p-6">
                 <FlashMessage />
 
-                <Card>
-                    <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                        <div>
-                            <CardTitle className="[font-family:var(--font-heading)] text-xl font-semibold text-[#0F172A]">
-                                Order masuk
-                            </CardTitle>
-                            <CardDescription>
-                                Filter order tailor dan konveksi berdasarkan
-                                status atau pelanggan.
-                            </CardDescription>
-                        </div>
-                        {can.create && (
+                <PageHeader
+                    eyebrow="Pesanan"
+                    title="Antrian Pesanan"
+                    description="Kelola tailor, ready-to-wear, dan convection order dalam satu daftar operasional."
+                    actions={
+                        can.create ? (
                             <Button asChild>
                                 <Link href={createTailor()}>
-                                    Buat order tailor
+                                    Buat Order Tailor
                                 </Link>
                             </Button>
-                        )}
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <form
-                            onSubmit={submit}
-                            className="grid gap-3 md:grid-cols-[1fr_220px_auto]"
-                        >
-                            <Input
-                                value={form.data.search}
-                                onChange={(event) =>
-                                    form.setData('search', event.target.value)
-                                }
-                                placeholder="Cari order atau pelanggan..."
-                            />
-                            <select
-                                value={form.data.status}
-                                onChange={(event) =>
-                                    form.setData('status', event.target.value)
-                                }
-                                className="h-9 rounded-md border bg-transparent px-3 text-sm"
-                            >
-                                <option value="">Semua status</option>
-                                {statuses.map((status) => (
-                                    <option
-                                        key={status.value}
-                                        value={status.value}
-                                    >
-                                        {status.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <Button type="submit" variant="outline">
-                                Filter
-                            </Button>
-                        </form>
+                        ) : null
+                    }
+                />
 
-                        <div className="grid gap-4">
-                            {orders.data.length === 0 ? (
-                                <div className="rounded-xl border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
-                                    Belum ada order yang cocok dengan filter
-                                    ini.
+                <FilterBar>
+                    <form
+                        onSubmit={submit}
+                        className="flex flex-1 flex-col gap-3 md:flex-row md:items-center"
+                    >
+                        <Input
+                            value={form.data.search}
+                            onChange={(event) =>
+                                form.setData('search', event.target.value)
+                            }
+                            placeholder="Cari order atau pelanggan..."
+                            className="flex-1"
+                        />
+                        <select
+                            value={form.data.status}
+                            onChange={(event) =>
+                                form.setData('status', event.target.value)
+                            }
+                            className="h-9 rounded-md border bg-transparent px-3 text-sm"
+                        >
+                            <option value="">Semua status</option>
+                            {statuses.map((status) => (
+                                <option
+                                    key={status.value}
+                                    value={status.value}
+                                >
+                                    {status.label}
+                                </option>
+                            ))}
+                        </select>
+                        <Button type="submit" variant="outline">
+                            Filter
+                        </Button>
+                    </form>
+                </FilterBar>
+
+                <div className="grid gap-4">
+                    {orders.data.length === 0 ? (
+                        <EmptyState
+                            icon={Inbox}
+                            title="Belum ada pesanan"
+                            description="Pesanan yang cocok dengan filter akan tampil di sini."
+                        />
+                    ) : (
+                        orders.data.map((order) => (
+                            <Link
+                                key={order.id}
+                                href={showOrder(order.id)}
+                                className="grid cursor-pointer gap-3 rounded-2xl border border-border/70 bg-white p-4 shadow-sm transition hover:border-brand-blue/40 hover:shadow-md md:grid-cols-[1.2fr_1fr_180px]"
+                            >
+                                <div>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <p className="font-semibold text-brand-ink">
+                                            {order.order_number}
+                                        </p>
+                                        <Badge variant="outline" className="rounded-full">
+                                            {orderTypeLabel(
+                                                order.order_type,
+                                            )}
+                                        </Badge>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">
+                                        {order.customer_name ??
+                                            'Pelanggan tidak diketahui'}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {order.order_type ===
+                                        'convection'
+                                            ? (order.company_name ??
+                                              'Perusahaan belum terisi')
+                                            : (order.garment_model_name ??
+                                              'Model belum terisi')}
+                                    </p>
                                 </div>
-                            ) : (
-                                orders.data.map((order) => (
-                                    <Link
-                                        key={order.id}
-                                        href={showOrder(order.id)}
-                                        className="grid gap-3 rounded-xl border p-4 transition hover:border-primary/40 md:grid-cols-[1.2fr_1fr_180px]"
-                                    >
-                                        <div>
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <p className="font-medium">
-                                                    {order.order_number}
-                                                </p>
-                                                <Badge variant="outline">
-                                                    {orderTypeLabel(
-                                                        order.order_type,
-                                                    )}
-                                                </Badge>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground">
-                                                {order.customer_name ??
-                                                    'Pelanggan tidak diketahui'}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">
-                                                {order.order_type ===
-                                                'convection'
-                                                    ? (order.company_name ??
-                                                      'Perusahaan belum terisi')
-                                                    : (order.garment_model_name ??
-                                                      'Model belum terisi')}
-                                            </p>
-                                        </div>
-                                        <div className="text-sm text-muted-foreground">
-                                            <Badge variant="secondary">
-                                                {order.status}
-                                            </Badge>
-                                            <p className="mt-2">
-                                                Due date:{' '}
-                                                {order.due_date ?? '-'}
-                                            </p>
-                                        </div>
-                                        <div className="text-sm md:text-right">
-                                            <p className="font-medium">
-                                                {formatCurrency(
-                                                    order.total_amount,
-                                                )}
-                                            </p>
-                                            <p className="text-muted-foreground">
-                                                Sisa{' '}
-                                                {formatCurrency(
-                                                    order.outstanding_amount,
-                                                )}
-                                            </p>
-                                        </div>
-                                    </Link>
-                                ))
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
+                                <div className="text-sm text-muted-foreground">
+                                    <StatusBadge value={order.status} domain="order" />
+                                    <p className="mt-2">
+                                        Tenggat:{' '}
+                                        {order.due_date ?? '-'}
+                                    </p>
+                                </div>
+                                <div className="text-sm md:text-right">
+                                    <p className="font-semibold text-brand-ink">
+                                        {formatCurrency(
+                                            order.total_amount,
+                                        )}
+                                    </p>
+                                    <p className="text-muted-foreground">
+                                        Sisa{' '}
+                                        {formatCurrency(
+                                            order.outstanding_amount,
+                                        )}
+                                    </p>
+                                </div>
+                            </Link>
+                        ))
+                    )}
+                </div>
             </div>
         </OfficeLayout>
     );

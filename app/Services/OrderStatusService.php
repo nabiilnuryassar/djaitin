@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
+use App\Enums\PaymentStatus;
 use App\Enums\ProductionStage;
 use App\Models\Order;
 use App\Models\User;
@@ -18,6 +19,7 @@ class OrderStatusService
         protected AuditLogService $auditLogService,
         protected LoyaltyService $loyaltyService,
         protected ConvectionOrderService $convectionOrderService,
+        protected StockService $stockService,
     ) {}
 
     public function canClose(Order $order): bool
@@ -71,13 +73,16 @@ class OrderStatusService
         }
 
         if ($targetStatus === OrderStatus::InProgress && $order->order_type === OrderType::Tailor) {
+            $minimumRatio = (float) config('djaitin.tailor.minimum_dp_ratio', 0.5);
             $paidRatio = $order->total_amount > 0
                 ? ((float) $order->paid_amount / (float) $order->total_amount)
                 : 0;
 
-            if ($paidRatio < 0.5) {
+            if ($paidRatio < $minimumRatio) {
+                $percentageLabel = (int) round($minimumRatio * 100);
+
                 throw ValidationException::withMessages([
-                    'status' => 'Order tailor hanya bisa dimulai jika pembayaran terverifikasi minimal 50% dari total.',
+                    'status' => "Order tailor hanya bisa dimulai jika pembayaran terverifikasi minimal {$percentageLabel}% dari total.",
                 ]);
             }
         }
@@ -113,6 +118,65 @@ class OrderStatusService
                 oldValues: ['production_stage' => $oldStage?->value],
                 newValues: ['production_stage' => $stage->value],
                 notes: 'Tahap produksi order diperbarui.',
+                ipAddress: $ipAddress,
+            );
+
+            return $order->refresh();
+        });
+    }
+
+    public function cancelOrder(
+        Order $order,
+        User $user,
+        string $reason,
+        ?string $ipAddress = null,
+    ): Order {
+        if (in_array($order->status, [OrderStatus::Closed, OrderStatus::Cancelled], true)) {
+            throw ValidationException::withMessages([
+                'status' => "Order dengan status {$order->status->value} tidak dapat dibatalkan.",
+            ]);
+        }
+
+        return DB::transaction(function () use ($order, $user, $reason, $ipAddress): Order {
+            $order = Order::query()
+                ->whereKey($order->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $previousStatus = $order->status;
+            $hasVerifiedPayment = $order->payments()
+                ->where('status', PaymentStatus::Verified)
+                ->exists();
+
+            if ($order->order_type === OrderType::ReadyWear && ! $hasVerifiedPayment) {
+                $order->loadMissing('items.product');
+
+                foreach ($order->items as $item) {
+                    if ($item->product === null) {
+                        continue;
+                    }
+
+                    $this->stockService->release($item->product, (int) $item->qty);
+                }
+            }
+
+            $order->update([
+                'status' => OrderStatus::Cancelled,
+                'cancellation_reason' => $reason,
+                'cancelled_by' => $user->id,
+                'cancelled_at' => now(),
+            ]);
+
+            $this->auditLogService->log(
+                user: $user,
+                action: 'order.cancelled',
+                auditable: $order,
+                oldValues: ['status' => $previousStatus->value],
+                newValues: [
+                    'status' => OrderStatus::Cancelled->value,
+                    'reason' => $reason,
+                ],
+                notes: 'Order dibatalkan.',
                 ipAddress: $ipAddress,
             );
 

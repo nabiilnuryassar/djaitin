@@ -1,13 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import {
-    ArrowLeft,
-    Factory,
-    Plus,
-    ShieldCheck,
-    Trash2,
-    Upload,
-} from 'lucide-react';
+import { ArrowLeft, Factory, Plus, ShieldCheck, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import BankAccountPanel from '@/components/customer/BankAccountPanel';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -540,11 +534,11 @@ export default function CustomerConvectionCreate({
                                         readOnly
                                     />
                                     <InputError
-                                        message={
-                                            form.errors['payment.amount']
-                                        }
+                                        message={form.errors['payment.amount']}
                                     />
                                 </div>
+
+                                {transferSelected && <BankAccountPanel />}
 
                                 {transferSelected && (
                                     <>
@@ -559,17 +553,11 @@ export default function CustomerConvectionCreate({
                                                         .reference_number
                                                 }
                                                 onChange={(event) =>
-                                                    form.setData(
-                                                        'payment',
-                                                        {
-                                                            ...form.data
-                                                                .payment,
-                                                            reference_number:
-                                                                event
-                                                                    .target
-                                                                    .value,
-                                                        },
-                                                    )
+                                                    form.setData('payment', {
+                                                        ...form.data.payment,
+                                                        reference_number:
+                                                            event.target.value,
+                                                    })
                                                 }
                                             />
                                             <InputError
@@ -589,25 +577,18 @@ export default function CustomerConvectionCreate({
                                                 type="file"
                                                 accept=".jpg,.jpeg,.png,.pdf"
                                                 onChange={(event) =>
-                                                    form.setData(
-                                                        'payment',
-                                                        {
-                                                            ...form.data
-                                                                .payment,
-                                                            proof:
-                                                                event
-                                                                    .target
-                                                                    .files?.[0] ??
-                                                                null,
-                                                        },
-                                                    )
+                                                    form.setData('payment', {
+                                                        ...form.data.payment,
+                                                        proof:
+                                                            event.target
+                                                                .files?.[0] ??
+                                                            null,
+                                                    })
                                                 }
                                             />
                                             <InputError
                                                 message={
-                                                    form.errors[
-                                                        'payment.proof'
-                                                    ]
+                                                    form.errors['payment.proof']
                                                 }
                                             />
                                         </div>
@@ -629,9 +610,7 @@ export default function CustomerConvectionCreate({
                                         }
                                     />
                                     <InputError
-                                        message={
-                                            form.errors['payment.notes']
-                                        }
+                                        message={form.errors['payment.notes']}
                                     />
                                 </div>
 

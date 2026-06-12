@@ -17,17 +17,17 @@ use App\Http\Controllers\Customer\ServiceController;
 use App\Http\Controllers\Customer\TailorConfiguratorController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', HomeController::class)->name('home');
-Route::get('catalog', [CatalogController::class, 'index'])->name('catalog.index');
-Route::get('catalog/{product}', [CatalogController::class, 'show'])->name('catalog.show');
-Route::get('services/tailor', [ServiceController::class, 'tailor'])->name('services.tailor');
-Route::get('services/ready-to-wear', [ServiceController::class, 'readyToWear'])->name('services.rtw');
-Route::get('services/convection', [ServiceController::class, 'convection'])->name('services.convection');
-Route::get('tailor/configure', TailorConfiguratorController::class)->name('tailor.configure');
+Route::middleware('auth')->group(function (): void {
+    Route::get('/', HomeController::class)->name('home');
+    Route::get('catalog', [CatalogController::class, 'index'])->name('catalog.index');
+    Route::get('catalog/{product}', [CatalogController::class, 'show'])->name('catalog.show');
+    Route::get('services/tailor', [ServiceController::class, 'tailor'])->name('services.tailor');
+    Route::get('services/ready-to-wear', [ServiceController::class, 'readyToWear'])->name('services.rtw');
+    Route::get('services/convection', [ServiceController::class, 'convection'])->name('services.convection');
 
-Route::middleware(['auth', 'role:customer'])
-    ->group(function (): void {
+    Route::middleware('role:customer')->group(function (): void {
         Route::get('dashboard', DashboardController::class)->name('dashboard');
+        Route::get('tailor/configure', TailorConfiguratorController::class)->name('tailor.configure');
         Route::get('cart', [CartController::class, 'index'])->name('cart.index');
         Route::post('cart/items', [CartItemController::class, 'store'])->name('cart.items.store');
         Route::put('cart/items/{item}', [CartItemController::class, 'update'])->name('cart.items.update');
@@ -43,7 +43,6 @@ Route::middleware(['auth', 'role:customer'])
         Route::post('orders/tailor', [OrderController::class, 'storeTailor'])->name('orders.tailor.store');
         Route::post('orders/draft', [OrderController::class, 'saveDraft'])->name('orders.draft.store');
         Route::post('orders/{order}/submit', [OrderController::class, 'submitDraft'])->name('orders.draft.submit');
-        Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
         Route::post('notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
         Route::post('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
         Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
@@ -59,3 +58,4 @@ Route::middleware(['auth', 'role:customer'])
         Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
     });
+});

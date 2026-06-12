@@ -15,8 +15,8 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import CustomerLayout from '@/layouts/customer-layout';
-import customer from '@/routes/customer';
 import { login } from '@/routes';
+import customer from '@/routes/customer';
 import type { User } from '@/types/auth';
 
 export default function ReadyToWearServicePage() {
@@ -34,7 +34,8 @@ export default function ReadyToWearServicePage() {
                             Ready-to-Wear
                         </p>
                         <h1 className="[font-family:var(--font-heading)] text-4xl font-semibold tracking-tight text-[#0F172A]">
-                            Browse katalog, simpan ke cart, lalu checkout pickup atau delivery.
+                            Browse katalog, simpan ke cart, lalu checkout pickup
+                            atau delivery.
                         </h1>
                         <p className="max-w-2xl text-base leading-7 text-slate-600">
                             Produk RTW berjalan dengan validasi stock di
@@ -69,7 +70,8 @@ export default function ReadyToWearServicePage() {
                                 Yang tersedia di phase ini
                             </CardTitle>
                             <CardDescription className="text-white/80">
-                                Flow belanja RTW yang langsung tersambung ke order system.
+                                Flow belanja RTW yang langsung tersambung ke
+                                order system.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3 text-sm text-white/85">

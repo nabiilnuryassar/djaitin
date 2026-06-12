@@ -130,11 +130,7 @@ export default function CustomerCartIndex({ cart, summary }: Props) {
     );
 }
 
-function CartItemCard({
-    item,
-}: {
-    item: Props['cart']['items'][number];
-}) {
+function CartItemCard({ item }: { item: Props['cart']['items'][number] }) {
     const form = useForm({
         qty: item.qty.toString(),
     });

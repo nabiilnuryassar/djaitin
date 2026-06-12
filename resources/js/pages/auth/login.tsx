@@ -16,7 +16,11 @@ type Props = {
     canRegister: boolean;
 };
 
-export default function Login({ status, canResetPassword, canRegister }: Props) {
+export default function Login({
+    status,
+    canResetPassword,
+    canRegister,
+}: Props) {
     return (
         <AuthLayout
             title="Log in to your account"
@@ -105,7 +109,9 @@ export default function Login({ status, canResetPassword, canRegister }: Props) 
             {canRegister && (
                 <div className="text-center text-sm text-muted-foreground">
                     Belum punya akun?{' '}
-                    <TextLink href="/register">Daftar sebagai customer</TextLink>
+                    <TextLink href="/register">
+                        Daftar sebagai customer
+                    </TextLink>
                 </div>
             )}
         </AuthLayout>

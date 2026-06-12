@@ -1,7 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import {
-    uploadAttachment,
-} from '@/actions/App/Http/Controllers/Customer/OrderController';
+import { useState } from 'react';
+import { uploadAttachment } from '@/actions/App/Http/Controllers/Customer/OrderController';
+import BankAccountPanel from '@/components/customer/BankAccountPanel';
 import CustomerStatusBadge from '@/components/customer/CustomerStatusBadge';
 import ProductionStageTracker from '@/components/customer/ProductionStageTracker';
 import InputError from '@/components/input-error';
@@ -17,7 +17,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import CustomerLayout from '@/layouts/customer-layout';
 import customer from '@/routes/customer';
-import { useState } from 'react';
 
 type Props = {
     order: {
@@ -86,7 +85,6 @@ type Props = {
 };
 
 export default function CustomerOrderShow({ order }: Props) {
-
     const [activeTab, setActiveTab] = useState<
         'overview' | 'design' | 'payments'
     >('overview');
@@ -211,7 +209,7 @@ export default function CustomerOrderShow({ order }: Props) {
                                                         '-'
                                                     }
                                                 />
-                                                </>
+                                            </>
                                         ) : (
                                             <>
                                                 <InfoRow
@@ -364,11 +362,15 @@ export default function CustomerOrderShow({ order }: Props) {
                                                     <div className="text-left md:text-right">
                                                         <p className="text-sm text-slate-600">
                                                             Harga satuan{' '}
-                                                            {formatCurrency(item.unit_price)}
+                                                            {formatCurrency(
+                                                                item.unit_price,
+                                                            )}
                                                         </p>
                                                         <p className="font-medium">
                                                             Subtotal{' '}
-                                                            {formatCurrency(item.subtotal)}
+                                                            {formatCurrency(
+                                                                item.subtotal,
+                                                            )}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -446,9 +448,12 @@ export default function CustomerOrderShow({ order }: Props) {
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="grid gap-4">
+                                    <BankAccountPanel compact />
+
                                     {order.payments.length === 0 ? (
                                         <div className="rounded-2xl border border-dashed border-[#DBEAFE] bg-[#F8FAFF] p-5 text-sm leading-6 text-slate-600">
-                                            Belum ada pembayaran untuk order ini.
+                                            Belum ada pembayaran untuk order
+                                            ini.
                                         </div>
                                     ) : (
                                         order.payments.map((payment) => (
@@ -557,7 +562,9 @@ export default function CustomerOrderShow({ order }: Props) {
                                 <div className="border-t border-white/15 pt-4">
                                     <SummaryRow
                                         label="Sisa tagihan"
-                                        value={formatCurrency(order.outstanding_amount)}
+                                        value={formatCurrency(
+                                            order.outstanding_amount,
+                                        )}
                                         strong
                                     />
                                 </div>
@@ -577,6 +584,8 @@ export default function CustomerOrderShow({ order }: Props) {
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent className="grid gap-4">
+                                        <BankAccountPanel />
+
                                         <div className="grid gap-2">
                                             <Label htmlFor="amount">
                                                 Nominal transfer
@@ -877,7 +886,6 @@ function AttachmentCard({
         </div>
     );
 }
-
 
 function InfoRow({ label, value }: { label: string; value: string }) {
     return (

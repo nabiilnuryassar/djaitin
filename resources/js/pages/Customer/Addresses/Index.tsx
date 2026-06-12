@@ -3,7 +3,13 @@ import { MapPinHouse, Pencil, Plus, Star } from 'lucide-react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -53,17 +59,20 @@ export default function CustomerAddressesIndex({ addresses }: Props) {
             <div className="space-y-6">
                 <div className="flex flex-col gap-4 rounded-[2rem] bg-white p-8 shadow-[0_20px_80px_rgba(31,23,38,0.08)] md:flex-row md:items-end md:justify-between">
                     <div>
-                        <p className="text-sm font-medium uppercase tracking-[0.22em] text-[#a34a2c]">
+                        <p className="text-sm font-medium tracking-[0.22em] text-[#a34a2c] uppercase">
                             Address Book
                         </p>
                         <h1 className="mt-2 text-3xl font-semibold tracking-tight">
                             Kelola alamat pengiriman customer.
                         </h1>
                         <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-600">
-                            Alamat default tetap menyinkronkan field alamat legacy customer untuk kompatibilitas office.
+                            Alamat default tetap menyinkronkan field alamat
+                            legacy customer untuk kompatibilitas office.
                         </p>
                     </div>
-                    <CreateAddressSheet defaultAddress={addresses.length === 0} />
+                    <CreateAddressSheet
+                        defaultAddress={addresses.length === 0}
+                    />
                 </div>
 
                 <div className="grid gap-4">
@@ -78,9 +87,12 @@ export default function CustomerAddressesIndex({ addresses }: Props) {
                                     <MapPinHouse className="size-5" />
                                 </div>
                                 <div className="space-y-2">
-                                    <h2 className="text-xl font-semibold">Belum ada alamat tersimpan</h2>
+                                    <h2 className="text-xl font-semibold">
+                                        Belum ada alamat tersimpan
+                                    </h2>
                                     <p className="max-w-xl text-sm leading-6 text-slate-600">
-                                        Tambahkan alamat utama customer agar checkout berikutnya lebih ringkas.
+                                        Tambahkan alamat utama customer agar
+                                        checkout berikutnya lebih ringkas.
                                     </p>
                                 </div>
                             </CardContent>
@@ -138,9 +150,11 @@ function AddressCard({ address }: { address: Address }) {
             <CardHeader className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                 <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-2">
-                        <CardTitle>{address.label || 'Alamat tanpa label'}</CardTitle>
+                        <CardTitle>
+                            {address.label || 'Alamat tanpa label'}
+                        </CardTitle>
                         {address.is_default && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-[#f3e3d8] px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-[#a34a2c]">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-[#f3e3d8] px-3 py-1 text-xs font-medium tracking-[0.18em] text-[#a34a2c] uppercase">
                                 <Star className="size-3.5" />
                                 Default
                             </span>
@@ -160,9 +174,13 @@ function AddressCard({ address }: { address: Address }) {
                             className="border-[#d8c8b3] bg-white/70"
                             disabled={setDefaultForm.processing}
                             onClick={() =>
-                                setDefaultForm.post(customer.addresses.setDefault(address.id).url, {
-                                    preserveScroll: true,
-                                })
+                                setDefaultForm.post(
+                                    customer.addresses.setDefault(address.id)
+                                        .url,
+                                    {
+                                        preserveScroll: true,
+                                    },
+                                )
                             }
                         >
                             Jadikan default
@@ -264,7 +282,9 @@ function AddressSheet({
                             error={form.errors.recipient_name}
                             id={`${title}-recipient`}
                             label="Nama penerima"
-                            onChange={(value) => form.setData('recipient_name', value)}
+                            onChange={(value) =>
+                                form.setData('recipient_name', value)
+                            }
                             value={form.data.recipient_name}
                         />
                         <TextField
@@ -278,7 +298,9 @@ function AddressSheet({
                             error={form.errors.postal_code}
                             id={`${title}-postal`}
                             label="Kode pos"
-                            onChange={(value) => form.setData('postal_code', value)}
+                            onChange={(value) =>
+                                form.setData('postal_code', value)
+                            }
                             value={form.data.postal_code}
                         />
                         <TextField
@@ -292,16 +314,25 @@ function AddressSheet({
                             error={form.errors.province}
                             id={`${title}-province`}
                             label="Provinsi"
-                            onChange={(value) => form.setData('province', value)}
+                            onChange={(value) =>
+                                form.setData('province', value)
+                            }
                             value={form.data.province}
                         />
                         <div className="grid gap-2 md:col-span-2">
-                            <Label htmlFor={`${title}-address-line`}>Alamat lengkap</Label>
+                            <Label htmlFor={`${title}-address-line`}>
+                                Alamat lengkap
+                            </Label>
                             <textarea
                                 id={`${title}-address-line`}
                                 className="min-h-28 rounded-md border bg-transparent px-3 py-2 text-sm"
                                 value={form.data.address_line}
-                                onChange={(event) => form.setData('address_line', event.target.value)}
+                                onChange={(event) =>
+                                    form.setData(
+                                        'address_line',
+                                        event.target.value,
+                                    )
+                                }
                             />
                             <InputError message={form.errors.address_line} />
                         </div>
@@ -310,7 +341,9 @@ function AddressSheet({
                     <label className="flex items-center gap-3 rounded-2xl border border-[#eadfce] bg-[#fcfaf6] px-4 py-3 text-sm text-slate-700">
                         <Checkbox
                             checked={form.data.is_default}
-                            onCheckedChange={(checked) => form.setData('is_default', checked === true)}
+                            onCheckedChange={(checked) =>
+                                form.setData('is_default', checked === true)
+                            }
                         />
                         Jadikan alamat default untuk pengiriman customer.
                     </label>
@@ -325,7 +358,11 @@ function AddressSheet({
                     >
                         Batal
                     </Button>
-                    <Button type="button" disabled={form.processing} onClick={onSubmit}>
+                    <Button
+                        type="button"
+                        disabled={form.processing}
+                        onClick={onSubmit}
+                    >
                         {submitLabel}
                     </Button>
                 </SheetFooter>
@@ -350,7 +387,11 @@ function TextField({
     return (
         <div className="grid gap-2">
             <Label htmlFor={id}>{label}</Label>
-            <Input id={id} value={value} onChange={(event) => onChange(event.target.value)} />
+            <Input
+                id={id}
+                value={value}
+                onChange={(event) => onChange(event.target.value)}
+            />
             <InputError message={error} />
         </div>
     );

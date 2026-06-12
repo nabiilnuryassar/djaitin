@@ -4,6 +4,8 @@ use App\Enums\PaymentStatus;
 use App\Models\AuditLog;
 use App\Models\Order;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 test('cash payment is immediately verified and updates order amounts', function () {
     /** @var \Tests\TestCase $this */
@@ -29,6 +31,8 @@ test('cash payment is immediately verified and updates order amounts', function 
 
 test('transfer payment stays pending until verified and writes audit log when verified', function () {
     /** @var \Tests\TestCase $this */
+    Storage::fake('public');
+
     $kasir = User::factory()->kasir()->create();
     $admin = User::factory()->admin()->create();
     $order = Order::factory()->create([
@@ -41,6 +45,7 @@ test('transfer payment stays pending until verified and writes audit log when ve
         'method' => 'transfer',
         'amount' => 100000,
         'reference_number' => 'TRX-001',
+        'proof' => UploadedFile::fake()->image('transfer-proof.png'),
     ])->assertRedirect();
 
     $payment = $order->payments()->firstOrFail();

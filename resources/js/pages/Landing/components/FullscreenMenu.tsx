@@ -3,6 +3,7 @@ import type { InertiaLinkProps } from '@inertiajs/react';
 import { ArrowUpRight, Instagram, Mail, Phone, X } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
+import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import {
     Sheet,
@@ -10,7 +11,6 @@ import {
     SheetDescription,
     SheetTitle,
 } from '@/components/ui/sheet';
-import { Logo } from '@/components/Logo';
 import type { LandingNavItem } from '../types';
 
 type FullscreenMenuProps = {

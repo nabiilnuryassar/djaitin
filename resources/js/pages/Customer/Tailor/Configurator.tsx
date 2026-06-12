@@ -1,16 +1,14 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import {
     AlertCircle,
-    ArrowLeft,
     ArrowRight,
     Check,
     ChevronLeft,
     ChevronRight,
+    ClipboardCheck,
     CreditCard,
     FileText,
     Lock,
-    Palette,
-    Receipt,
     Ruler,
     Save,
     Scissors,
@@ -19,25 +17,20 @@ import {
     Sparkles,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import BankAccountPanel from '@/components/customer/BankAccountPanel';
+import { FabricSizeChartHelper } from '@/components/customer/fabric-size-chart-helper';
 import InputError from '@/components/input-error';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import CustomerLayout from '@/layouts/customer-layout';
 import { cn } from '@/lib/utils';
-import customer from '@/routes/customer';
 import { login, register } from '@/routes';
-import { FabricSizeChartHelper } from '@/components/customer/fabric-size-chart-helper';
-import tailorProfilePreviewImage from '../../../../images/generated/tailor-profile-preview.jpg';
+import customer from '@/routes/customer';
 import type { User } from '@/types/auth';
+import tailorProfilePreviewImage from '../../../../images/generated/tailor-profile-preview.jpg';
 
 type Option = {
     id: number;
@@ -114,27 +107,27 @@ const steps = [
     },
     {
         number: 2,
-        title: 'Silhouette',
-        description: 'Pilih bahan dan arah potongan.',
+        title: 'Silhouette & Fabric',
+        description: 'Pilih arah potongan dan bahan.',
         icon: Scissors,
     },
     {
         number: 3,
-        title: 'Fabric',
-        description: 'Tentukan metode ukuran.',
-        icon: Palette,
-    },
-    {
-        number: 4,
         title: 'Measures',
-        description: 'Isi detail order dan brief.',
+        description: 'Tentukan metode ukuran.',
         icon: Ruler,
     },
     {
-        number: 5,
+        number: 4,
         title: 'Details',
-        description: 'Cek ringkasan dan estimasi.',
+        description: 'Isi detail order dan brief.',
         icon: FileText,
+    },
+    {
+        number: 5,
+        title: 'Review',
+        description: 'Cek ringkasan dan estimasi.',
+        icon: ClipboardCheck,
     },
     {
         number: 6,
@@ -213,11 +206,11 @@ export default function CustomerTailorConfigurator({
     }, [currentStep, form, form.data.payment_amount, minimumDeposit, total]);
 
     const stepIsComplete = {
-        1:
-            Boolean(form.data.garment_model_id) &&
-            form.data.occasion !== '' &&
+        1: Boolean(form.data.garment_model_id),
+        2:
+            Boolean(form.data.fabric_id) &&
+            Boolean(form.data.occasion) &&
             form.data.style_traits.length > 0,
-        2: Boolean(form.data.fabric_id),
         3: hasMeasurementSelection(form.data),
         4: quantity >= 1,
         5: total > 0,
@@ -499,189 +492,111 @@ export default function CustomerTailorConfigurator({
                                         message={form.errors.garment_model_id}
                                     />
                                 </section>
-
-                                <ActionStrip
-                                    currentStep={currentStep}
-                                    maxAccessibleStep={maxAccessibleStep}
-                                />
-
-                                <section className="rounded-[28px] border border-[#e6ecf5] bg-white p-6 shadow-[0_18px_40px_rgba(15,23,42,0.04)]">
-                                    <h2 className="[font-family:var(--font-heading)] text-2xl font-semibold text-[#1a243d]">
-                                        2. Detail Karakter & Fit
-                                    </h2>
-                                    <div className="mt-6 grid gap-5 lg:grid-cols-2">
-                                        <PreferenceGroup title="Occasion">
-                                            <div className="flex flex-wrap gap-2">
-                                                {occasions.map((occasion) => (
-                                                    <button
-                                                        key={occasion}
-                                                        type="button"
-                                                        className={cn(
-                                                            'rounded-full border px-4 py-2 text-sm font-medium transition',
-                                                            form.data
-                                                                .occasion ===
-                                                                occasion
-                                                                ? 'border-[#1d5fd3] bg-[#eef4ff] text-[#1d5fd3]'
-                                                                : 'border-[#e6ecf5] bg-white text-slate-500 hover:bg-[#f8fbff]',
-                                                        )}
-                                                        onClick={() =>
-                                                            form.setData(
-                                                                'occasion',
-                                                                occasion,
-                                                            )
-                                                        }
-                                                    >
-                                                        {occasion}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </PreferenceGroup>
-                                        <PreferenceGroup title="Desired Fit">
-                                            <div className="flex flex-wrap gap-2">
-                                                {desiredFits.map((fit) => (
-                                                    <button
-                                                        key={fit}
-                                                        type="button"
-                                                        className={cn(
-                                                            'rounded-full px-4 py-2 text-sm font-semibold transition',
-                                                            form.data
-                                                                .desired_fit ===
-                                                                fit
-                                                                ? 'bg-[#1d5fd3] text-white shadow-[0_10px_24px_rgba(29,95,211,0.2)]'
-                                                                : 'bg-[#f4f7fc] text-slate-500 hover:bg-[#ebf1fb]',
-                                                        )}
-                                                        onClick={() =>
-                                                            form.setData(
-                                                                'desired_fit',
-                                                                fit,
-                                                            )
-                                                        }
-                                                    >
-                                                        {fit}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </PreferenceGroup>
-                                        <PreferenceGroup title="Karakter Utama">
-                                            <div className="flex flex-wrap gap-2">
-                                                {characterTraits.map(
-                                                    (trait) => {
-                                                        const isActive =
-                                                            form.data.style_traits.includes(
-                                                                trait,
-                                                            );
-
-                                                        return (
-                                                            <button
-                                                                key={trait}
-                                                                type="button"
-                                                                className={cn(
-                                                                    'rounded-full border px-4 py-2 text-sm font-medium transition',
-                                                                    isActive
-                                                                        ? 'border-[#f4b21a] bg-[#fff7e8] text-[#9f6b08]'
-                                                                        : 'border-[#e6ecf5] bg-white text-slate-500 hover:bg-[#f8fbff]',
-                                                                )}
-                                                                onClick={() =>
-                                                                    form.setData(
-                                                                        'style_traits',
-                                                                        form.data.style_traits.includes(
-                                                                            trait,
-                                                                        )
-                                                                            ? form.data.style_traits.filter(
-                                                                                  (
-                                                                                      item,
-                                                                                  ) =>
-                                                                                      item !==
-                                                                                      trait,
-                                                                              )
-                                                                            : [
-                                                                                  ...form
-                                                                                      .data
-                                                                                      .style_traits,
-                                                                                  trait,
-                                                                              ],
-                                                                    )
-                                                                }
-                                                            >
-                                                                {trait}
-                                                            </button>
-                                                        );
-                                                    },
-                                                )}
-                                            </div>
-                                        </PreferenceGroup>
-                                    </div>
-                                </section>
-
-                                <section className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <h2 className="[font-family:var(--font-heading)] text-2xl font-semibold text-[#1a243d]">
-                                            3. Pratinjau Tekstur Fabric
-                                        </h2>
-                                        <Link
-                                            href={customer.catalog.index()}
-                                            className="text-sm font-semibold text-[#1d5fd3]"
-                                        >
-                                            Lihat Katalog
-                                        </Link>
-                                    </div>
-                                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                                        {fabrics.slice(0, 4).map((fabric) => {
-                                            const isSelected =
-                                                form.data.fabric_id ===
-                                                fabric.id.toString();
-
-                                            return (
-                                                <button
-                                                    key={fabric.id}
-                                                    type="button"
-                                                    className={cn(
-                                                        'overflow-hidden rounded-[24px] border bg-white text-left shadow-[0_16px_35px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5',
-                                                        isSelected
-                                                            ? 'border-[#1d5fd3] ring-2 ring-[#d8e7ff]'
-                                                            : 'border-[#e6ecf5]',
-                                                    )}
-                                                    onClick={() =>
-                                                        form.setData(
-                                                            'fabric_id',
-                                                            fabric.id.toString(),
-                                                        )
-                                                    }
-                                                >
-                                                    <div
-                                                        className={cn(
-                                                            'h-36 w-full',
-                                                            fabricSwatchClassName(
-                                                                fabric.name,
-                                                            ),
-                                                        )}
-                                                    />
-                                                    <div className="px-4 py-4">
-                                                        <p className="font-semibold text-[#1a243d]">
-                                                            {fabric.name}
-                                                        </p>
-                                                        <p className="mt-1 text-xs text-slate-500">
-                                                            {fabric.description ??
-                                                                'Material aktif untuk tailor custom.'}
-                                                        </p>
-                                                    </div>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                    <InputError
-                                        message={form.errors.fabric_id}
-                                    />
-                                </section>
                             </>
                         )}
 
                         {currentStep === 2 && (
                             <StepCard
                                 title="Step 2. Fabric & Silhouette"
-                                description="Tentukan bahan utama untuk menegaskan jatuhnya struktur tailor Anda."
+                                description="Satukan arah potongan, karakter gaya, dan bahan utama sebelum masuk ke pengukuran."
                             >
-                                <FabricSizeChartHelper />
+                                <div className="grid gap-5 lg:grid-cols-2">
+                                    <PreferenceGroup title="Occasion">
+                                        <div className="flex flex-wrap gap-2">
+                                            {occasions.map((occasion) => (
+                                                <button
+                                                    key={occasion}
+                                                    type="button"
+                                                    className={cn(
+                                                        'rounded-full border px-4 py-2 text-sm font-medium transition',
+                                                        form.data.occasion ===
+                                                            occasion
+                                                            ? 'border-[#1d5fd3] bg-[#eef4ff] text-[#1d5fd3]'
+                                                            : 'border-[#e6ecf5] bg-white text-slate-500 hover:bg-[#f8fbff]',
+                                                    )}
+                                                    onClick={() =>
+                                                        form.setData(
+                                                            'occasion',
+                                                            occasion,
+                                                        )
+                                                    }
+                                                >
+                                                    {occasion}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </PreferenceGroup>
+                                    <PreferenceGroup title="Desired Fit">
+                                        <div className="flex flex-wrap gap-2">
+                                            {desiredFits.map((fit) => (
+                                                <button
+                                                    key={fit}
+                                                    type="button"
+                                                    className={cn(
+                                                        'rounded-full px-4 py-2 text-sm font-semibold transition',
+                                                        form.data
+                                                            .desired_fit === fit
+                                                            ? 'bg-[#1d5fd3] text-white shadow-[0_10px_24px_rgba(29,95,211,0.2)]'
+                                                            : 'bg-[#f4f7fc] text-slate-500 hover:bg-[#ebf1fb]',
+                                                    )}
+                                                    onClick={() =>
+                                                        form.setData(
+                                                            'desired_fit',
+                                                            fit,
+                                                        )
+                                                    }
+                                                >
+                                                    {fit}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </PreferenceGroup>
+                                    <PreferenceGroup title="Karakter Utama">
+                                        <div className="flex flex-wrap gap-2">
+                                            {characterTraits.map((trait) => {
+                                                const isActive =
+                                                    form.data.style_traits.includes(
+                                                        trait,
+                                                    );
+
+                                                return (
+                                                    <button
+                                                        key={trait}
+                                                        type="button"
+                                                        className={cn(
+                                                            'rounded-full border px-4 py-2 text-sm font-medium transition',
+                                                            isActive
+                                                                ? 'border-[#f4b21a] bg-[#fff7e8] text-[#9f6b08]'
+                                                                : 'border-[#e6ecf5] bg-white text-slate-500 hover:bg-[#f8fbff]',
+                                                        )}
+                                                        onClick={() =>
+                                                            form.setData(
+                                                                'style_traits',
+                                                                isActive
+                                                                    ? form.data.style_traits.filter(
+                                                                          (
+                                                                              item,
+                                                                          ) =>
+                                                                              item !==
+                                                                              trait,
+                                                                      )
+                                                                    : [
+                                                                          ...form
+                                                                              .data
+                                                                              .style_traits,
+                                                                          trait,
+                                                                      ],
+                                                            )
+                                                        }
+                                                    >
+                                                        {trait}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </PreferenceGroup>
+                                </div>
+
                                 <div className="grid gap-4 md:grid-cols-2">
                                     {fabrics.map((fabric) => {
                                         const isSelected =
@@ -743,6 +658,7 @@ export default function CustomerTailorConfigurator({
                                 title="Step 3. Measurement Route"
                                 description="Pilih cara Djaitin membaca proporsi tubuh agar hasil tailor lebih presisi."
                             >
+                                <FabricSizeChartHelper />
                                 <div className="grid gap-3 md:grid-cols-3">
                                     {[
                                         {
@@ -1191,6 +1107,8 @@ export default function CustomerTailorConfigurator({
                                         </span>
                                     </div>
 
+                                    <BankAccountPanel className="mt-5" />
+
                                     <div className="mt-5 grid gap-4 md:grid-cols-2">
                                         <div className="grid gap-2">
                                             <Label htmlFor="payment_amount">
@@ -1372,7 +1290,7 @@ export default function CustomerTailorConfigurator({
                                             }
                                         >
                                             {currentStep === 1
-                                                ? 'Lanjut ke Silhouette & Fit'
+                                                ? 'Lanjut ke Silhouette & Fabric'
                                                 : 'Lanjut'}
                                             <ChevronRight className="size-4" />
                                         </Button>
@@ -1444,7 +1362,7 @@ export default function CustomerTailorConfigurator({
                                     }
                                 >
                                     {currentStep === 1
-                                        ? 'Lanjut ke Silhouette & Fit'
+                                        ? 'Lanjut ke Silhouette & Fabric'
                                         : 'Lanjut ke Step Berikutnya'}
                                     <ArrowRight className="size-4" />
                                 </Button>
@@ -1555,36 +1473,6 @@ function PreferenceGroup({
                 {title}
             </p>
             <div className="mt-4">{children}</div>
-        </div>
-    );
-}
-
-function ActionStrip({
-    currentStep,
-    maxAccessibleStep,
-}: {
-    currentStep: number;
-    maxAccessibleStep: number;
-}) {
-    return (
-        <div className="rounded-[24px] border border-[#edf2fb] bg-white/90 px-4 py-3 shadow-[0_10px_30px_rgba(15,23,42,0.04)] backdrop-blur">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <div className="flex items-center gap-2 text-sm text-slate-400">
-                    <ArrowLeft className="size-4" />
-                    Back
-                </div>
-                <div className="flex flex-wrap items-center justify-center gap-2">
-                    <span className="rounded-full bg-[#edf4ff] px-3 py-1 text-[11px] font-semibold text-[#1d5fd3] uppercase">
-                        Step {currentStep}
-                    </span>
-                    <span className="rounded-full bg-[#f4f7fc] px-3 py-1 text-[11px] font-semibold text-slate-400 uppercase">
-                        Max {maxAccessibleStep}
-                    </span>
-                </div>
-                <div className="text-sm font-medium text-slate-400">
-                    Progress terjaga
-                </div>
-            </div>
         </div>
     );
 }
@@ -1803,11 +1691,7 @@ function resolveInitialStep(data: FormState): number {
         return 3;
     }
 
-    if (
-        data.garment_model_id !== '' &&
-        data.occasion !== '' &&
-        data.style_traits.length > 0
-    ) {
+    if (data.garment_model_id !== '') {
         return 2;
     }
 

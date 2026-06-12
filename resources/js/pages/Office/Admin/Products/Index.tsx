@@ -1,11 +1,10 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { ImageIcon } from 'lucide-react';
+import { ImageIcon, Inbox } from 'lucide-react';
 import { useState } from 'react';
 import DashboardController from '@/actions/App/Http/Controllers/Office/DashboardController';
 import { FlashMessage } from '@/components/flash-message';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Sheet,
     SheetContent,
@@ -17,6 +16,15 @@ import {
 import OfficeLayout from '@/layouts/office-layout';
 import office from '@/routes/office';
 import type { BreadcrumbItem } from '@/types';
+import { cn } from '@/lib/utils';
+
+// Office Primitives
+import { PageHeader } from '@/components/office/page-header';
+import { FilterBar } from '@/components/office/filter-bar';
+import { StatusBadge } from '@/components/office/status-badge';
+import { EmptyState } from '@/components/office/empty-state';
+import { DataTable, DataTableHead, DataTableBody, DataTableCell, DataTableHeaderCell } from '@/components/office/data-table';
+import { OfficePagination } from '@/components/office/pagination';
 
 type PaginationLink = {
     url: string | null;
@@ -66,314 +74,249 @@ type Props = {
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: DashboardController() },
-    { title: 'Produk', href: office.admin.products.index() },
+    { title: 'Admin Produk', href: office.admin.products.index() },
 ];
 
-export default function AdminProductsIndex({
-    filters,
-    products,
-    can,
-}: Props) {
+export default function AdminProductsIndex({ filters, products, can }: Props) {
     const [sheetState, setSheetState] = useState<ProductSheetState>(null);
 
     return (
         <OfficeLayout breadcrumbs={breadcrumbs}>
-            <Head title="Admin Products" />
+            <Head title="Manajemen Produk" />
 
             <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
                 <FlashMessage />
 
-                <Card className="rounded-2xl border-slate-200/80 shadow-sm">
-                    <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                        <div>
-                            <CardTitle className="[font-family:var(--font-heading)] text-xl font-semibold text-[#0F172A]">
-                                Product management
-                            </CardTitle>
-                            <p className="text-sm text-slate-600">
-                                Pantau low stock, clearance, dan update data RTW
-                                dalam tabel produk yang ringkas. Untuk produk
-                                yang mulai kurang diminati, selling price bisa
-                                disesuaikan hingga mendekati base price.
-                            </p>
-                        </div>
-                        {can.create ? (
+                <PageHeader
+                    eyebrow="Admin"
+                    title="Manajemen Produk"
+                    description="Pantau stok produk, status clearance, dan update harga produk ready-to-wear."
+                    actions={
+                        can.create ? (
                             <Button
                                 type="button"
-                                onClick={() => setSheetState({ mode: 'create' })}
+                                className="rounded-xl bg-brand-blue text-white hover:bg-brand-blue-deep cursor-pointer"
+                                onClick={() =>
+                                    setSheetState({ mode: 'create' })
+                                }
                             >
-                                Tambah produk
+                                Tambah Produk
                             </Button>
-                        ) : null}
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <form
-                            className="grid gap-3 md:grid-cols-4"
-                            onSubmit={(event) => {
-                                event.preventDefault();
-                                const formData = new FormData(
-                                    event.currentTarget,
-                                );
+                        ) : null
+                    }
+                />
 
-                                router.get(
-                                    office.admin.products.index.url({
-                                        query: {
-                                            search:
-                                                String(
-                                                    formData.get('search') || '',
-                                                ) || null,
-                                            low_stock: formData.get(
-                                                'low_stock',
-                                            )
-                                                ? '1'
-                                                : null,
-                                            clearance: formData.get(
-                                                'clearance',
-                                            )
-                                                ? '1'
-                                                : null,
-                                        },
-                                    }),
-                                    {},
-                                    {
-                                        preserveState: true,
-                                        preserveScroll: true,
+                <FilterBar>
+                    <form
+                        className="grid gap-3 sm:grid-cols-2 md:grid-cols-4 w-full"
+                        onSubmit={(event) => {
+                            event.preventDefault();
+                            const formData = new FormData(
+                                event.currentTarget,
+                            );
+
+                            router.get(
+                                office.admin.products.index.url({
+                                    query: {
+                                        search:
+                                            String(
+                                                formData.get('search') ||
+                                                    '',
+                                            ) || null,
+                                        low_stock: formData.get('low_stock')
+                                            ? '1'
+                                            : null,
+                                        clearance: formData.get('clearance')
+                                            ? '1'
+                                            : null,
                                     },
-                                );
-                            }}
-                        >
+                                }),
+                                {},
+                                {
+                                    preserveState: true,
+                                    preserveScroll: true,
+                                },
+                            );
+                        }}
+                    >
+                        <input
+                            name="search"
+                            defaultValue={filters.search}
+                            placeholder="Cari SKU / nama"
+                            className="h-10 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink"
+                        />
+                        <label className="flex items-center gap-2 rounded-xl border border-border px-3 text-sm text-muted-foreground bg-white cursor-pointer h-10 select-none">
                             <input
-                                name="search"
-                                defaultValue={filters.search}
-                                placeholder="Cari SKU / nama"
-                                className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"
+                                type="checkbox"
+                                name="low_stock"
+                                defaultChecked={filters.low_stock}
+                                className="rounded border-border text-brand-blue cursor-pointer"
                             />
-                            <label className="flex items-center gap-2 rounded-md border border-slate-200 px-3 text-sm text-slate-600">
-                                <input
-                                    type="checkbox"
-                                    name="low_stock"
-                                    defaultChecked={filters.low_stock}
-                                />
-                                Low stock
-                            </label>
-                            <label className="flex items-center gap-2 rounded-md border border-slate-200 px-3 text-sm text-slate-600">
-                                <input
-                                    type="checkbox"
-                                    name="clearance"
-                                    defaultChecked={filters.clearance}
-                                />
-                                Clearance
-                            </label>
-                            <Button type="submit">Filter</Button>
-                        </form>
+                            Stok Rendah
+                        </label>
+                        <label className="flex items-center gap-2 rounded-xl border border-border px-3 text-sm text-muted-foreground bg-white cursor-pointer h-10 select-none">
+                            <input
+                                type="checkbox"
+                                name="clearance"
+                                defaultChecked={filters.clearance}
+                                className="rounded border-border text-brand-blue cursor-pointer"
+                            />
+                            Clearance
+                        </label>
+                        <Button type="submit" className="rounded-xl bg-brand-blue text-white hover:bg-brand-blue-deep cursor-pointer">
+                            Filter
+                        </Button>
+                    </form>
+                </FilterBar>
 
-                        <div className="overflow-hidden rounded-2xl border border-slate-200/80">
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-slate-200 text-sm">
-                                    <thead className="bg-slate-50">
-                                        <tr>
-                                            <th className="px-4 py-3 text-left font-semibold text-slate-600">
-                                                Produk
-                                            </th>
-                                            <th className="px-4 py-3 text-left font-semibold text-slate-600">
-                                                SKU
-                                            </th>
-                                            <th className="px-4 py-3 text-left font-semibold text-slate-600">
-                                                Ukuran
-                                            </th>
-                                            <th className="px-4 py-3 text-left font-semibold text-slate-600">
-                                                Stok
-                                            </th>
-                                            <th className="px-4 py-3 text-left font-semibold text-slate-600">
-                                                Harga
-                                            </th>
-                                            <th className="px-4 py-3 text-right font-semibold text-slate-600">
-                                                Aksi
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-200 bg-white">
-                                        {products.data.length === 0 ? (
-                                            <tr>
-                                                <td
-                                                    colSpan={6}
-                                                    className="px-4 py-10 text-center text-slate-500"
-                                                >
-                                                    Tidak ada produk yang cocok
-                                                    dengan filter.
-                                                </td>
-                                            </tr>
-                                        ) : (
-                                            products.data.map((product) => (
-                                                <tr key={product.id}>
-                                                    <td className="px-4 py-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="flex size-14 items-center justify-center overflow-hidden rounded-2xl bg-[#EFF4FF] text-[#2563EB]">
-                                                                {product.image_path ? (
-                                                                    <img
-                                                                        src={
-                                                                            product.image_path
-                                                                        }
-                                                                        alt={
-                                                                            product.name
-                                                                        }
-                                                                        className="h-full w-full object-cover"
-                                                                    />
-                                                                ) : (
-                                                                    <ImageIcon className="size-5" />
-                                                                )}
-                                                            </div>
-                                                            <div className="space-y-1">
-                                                                <p className="font-semibold text-[#0F172A]">
-                                                                    {
-                                                                        product.name
-                                                                    }
-                                                                </p>
-                                                                <p className="text-xs text-slate-500">
-                                                                    {
-                                                                        product.category
-                                                                    }
-                                                                </p>
-                                                                <div className="flex flex-wrap gap-2">
-                                                                    {product.is_clearance ? (
-                                                                        <Badge className="bg-amber-100 text-amber-800">
-                                                                            Clearance
-                                                                        </Badge>
-                                                                    ) : null}
-                                                                    <Badge
-                                                                        className={
-                                                                            product.is_active
-                                                                                ? 'bg-emerald-100 text-emerald-800'
-                                                                                : 'bg-slate-100 text-slate-700'
-                                                                        }
-                                                                    >
-                                                                        {product.is_active
-                                                                            ? 'Aktif'
-                                                                            : 'Nonaktif'}
-                                                                    </Badge>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-4 text-slate-600">
-                                                        {product.sku}
-                                                    </td>
-                                                    <td className="px-4 py-4 text-slate-600">
-                                                        {product.size}
-                                                    </td>
-                                                    <td className="px-4 py-4">
-                                                        <Badge
-                                                            className={
-                                                                product.stock <=
-                                                                5
-                                                                    ? 'bg-red-100 text-red-800'
-                                                                    : 'bg-emerald-100 text-emerald-800'
+                {products.data.length === 0 ? (
+                    <EmptyState
+                        icon={Inbox}
+                        title="Tidak ada produk"
+                        description="Tidak ada produk yang cocok dengan filter saat ini."
+                    />
+                ) : (
+                    <div>
+                        <DataTable>
+                            <DataTableHead>
+                                <tr>
+                                    <DataTableHeaderCell>Produk</DataTableHeaderCell>
+                                    <DataTableHeaderCell>SKU</DataTableHeaderCell>
+                                    <DataTableHeaderCell>Ukuran</DataTableHeaderCell>
+                                    <DataTableHeaderCell>Stok</DataTableHeaderCell>
+                                    <DataTableHeaderCell>Harga</DataTableHeaderCell>
+                                    <DataTableHeaderCell className="text-right">Aksi</DataTableHeaderCell>
+                                </tr>
+                            </DataTableHead>
+                            <DataTableBody>
+                                {products.data.map((product) => (
+                                    <tr key={product.id}>
+                                        <DataTableCell>
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-brand-mist border border-border/55 text-brand-blue">
+                                                    {product.image_path ? (
+                                                        <img
+                                                            src={
+                                                                product.image_path
                                                             }
+                                                            alt={
+                                                                product.name
+                                                            }
+                                                            className="h-full w-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <ImageIcon className="size-5 text-muted-foreground" />
+                                                    )}
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="font-semibold text-brand-ink text-sm">
+                                                        {product.name}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {product.category}
+                                                    </p>
+                                                    <div className="flex flex-wrap gap-1.5 mt-0.5">
+                                                        {product.is_clearance ? (
+                                                            <Badge className="bg-amber-50 text-amber-700 hover:bg-amber-50 border-amber-200 text-[10px] py-0 px-2 rounded-full">
+                                                                Clearance
+                                                            </Badge>
+                                                        ) : null}
+                                                        <StatusBadge value={product.is_active ? 'active' : 'inactive'} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </DataTableCell>
+                                        <DataTableCell className="text-muted-foreground font-mono text-xs">
+                                            {product.sku}
+                                        </DataTableCell>
+                                        <DataTableCell className="text-muted-foreground font-medium">
+                                            {product.size}
+                                        </DataTableCell>
+                                        <DataTableCell>
+                                            <Badge
+                                                className={cn(
+                                                    'rounded-full border-none font-semibold text-xs',
+                                                    product.stock <= 5
+                                                        ? 'bg-red-50 text-red-700'
+                                                        : 'bg-emerald-50 text-emerald-700'
+                                                )}
+                                            >
+                                                Stok {product.stock}
+                                            </Badge>
+                                        </DataTableCell>
+                                        <DataTableCell>
+                                            <p className="font-semibold text-brand-ink text-sm">
+                                                {formatCurrency(
+                                                    product.final_price,
+                                                )}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground mt-0.5">
+                                                Jual:{' '}
+                                                {formatCurrency(
+                                                    product.selling_price,
+                                                )}
+                                            </p>
+                                        </DataTableCell>
+                                        <DataTableCell>
+                                            <div className="flex justify-end gap-2">
+                                                {can.update ? (
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        className="rounded-xl cursor-pointer"
+                                                        onClick={() =>
+                                                            setSheetState(
+                                                                {
+                                                                    mode: 'edit',
+                                                                    product,
+                                                                },
+                                                            )
+                                                        }
+                                                    >
+                                                        Edit
+                                                    </Button>
+                                                ) : null}
+                                                {can.delete && product.is_active ? (
+                                                    <form
+                                                        {...office.admin.products.destroy.form(
+                                                            product.id,
+                                                        )}
+                                                    >
+                                                        <Button
+                                                            type="submit"
+                                                            variant="outline"
+                                                            className="border-red-200 text-red-700 rounded-xl cursor-pointer hover:bg-red-50"
                                                         >
-                                                            Stok {product.stock}
-                                                        </Badge>
-                                                    </td>
-                                                    <td className="px-4 py-4">
-                                                        <p className="font-semibold text-[#0F172A]">
-                                                            {formatCurrency(
-                                                                product.final_price,
-                                                            )}
-                                                        </p>
-                                                        <p className="text-xs text-slate-500">
-                                                            Jual{' '}
-                                                            {formatCurrency(
-                                                                product.selling_price,
-                                                            )}
-                                                        </p>
-                                                    </td>
-                                                    <td className="px-4 py-4">
-                                                        <div className="flex justify-end gap-2">
-                                                            {can.update ? (
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="outline"
-                                                                    onClick={() =>
-                                                                        setSheetState(
-                                                                            {
-                                                                                mode: 'edit',
-                                                                                product,
-                                                                            },
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    Edit
-                                                                </Button>
-                                                            ) : null}
-                                                            {can.delete &&
-                                                            product.is_active ? (
-                                                                <form
-                                                                    {...office.admin.products.destroy.form(
-                                                                        product.id,
-                                                                    )}
-                                                                >
-                                                                    <Button
-                                                                        type="submit"
-                                                                        variant="outline"
-                                                                        className="border-red-200 text-red-700"
-                                                                    >
-                                                                        Nonaktifkan
-                                                                    </Button>
-                                                                </form>
-                                                            ) : null}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                                                            Nonaktifkan
+                                                        </Button>
+                                                    </form>
+                                                ) : null}
+                                            </div>
+                                        </DataTableCell>
+                                    </tr>
+                                ))}
+                            </DataTableBody>
+                        </DataTable>
 
-                        <div className="flex flex-wrap gap-2">
-                            {products.links.map((link) => (
-                                <Button
-                                    key={`${link.label}-${link.url ?? 'null'}`}
-                                    asChild={link.url !== null}
-                                    type="button"
-                                    variant={link.active ? 'default' : 'outline'}
-                                    className="min-w-11"
-                                    disabled={link.url === null}
-                                >
-                                    {link.url === null ? (
-                                        <span
-                                            dangerouslySetInnerHTML={{
-                                                __html: link.label,
-                                            }}
-                                        />
-                                    ) : (
-                                        <Link
-                                            href={link.url}
-                                            dangerouslySetInnerHTML={{
-                                                __html: link.label,
-                                            }}
-                                        />
-                                    )}
-                                </Button>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                        <OfficePagination links={products.links} />
+                    </div>
+                )}
             </div>
 
             <Sheet
                 open={sheetState !== null}
                 onOpenChange={(open) => !open && setSheetState(null)}
             >
-                <SheetContent className="w-full overflow-y-auto border-l-slate-200 bg-[#F8FAFF] sm:max-w-2xl">
-                    <SheetHeader className="border-b border-slate-200 pb-4 text-left">
-                        <SheetTitle className="[font-family:var(--font-heading)] text-xl font-semibold text-[#0F172A]">
+                <SheetContent className="w-full overflow-y-auto border-l border-border bg-brand-mist/50 sm:max-w-2xl">
+                    <SheetHeader className="border-b border-border/70 pb-4 text-left">
+                        <SheetTitle className="text-xl font-bold text-brand-ink">
                             {sheetState?.mode === 'edit'
-                                ? 'Edit produk RTW'
-                                : 'Tambah produk RTW'}
+                                ? 'Edit Produk RTW'
+                                : 'Tambah Produk RTW Baru'}
                         </SheetTitle>
-                        <SheetDescription className="text-slate-600">
+                        <SheetDescription className="text-muted-foreground">
                             {sheetState?.mode === 'edit'
-                                ? 'Perbarui data stok, harga, clearance, dan status produk dari sheet.'
+                                ? 'Perbarui data stok, harga, clearance, dan status produk langsung dari panel.'
                                 : 'Masukkan SKU, harga, dan stok untuk produk ready-to-wear baru.'}
                         </SheetDescription>
                     </SheetHeader>
@@ -408,133 +351,135 @@ function ProductSheetForm({
                 : office.admin.products.store.form())}
             className="flex h-full flex-col"
         >
-            <div className="grid gap-4 px-4 py-6 md:grid-cols-2">
-                <label className="grid gap-2 text-sm font-medium text-slate-700">
+            <div className="grid gap-4 py-6 md:grid-cols-2">
+                <label className="grid gap-2 text-sm font-semibold text-brand-ink">
                     SKU
                     <input
                         name="sku"
                         defaultValue={product?.sku ?? ''}
-                        className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"
+                        className="h-11 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink"
                     />
                 </label>
-                <label className="grid gap-2 text-sm font-medium text-slate-700">
-                    Nama produk
+                <label className="grid gap-2 text-sm font-semibold text-brand-ink">
+                    Nama Produk
                     <input
                         name="name"
                         defaultValue={product?.name ?? ''}
-                        className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"
+                        className="h-11 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink"
                     />
                 </label>
-                <label className="grid gap-2 text-sm font-medium text-slate-700">
+                <label className="grid gap-2 text-sm font-semibold text-brand-ink">
                     Kategori
                     <input
                         name="category"
                         defaultValue={product?.category ?? ''}
-                        className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"
+                        className="h-11 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink"
                     />
                 </label>
-                <label className="grid gap-2 text-sm font-medium text-slate-700">
+                <label className="grid gap-2 text-sm font-semibold text-brand-ink">
                     Ukuran
                     <input
                         name="size"
                         defaultValue={product?.size ?? ''}
-                        className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"
+                        className="h-11 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink"
                     />
                 </label>
-                <label className="grid gap-2 text-sm font-medium text-slate-700">
-                    Base price
+                <label className="grid gap-2 text-sm font-semibold text-brand-ink">
+                    Base Price (Harga Dasar)
                     <input
                         name="base_price"
                         type="number"
                         defaultValue={product?.base_price ?? ''}
-                        className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"
+                        className="h-11 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink"
                     />
                 </label>
-                <label className="grid gap-2 text-sm font-medium text-slate-700">
-                    Selling price
+                <label className="grid gap-2 text-sm font-semibold text-brand-ink">
+                    Selling Price (Harga Jual)
                     <input
                         name="selling_price"
                         type="number"
                         defaultValue={product?.selling_price ?? ''}
-                        className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"
+                        className="h-11 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink"
                     />
                 </label>
-                <label className="grid gap-2 text-sm font-medium text-slate-700">
-                    Diskon nominal
+                <label className="grid gap-2 text-sm font-semibold text-brand-ink">
+                    Diskon Nominal
                     <input
                         name="discount_amount"
                         type="number"
                         defaultValue={product?.discount_amount ?? 0}
-                        className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"
+                        className="h-11 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink"
                     />
                 </label>
-                <label className="grid gap-2 text-sm font-medium text-slate-700">
-                    Diskon persen
+                <label className="grid gap-2 text-sm font-semibold text-brand-ink">
+                    Diskon Persen
                     <input
                         name="discount_percent"
                         type="number"
                         defaultValue={product?.discount_percent ?? 0}
-                        className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"
+                        className="h-11 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink"
                     />
                 </label>
-                <label className="grid gap-2 text-sm font-medium text-slate-700">
+                <label className="grid gap-2 text-sm font-semibold text-brand-ink">
                     Stok
                     <input
                         name="stock"
                         type="number"
                         defaultValue={product?.stock ?? ''}
-                        className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"
+                        className="h-11 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink"
                     />
                 </label>
-                <label className="grid gap-2 text-sm font-medium text-slate-700">
-                    Gambar
+                <label className="grid gap-2 text-sm font-semibold text-brand-ink">
+                    Gambar (URL/Path)
                     <input
                         name="image_path"
                         defaultValue={product?.image_path ?? ''}
                         placeholder="/storage/products/sku-001.jpg"
-                        className="h-11 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"
+                        className="h-11 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink"
                     />
                 </label>
-                <label className="grid gap-2 text-sm font-medium text-slate-700 md:col-span-2">
+                <label className="grid gap-2 text-sm font-semibold text-brand-ink md:col-span-2">
                     Deskripsi
                     <textarea
                         name="description"
                         defaultValue={product?.description ?? ''}
-                        className="min-h-28 rounded-md border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700"
+                        className="min-h-28 rounded-xl border border-border bg-white px-3 py-3 text-sm text-brand-ink"
                     />
                 </label>
                 <div className="grid gap-3 md:col-span-2 md:grid-cols-2">
-                    <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+                    <div className="rounded-xl border border-border bg-white px-4 py-3">
                         <input type="hidden" name="is_clearance" value="0" />
-                        <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
+                        <label className="flex items-center gap-3 text-sm font-semibold text-brand-ink cursor-pointer">
                             <input
                                 type="checkbox"
                                 name="is_clearance"
                                 value="1"
                                 defaultChecked={product?.is_clearance ?? false}
+                                className="rounded border-border text-brand-blue cursor-pointer"
                             />
-                            Produk clearance
+                            Produk Clearance
                         </label>
                     </div>
-                    <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+                    <div className="rounded-xl border border-border bg-white px-4 py-3">
                         <input type="hidden" name="is_active" value="0" />
-                        <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
+                        <label className="flex items-center gap-3 text-sm font-semibold text-brand-ink cursor-pointer">
                             <input
                                 type="checkbox"
                                 name="is_active"
                                 value="1"
                                 defaultChecked={product?.is_active ?? true}
+                                className="rounded border-border text-brand-blue cursor-pointer"
                             />
-                            Produk aktif
+                            Produk Aktif
                         </label>
                     </div>
                 </div>
             </div>
-            <SheetFooter className="border-t border-slate-200">
-                <Button type="submit" className="w-full">
+            <SheetFooter className="border-t border-border/70 pt-4">
+                <Button type="submit" className="w-full rounded-xl bg-brand-blue text-white hover:bg-brand-blue-deep cursor-pointer">
                     {sheetState.mode === 'edit'
-                        ? 'Simpan perubahan'
-                        : 'Buat produk'}
+                        ? 'Simpan Perubahan'
+                        : 'Buat Produk'}
                 </Button>
             </SheetFooter>
         </form>

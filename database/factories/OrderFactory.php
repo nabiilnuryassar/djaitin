@@ -7,8 +7,6 @@ use App\Enums\OrderType;
 use App\Models\Customer;
 use App\Models\Fabric;
 use App\Models\GarmentModel;
-use App\Models\Measurement;
-use App\Models\Order;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -59,6 +57,20 @@ class OrderFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'order_type' => OrderType::Tailor,
+        ]);
+    }
+
+    public function readyWear(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'order_type' => OrderType::ReadyWear,
+        ]);
+    }
+
+    public function convection(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'order_type' => OrderType::Convection,
         ]);
     }
 

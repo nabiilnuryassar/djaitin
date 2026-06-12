@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Models\Order;
-use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -74,6 +73,18 @@ class PaymentFactory extends Factory
             'status' => PaymentStatus::Verified,
             'verified_by' => User::factory()->admin(),
             'verified_at' => now(),
+        ]);
+    }
+
+    public function refunded(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => PaymentStatus::Refunded,
+            'verified_by' => User::factory()->admin(),
+            'verified_at' => now()->subMinute(),
+            'refunded_at' => now(),
+            'refunded_by' => User::factory()->admin(),
+            'refund_reason' => 'Pengembalian dana untuk pembatalan order.',
         ]);
     }
 }

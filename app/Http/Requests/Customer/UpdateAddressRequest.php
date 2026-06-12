@@ -13,6 +13,6 @@ class UpdateAddressRequest extends FormRequest
 
     public function rules(): array
     {
-        return (new StoreAddressRequest())->rules();
+        return (new StoreAddressRequest)->rules();
     }
 }

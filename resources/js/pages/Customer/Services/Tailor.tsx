@@ -1,10 +1,16 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ArrowRight, CheckCheck, Ruler, Shirt, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import CustomerLayout from '@/layouts/customer-layout';
-import customer from '@/routes/customer';
 import { login, register } from '@/routes';
+import customer from '@/routes/customer';
 import type { User } from '@/types/auth';
 
 export default function TailorServicePage() {
@@ -18,15 +24,18 @@ export default function TailorServicePage() {
             <div className="space-y-8">
                 <section className="grid gap-6 rounded-[2rem] bg-white p-8 shadow-[0_20px_80px_rgba(31,23,38,0.08)] lg:grid-cols-[1.1fr_0.9fr]">
                     <div className="space-y-5">
-                        <p className="text-sm font-medium uppercase tracking-[0.22em] text-[#a34a2c]">
+                        <p className="text-sm font-medium tracking-[0.22em] text-[#a34a2c] uppercase">
                             Tailor Service
                         </p>
                         <h1 className="text-4xl font-semibold tracking-tight">
-                            Flow tailor customer dengan draft, ukuran tersimpan, dan transfer proof.
+                            Flow tailor customer dengan draft, ukuran tersimpan,
+                            dan transfer proof.
                         </h1>
                         <p className="max-w-2xl text-base leading-7 text-slate-600">
-                            Customer memilih model garmen, bahan aktif, metode ukuran, lalu mengirim bukti transfer
-                            dari portal yang sama. Harga dibentuk di backend dari model dan bahan, bukan dari input client.
+                            Customer memilih model garmen, bahan aktif, metode
+                            ukuran, lalu mengirim bukti transfer dari portal
+                            yang sama. Harga dibentuk di backend dari model dan
+                            bahan, bukan dari input client.
                         </p>
                         <div className="flex flex-wrap gap-3">
                             <Button asChild>
@@ -41,7 +50,9 @@ export default function TailorServicePage() {
                                         <Link href={login()}>Masuk</Link>
                                     </Button>
                                     <Button asChild variant="outline">
-                                        <Link href={register()}>Daftar Customer</Link>
+                                        <Link href={register()}>
+                                            Daftar Customer
+                                        </Link>
                                     </Button>
                                 </>
                             )}
@@ -52,7 +63,8 @@ export default function TailorServicePage() {
                         <CardHeader>
                             <CardTitle>Yang tersedia di v1</CardTitle>
                             <CardDescription>
-                                Satu flow yang cukup lengkap untuk customer tailor.
+                                Satu flow yang cukup lengkap untuk customer
+                                tailor.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3 text-sm text-slate-700">

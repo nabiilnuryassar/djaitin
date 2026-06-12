@@ -6,6 +6,7 @@ import {
     DollarSign,
     Factory,
     Gauge,
+    Inbox,
     Layers3,
     PackageCheck,
     ShieldAlert,
@@ -16,6 +17,11 @@ import {
     index as ordersIndex,
     show as showOrder,
 } from '@/actions/App/Http/Controllers/Office/OrderController';
+import { EmptyState } from '@/components/office/empty-state';
+import { KpiTile } from '@/components/office/kpi-tile';
+import { PageHeader } from '@/components/office/page-header';
+import { PremiumCard } from '@/components/office/premium-card';
+import { StatusBadge } from '@/components/office/status-badge';
 import { FlashMessage } from '@/components/flash-message';
 import { Button } from '@/components/ui/button';
 import OfficeLayout from '@/layouts/office-layout';
@@ -93,6 +99,17 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+const metricToneMap: Record<string, 'blue' | 'gold' | 'green' | 'red' | 'slate'> = {
+    orders: 'blue',
+    payments: 'gold',
+    customers: 'green',
+    revenue: 'gold',
+    inventory: 'slate',
+    alert: 'red',
+    production: 'blue',
+    done: 'green',
+};
+
 export default function Dashboard({
     role,
     metricCards,
@@ -112,24 +129,14 @@ export default function Dashboard({
         <OfficeLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard Operasional" />
 
-            <div className="flex flex-1 flex-col gap-6 bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.08),_transparent_38%),linear-gradient(180deg,_#f8f8ff_0%,_#f6f7ff_45%,_#f8fafc_100%)] p-4 md:p-6">
+            <div className="flex flex-1 flex-col gap-6 bg-brand-mist p-4 md:p-6">
                 <FlashMessage />
 
-                <div className="space-y-2">
-                    <p className="text-sm font-medium text-[#4775d1]">
-                        Overview
-                    </p>
-                    <div className="flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
-                        <div>
-                            <h1 className="[font-family:var(--font-heading)] text-3xl font-semibold tracking-tight text-[#16213f] md:text-4xl">
-                                Dashboard Operasional
-                            </h1>
-                            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                                Ringkasan kerja untuk tim {formatRole(role)},
-                                dengan fokus pada order aktif, verifikasi
-                                pembayaran, dan progres produksi hari ini.
-                            </p>
-                        </div>
+                <PageHeader
+                    eyebrow="Back Office"
+                    title="Dashboard Operasional"
+                    description={`Ringkasan kerja untuk tim ${formatRole(role)}, dengan fokus pada order aktif, verifikasi pembayaran, dan progres produksi hari ini.`}
+                    actions={
                         <div className="flex flex-wrap gap-3">
                             <AlertPill
                                 icon={ShieldAlert}
@@ -139,7 +146,7 @@ export default function Dashboard({
                             />
                             <AlertPill
                                 icon={PackageCheck}
-                                label="Low Stock"
+                                label="Stok Rendah"
                                 value={alerts.low_stock_products.toString()}
                                 tone="warning"
                             />
@@ -150,107 +157,90 @@ export default function Dashboard({
                                 tone="info"
                             />
                         </div>
-                    </div>
-                </div>
+                    }
+                />
 
-                <div className="grid gap-4 lg:grid-cols-12">
-                    {metricCards.map((card, index) => (
-                        <MetricCard
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    {metricCards.map((card) => (
+                        <KpiTile
                             key={card.key}
-                            index={index}
-                            icon={
-                                iconMap[card.icon as MetricIconKey] ??
-                                ClipboardList
-                            }
                             label={card.label}
                             value={card.value}
-                            hint={card.hint}
-                            orderStatusDistribution={orderStatusDistribution}
-                            canViewPayments={can.view_payments}
+                            helper={card.hint}
+                            icon={iconMap[card.icon as MetricIconKey] ?? ClipboardList}
+                            tone={metricToneMap[card.icon] ?? 'blue'}
                         />
                     ))}
                 </div>
 
                 <div className="grid gap-4 xl:grid-cols-[minmax(0,1.75fr)_360px]">
                     <div className="grid gap-4">
-                        <section className="overflow-hidden rounded-[28px] border border-white/70 bg-white/90 shadow-[0_20px_50px_rgba(15,23,42,0.07)] backdrop-blur">
-                            <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-5 md:flex-row md:items-center md:justify-between">
+                        <PremiumCard padded={false}>
+                            <div className="flex flex-col gap-3 border-b border-border/70 px-6 py-5 md:flex-row md:items-center md:justify-between">
                                 <div>
-                                    <h2 className="[font-family:var(--font-heading)] text-xl font-semibold text-[#16213f]">
-                                        Recent Orders
+                                    <h2 className="text-lg font-semibold text-brand-ink">
+                                        Pesanan Terbaru
                                     </h2>
-                                    <p className="mt-1 text-sm text-slate-500">
+                                    <p className="mt-1 text-sm text-muted-foreground">
                                         Snapshot cepat antrean order terbaru.
                                     </p>
                                 </div>
                                 <Link
                                     href={ordersIndex()}
-                                    className="text-sm font-semibold tracking-[0.14em] text-[#2d68d8] uppercase transition hover:text-[#1e4fb4]"
+                                    className="text-sm font-semibold tracking-[0.14em] text-brand-blue uppercase transition hover:text-brand-blue-deep"
                                 >
-                                    View All Orders
+                                    Lihat Semua
                                 </Link>
                             </div>
 
                             {recentOrders.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center px-6 py-14 text-center">
-                                    <ClipboardList className="size-10 text-slate-300" />
-                                    <p className="mt-4 [font-family:var(--font-heading)] text-lg font-semibold text-[#16213f]">
-                                        Belum ada order terbaru
-                                    </p>
-                                    <p className="mt-2 max-w-sm text-sm text-slate-500">
-                                        Order terbaru akan muncul di panel ini
-                                        untuk membantu tim office membaca ritme
-                                        kerja harian.
-                                    </p>
+                                <div className="p-6">
+                                    <EmptyState
+                                        icon={ClipboardList}
+                                        title="Belum ada order terbaru"
+                                        description="Order terbaru akan muncul di panel ini untuk membantu tim office membaca ritme kerja harian."
+                                    />
                                 </div>
                             ) : (
                                 <div className="overflow-x-auto">
                                     <div className="min-w-[720px]">
-                                        <div className="grid grid-cols-[1.05fr_1.45fr_1fr_1fr_1.2fr] gap-4 bg-[#f6f5ff] px-6 py-4 text-[11px] font-semibold tracking-[0.16em] text-slate-400 uppercase">
-                                            <span>Order ID</span>
-                                            <span>Customer</span>
-                                            <span>Type</span>
+                                        <div className="grid grid-cols-[1.05fr_1.45fr_1fr_1fr_1.2fr] gap-4 bg-muted/50 px-6 py-3 text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+                                            <span>ID Pesanan</span>
+                                            <span>Pelanggan</span>
+                                            <span>Tipe</span>
                                             <span>Status</span>
-                                            <span>Amount</span>
+                                            <span>Jumlah</span>
                                         </div>
                                         {recentOrders.map((order) => (
                                             <Link
                                                 key={order.id}
                                                 href={showOrder(order.id)}
-                                                className="grid grid-cols-[1.05fr_1.45fr_1fr_1fr_1.2fr] gap-4 border-t border-slate-100 px-6 py-5 text-sm transition hover:bg-[#f8fbff]"
+                                                className="grid cursor-pointer grid-cols-[1.05fr_1.45fr_1fr_1fr_1.2fr] gap-4 border-t border-border/70 px-6 py-4 text-sm transition hover:bg-brand-mist/60"
                                             >
-                                                <div className="font-semibold text-[#1d2a49]">
+                                                <div className="font-semibold text-brand-ink">
                                                     {order.order_number}
                                                 </div>
                                                 <div>
-                                                    <p className="font-medium text-[#1d2a49]">
+                                                    <p className="font-medium text-brand-ink">
                                                         {order.customer_name ??
                                                             'Pelanggan tidak diketahui'}
                                                     </p>
                                                 </div>
-                                                <div className="text-slate-600">
+                                                <div className="text-muted-foreground">
                                                     {formatTypeLabel(
                                                         order.order_type,
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <span
-                                                        className={orderStatusBadgeClassName(
-                                                            order.status,
-                                                        )}
-                                                    >
-                                                        {formatStatusLabel(
-                                                            order.status,
-                                                        )}
-                                                    </span>
+                                                    <StatusBadge value={order.status} domain="order" />
                                                 </div>
                                                 <div>
-                                                    <p className="font-semibold text-[#1d2a49]">
+                                                    <p className="font-semibold text-brand-ink">
                                                         {formatCurrency(
                                                             order.total_amount,
                                                         )}
                                                     </p>
-                                                    <p className="mt-1 text-xs text-slate-500">
+                                                    <p className="mt-1 text-xs text-muted-foreground">
                                                         Sisa{' '}
                                                         {formatCurrency(
                                                             order.outstanding_amount,
@@ -262,37 +252,37 @@ export default function Dashboard({
                                     </div>
                                 </div>
                             )}
-                        </section>
+                        </PremiumCard>
 
-                        <section className="overflow-hidden rounded-[28px] border border-white/70 bg-white/85 shadow-[0_20px_50px_rgba(15,23,42,0.07)] backdrop-blur">
-                            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
+                        <PremiumCard padded={false}>
+                            <div className="flex items-center justify-between border-b border-border/70 px-6 py-5">
                                 <div>
-                                    <h2 className="[font-family:var(--font-heading)] text-xl font-semibold text-[#16213f]">
-                                        Production Pulse
+                                    <h2 className="text-lg font-semibold text-brand-ink">
+                                        Pulsa Produksi
                                     </h2>
-                                    <p className="mt-1 text-sm text-slate-500">
+                                    <p className="mt-1 text-sm text-muted-foreground">
                                         Fokus live untuk batch yang sedang
                                         bergerak.
                                     </p>
                                 </div>
-                                <div className="inline-flex items-center gap-2 rounded-full bg-[#eef4ff] px-3 py-1 text-xs font-semibold tracking-[0.12em] text-[#2f69d8] uppercase">
-                                    <span className="size-2 rounded-full bg-[#2f69d8]" />
-                                    Live Batches
+                                <div className="inline-flex items-center gap-2 rounded-full bg-brand-blue/10 px-3 py-1 text-xs font-semibold tracking-[0.12em] text-brand-blue uppercase">
+                                    <span className="size-2 rounded-full bg-brand-blue" />
+                                    Live Batch
                                 </div>
                             </div>
                             <div className="space-y-5 px-6 py-6">
                                 <div className="flex items-end justify-between">
                                     <div>
-                                        <p className="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase">
-                                            Active Production
+                                        <p className="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+                                            Produksi Aktif
                                         </p>
-                                        <p className="[font-family:var(--font-heading)] text-3xl font-semibold text-[#16213f]">
+                                        <p className="text-3xl font-semibold text-brand-ink">
                                             {productionPulse.active_count}
                                         </p>
                                     </div>
                                     <Link
                                         href={office.production.index()}
-                                        className="inline-flex items-center gap-2 text-sm font-semibold text-[#2d68d8]"
+                                        className="inline-flex items-center gap-2 text-sm font-semibold text-brand-blue"
                                     >
                                         Buka board
                                         <ArrowRight className="size-4" />
@@ -307,26 +297,26 @@ export default function Dashboard({
                                     ))}
                                 </div>
                             </div>
-                        </section>
+                        </PremiumCard>
                     </div>
 
                     <div className="grid gap-4">
-                        <section className="rounded-[28px] border border-white/70 bg-white/90 px-5 py-5 shadow-[0_20px_50px_rgba(15,23,42,0.07)] backdrop-blur">
-                            <h2 className="[font-family:var(--font-heading)] text-lg font-semibold text-[#16213f]">
-                                Order Status Distribution
+                        <PremiumCard>
+                            <h2 className="text-lg font-semibold text-brand-ink">
+                                Distribusi Status Order
                             </h2>
                             <div className="mt-5 space-y-4">
                                 {orderStatusDistribution.map((item) => (
                                     <div key={item.key} className="space-y-2">
                                         <div className="flex items-center justify-between text-sm">
-                                            <span className="font-medium text-slate-600">
+                                            <span className="font-medium text-muted-foreground">
                                                 {item.label}
                                             </span>
-                                            <span className="font-semibold text-[#1d2a49]">
+                                            <span className="font-semibold text-brand-ink">
                                                 {item.count}
                                             </span>
                                         </div>
-                                        <div className="h-2 rounded-full bg-slate-100">
+                                        <div className="h-2 rounded-full bg-muted/60">
                                             <div
                                                 className={cn(
                                                     'h-2 rounded-full transition-all',
@@ -342,43 +332,44 @@ export default function Dashboard({
                                     </div>
                                 ))}
                             </div>
-                        </section>
+                        </PremiumCard>
 
-                        <section className="rounded-[28px] border border-white/70 bg-white/90 px-5 py-5 shadow-[0_20px_50px_rgba(15,23,42,0.07)] backdrop-blur">
+                        <PremiumCard>
                             <div className="flex items-center justify-between">
-                                <h2 className="[font-family:var(--font-heading)] text-lg font-semibold text-[#16213f]">
-                                    Verification Queue
+                                <h2 className="text-lg font-semibold text-brand-ink">
+                                    Antrian Verifikasi
                                 </h2>
                                 {can.view_payments && (
                                     <Link
                                         href={office.payments.index()}
-                                        className="text-xs font-semibold tracking-[0.14em] text-[#2d68d8] uppercase"
+                                        className="text-xs font-semibold tracking-[0.14em] text-brand-blue uppercase"
                                     >
-                                        Review All
+                                        Lihat Semua
                                     </Link>
                                 )}
                             </div>
 
                             <div className="mt-5 space-y-4">
                                 {pendingPayments.length === 0 ? (
-                                    <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">
-                                        Tidak ada transfer yang perlu
-                                        diverifikasi.
-                                    </div>
+                                    <EmptyState
+                                        icon={Inbox}
+                                        title="Tidak ada transfer menunggu"
+                                        description="Tidak ada transfer yang perlu diverifikasi."
+                                    />
                                 ) : (
                                     pendingPayments.map((payment) => (
                                         <article
                                             key={payment.id}
-                                            className="rounded-2xl border border-slate-100 bg-[#fbfcff] p-4 shadow-[0_10px_25px_rgba(15,23,42,0.04)]"
+                                            className="rounded-2xl border border-border/70 bg-brand-mist/50 p-4 shadow-sm"
                                         >
                                             <div className="flex items-start justify-between gap-3">
                                                 <div>
-                                                    <p className="font-semibold text-[#1d2a49]">
+                                                    <p className="font-semibold text-brand-ink">
                                                         {payment.order
                                                             .customer_name ??
                                                             'Pelanggan tidak diketahui'}
                                                     </p>
-                                                    <p className="mt-1 text-xs text-slate-500">
+                                                    <p className="mt-1 text-xs text-muted-foreground">
                                                         Order{' '}
                                                         {payment.order.id ? (
                                                             <Link
@@ -387,7 +378,7 @@ export default function Dashboard({
                                                                         .order
                                                                         .id,
                                                                 )}
-                                                                className="font-medium text-[#2d68d8]"
+                                                                className="font-medium text-brand-blue"
                                                             >
                                                                 #
                                                                 {
@@ -403,14 +394,14 @@ export default function Dashboard({
                                                         )}
                                                     </p>
                                                 </div>
-                                                <p className="text-sm font-semibold text-[#1d2a49]">
+                                                <p className="text-sm font-semibold text-brand-ink">
                                                     {formatCurrency(
                                                         payment.amount,
                                                     )}
                                                 </p>
                                             </div>
-                                            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                                                <span className="rounded-full bg-[#e9f0ff] px-2.5 py-1 font-medium text-[#2d68d8]">
+                                            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                                <span className="rounded-full bg-brand-blue/10 px-2.5 py-1 font-medium text-brand-blue">
                                                     {formatMethodLabel(
                                                         payment.method,
                                                     )}
@@ -435,9 +426,9 @@ export default function Dashboard({
                                                                 disabled={
                                                                     processing
                                                                 }
-                                                                className="h-10 w-full rounded-xl bg-[#1558cf] text-white hover:bg-[#0f49b0]"
+                                                                className="h-10 w-full rounded-xl bg-brand-blue text-white hover:bg-brand-blue-deep"
                                                             >
-                                                                Approve
+                                                                Setujui
                                                             </Button>
                                                         )}
                                                     </Form>
@@ -461,120 +452,11 @@ export default function Dashboard({
                                     ))
                                 )}
                             </div>
-                        </section>
+                        </PremiumCard>
                     </div>
                 </div>
             </div>
         </OfficeLayout>
-    );
-}
-
-function MetricCard({
-    index,
-    icon: Icon,
-    label,
-    value,
-    hint,
-    orderStatusDistribution,
-    canViewPayments,
-}: {
-    index: number;
-    icon: typeof ClipboardList;
-    label: string;
-    value: string;
-    hint: string;
-    orderStatusDistribution: Props['orderStatusDistribution'];
-    canViewPayments: boolean;
-}) {
-    const columnSpanClassName =
-        ['lg:col-span-3', 'lg:col-span-4', 'lg:col-span-2', 'lg:col-span-3'][
-            index
-        ] ?? 'lg:col-span-3';
-
-    return (
-        <section
-            className={cn(
-                'rounded-[26px] border border-white/70 px-5 py-5 shadow-[0_20px_50px_rgba(15,23,42,0.06)] backdrop-blur',
-                columnSpanClassName,
-                index === 2
-                    ? 'bg-[#1558cf] text-white'
-                    : 'bg-white/90 text-[#16213f]',
-            )}
-        >
-            <div className="flex items-start justify-between gap-4">
-                <div className="space-y-3">
-                    <p
-                        className={cn(
-                            'text-xs font-semibold tracking-[0.16em] uppercase',
-                            index === 2 ? 'text-white/70' : 'text-slate-400',
-                        )}
-                    >
-                        {label}
-                    </p>
-                    <p className="[font-family:var(--font-heading)] text-3xl font-semibold">
-                        {value}
-                    </p>
-                    <p
-                        className={cn(
-                            'max-w-sm text-xs leading-5',
-                            index === 2 ? 'text-white/80' : 'text-slate-500',
-                        )}
-                    >
-                        {hint}
-                    </p>
-                </div>
-                <div
-                    className={cn(
-                        'rounded-2xl p-3',
-                        index === 2
-                            ? 'bg-white/12 text-white'
-                            : 'bg-[#eef4ff] text-[#2563eb]',
-                    )}
-                >
-                    <Icon className="size-5" />
-                </div>
-            </div>
-
-            {index === 1 ? (
-                <div className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#fff7df] px-3 py-2 text-xs font-medium text-[#7c6500]">
-                    <Gauge className="size-4" />
-                    Performance target tetap terjaga.
-                </div>
-            ) : null}
-
-            {index === 2 && canViewPayments ? (
-                <Button
-                    asChild
-                    type="button"
-                    className="mt-5 h-9 rounded-xl bg-white/14 px-4 text-white hover:bg-white/20"
-                >
-                    <Link href={office.payments.index()}>Review All</Link>
-                </Button>
-            ) : null}
-
-            {index === 3 ? (
-                <div className="mt-5 space-y-3">
-                    <div className="flex gap-2">
-                        {orderStatusDistribution.slice(1, 4).map((item) => (
-                            <div
-                                key={item.key}
-                                className={cn(
-                                    'h-2 flex-1 rounded-full',
-                                    distributionBarClassName(item.key),
-                                )}
-                            />
-                        ))}
-                    </div>
-                    <div className="flex flex-wrap gap-x-3 gap-y-2 text-[11px] text-slate-500">
-                        {orderStatusDistribution.slice(1, 4).map((item) => (
-                            <span key={item.key}>
-                                {item.label}: {item.count}
-                            </span>
-                        ))}
-                    </div>
-                </div>
-            ) : null}
-        </section>
     );
 }
 
@@ -606,7 +488,7 @@ function AlertPill({
             <span className="text-xs font-semibold tracking-[0.14em] uppercase">
                 {label}
             </span>
-            <span className="[font-family:var(--font-heading)] text-base font-semibold">
+            <span className="text-base font-semibold">
                 {value}
             </span>
         </div>
@@ -619,13 +501,13 @@ function ProductionStageColumn({
     stage: Props['productionPulse']['stages'][number];
 }) {
     return (
-        <div className="rounded-2xl border border-slate-100 bg-[#fbfcff] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+        <div className="rounded-2xl border border-border/70 bg-brand-mist/50 p-3 shadow-sm">
             <div className="flex items-start justify-between gap-2">
                 <div>
-                    <p className="text-[11px] font-semibold tracking-[0.16em] text-slate-400 uppercase">
+                    <p className="text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
                         {stage.label}
                     </p>
-                    <p className="mt-2 [font-family:var(--font-heading)] text-xl font-semibold text-[#16213f]">
+                    <p className="mt-2 text-xl font-semibold text-brand-ink">
                         {stage.count}
                     </p>
                 </div>
@@ -638,18 +520,18 @@ function ProductionStageColumn({
             </div>
             <div className="mt-4 space-y-2">
                 {stage.orders.length === 0 ? (
-                    <p className="text-xs text-slate-400">Belum ada batch.</p>
+                    <p className="text-xs text-muted-foreground">Belum ada batch.</p>
                 ) : (
                     stage.orders.map((order) => (
                         <Link
                             key={order.id}
                             href={showOrder(order.id)}
-                            className="block rounded-xl bg-white px-3 py-2 text-xs transition hover:bg-[#f0f6ff]"
+                            className="block cursor-pointer rounded-xl bg-white px-3 py-2 text-xs transition hover:bg-brand-blue/5"
                         >
-                            <p className="font-semibold text-[#1d2a49]">
+                            <p className="font-semibold text-brand-ink">
                                 {order.order_number}
                             </p>
-                            <p className="mt-1 text-slate-500">
+                            <p className="mt-1 text-muted-foreground">
                                 {order.customer_name ?? 'Tanpa nama pelanggan'}
                             </p>
                         </Link>
@@ -660,29 +542,13 @@ function ProductionStageColumn({
     );
 }
 
-function orderStatusBadgeClassName(status: string): string {
-    return cn(
-        'inline-flex w-fit rounded-full px-2.5 py-1 text-xs font-semibold',
-        {
-            draft: 'bg-slate-100 text-slate-700',
-            pending_payment: 'bg-amber-100 text-amber-800',
-            in_progress: 'bg-blue-100 text-blue-800',
-            pickup: 'bg-blue-100 text-blue-800',
-            done: 'bg-indigo-100 text-indigo-700',
-            delivered: 'bg-violet-100 text-violet-800',
-            closed: 'bg-slate-200 text-slate-700',
-            cancelled: 'bg-red-100 text-red-800',
-        }[status] ?? 'bg-slate-100 text-slate-700',
-    );
-}
-
 function distributionBarClassName(status: string): string {
     return (
         {
             draft: 'bg-slate-300',
             pending_payment: 'bg-amber-400',
-            in_progress: 'bg-blue-600',
-            done: 'bg-indigo-600',
+            in_progress: 'bg-brand-blue',
+            done: 'bg-emerald-500',
             closed: 'bg-slate-500',
         }[status] ?? 'bg-slate-300'
     );
@@ -692,7 +558,7 @@ function productionStageAccentClassName(stage: string): string {
     return (
         {
             material: 'bg-slate-300',
-            production: 'bg-blue-600',
+            production: 'bg-brand-blue',
             qc: 'bg-amber-400',
             packing: 'bg-violet-500',
             shipping: 'bg-emerald-500',
@@ -706,13 +572,6 @@ function calculateBarWidth(count: number, total: number): number {
     }
 
     return Math.max(8, Math.round((count / total) * 100));
-}
-
-function formatStatusLabel(status: string): string {
-    return status
-        .split('_')
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(' ');
 }
 
 function formatTypeLabel(type: string): string {

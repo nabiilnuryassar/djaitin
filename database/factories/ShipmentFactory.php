@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Enums\ShipmentStatus;
 use App\Models\Courier;
 use App\Models\Order;
-use App\Models\Shipment;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

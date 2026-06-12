@@ -1,27 +1,6 @@
 {
-  "files": {
-    "resources/js/pages/Office/Payments/Index.tsx": {
-      "modifiedRanges": [
-        {
-          "start": 1,
-          "end": 277
-        }
-      ],
-      "importsChanged": true,
-      "lastEdit": "2026-05-24T16:13:36.848Z"
-    },
-    "resources/js/pages/Office/Orders/Show.tsx": {
-      "modifiedRanges": [
-        {
-          "start": 1,
-          "end": 1314
-        }
-      ],
-      "importsChanged": true,
-      "lastEdit": "2026-05-24T16:13:39.032Z"
-    }
-  },
+  "files": {},
   "turnCycles": 0,
   "maxCycles": 3,
-  "lastUpdated": "2026-05-24T16:13:39.032Z"
+  "lastUpdated": "2026-05-25T15:27:41.095Z"
 }

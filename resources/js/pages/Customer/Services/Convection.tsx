@@ -1,5 +1,11 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowRight, CheckCheck, ClipboardList, Factory, Upload } from 'lucide-react';
+import {
+    ArrowRight,
+    CheckCheck,
+    ClipboardList,
+    Factory,
+    Upload,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -9,8 +15,8 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import CustomerLayout from '@/layouts/customer-layout';
-import customer from '@/routes/customer';
 import { login } from '@/routes';
+import customer from '@/routes/customer';
 import type { User } from '@/types/auth';
 
 export default function ConvectionServicePage() {
@@ -28,10 +34,13 @@ export default function ConvectionServicePage() {
                             Convection Service
                         </p>
                         <h1 className="[font-family:var(--font-heading)] text-4xl font-semibold tracking-tight text-[#0F172A]">
-                            Buat permintaan produksi massal dengan item builder, lampiran desain, dan tracking tahap produksi.
+                            Buat permintaan produksi massal dengan item builder,
+                            lampiran desain, dan tracking tahap produksi.
                         </h1>
                         <p className="max-w-2xl text-base leading-7 text-slate-600">
-                            Flow konveksi customer dirancang untuk brief yang lebih kompleks: multi-item, referensi desain, dan pembayaran penuh sebelum order boleh masuk produksi.
+                            Flow konveksi customer dirancang untuk brief yang
+                            lebih kompleks: multi-item, referensi desain, dan
+                            pembayaran penuh sebelum order boleh masuk produksi.
                         </p>
                         <div className="flex flex-wrap gap-3">
                             {isCustomer ? (
@@ -63,7 +72,8 @@ export default function ConvectionServicePage() {
                                 Yang dikerjakan di phase ini
                             </CardTitle>
                             <CardDescription className="text-white/80">
-                                Customer flow konveksi memakai pipeline order yang sama dengan office.
+                                Customer flow konveksi memakai pipeline order
+                                yang sama dengan office.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3 text-sm text-white/85">

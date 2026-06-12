@@ -1,4 +1,11 @@
-import { CheckCheck, Palette, Package, Scissors, ShieldCheck, Truck } from 'lucide-react';
+import {
+    CheckCheck,
+    Palette,
+    Package,
+    Scissors,
+    ShieldCheck,
+    Truck,
+} from 'lucide-react';
 
 type Props = {
     stage: string | null;

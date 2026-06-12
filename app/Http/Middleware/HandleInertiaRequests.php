@@ -7,6 +7,7 @@ use App\Enums\UserRole;
 use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\DatabaseNotification;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -41,6 +42,7 @@ class HandleInertiaRequests extends Middleware
     {
         /** @var User|null $user */
         $user = $request->user();
+        $isCustomer = $user?->hasRole(UserRole::Customer) ?? false;
 
         return [
             ...parent::share($request),
@@ -58,16 +60,48 @@ class HandleInertiaRequests extends Middleware
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
             ],
-            'unread_notifications_count' => $user?->hasRole(UserRole::Customer)
+            'unread_notifications_count' => $isCustomer
                 ? $user->unreadNotifications()->count()
                 : 0,
+            'recent_notifications' => $isCustomer
+                ? $user->notifications()
+                    ->latest()
+                    ->limit(8)
+                    ->get()
+                    ->map(fn (DatabaseNotification $notification): array => $this->serializeNotification($notification))
+                    ->values()
+                : [],
             'pending_transfer_count' => $user?->hasAnyRole([UserRole::Kasir, UserRole::Admin])
                 ? Payment::query()
                     ->where('method', 'transfer')
                     ->where('status', PaymentStatus::PendingVerification)
                     ->count()
                 : 0,
+            'payment' => [
+                'bank_accounts' => config('djaitin.payment.bank_accounts', []),
+                'transfer_notes' => config('djaitin.payment.transfer_notes', []),
+                'support_contact' => config('djaitin.payment.support_contact'),
+            ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function serializeNotification(DatabaseNotification $notification): array
+    {
+        $data = $notification->data;
+
+        return [
+            'id' => $notification->id,
+            'type' => $data['type'] ?? 'general',
+            'title' => $data['title'] ?? 'Notifikasi',
+            'message' => $data['message'] ?? '',
+            'order_id' => $data['order_id'] ?? null,
+            'order_number' => $data['order_number'] ?? null,
+            'read_at' => $notification->read_at?->format('Y-m-d H:i'),
+            'created_at' => $notification->created_at?->format('Y-m-d H:i'),
         ];
     }
 }

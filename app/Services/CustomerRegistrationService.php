@@ -11,8 +11,7 @@ class CustomerRegistrationService
 {
     public function __construct(
         protected AuditLogService $auditLogService,
-    ) {
-    }
+    ) {}
 
     /**
      * @param  array{name: string, email: string, password: string, phone?: string|null}  $payload

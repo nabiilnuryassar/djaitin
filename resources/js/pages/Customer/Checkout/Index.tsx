@@ -1,5 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import { CreditCard, MapPinHouse, PackageCheck, Store } from 'lucide-react';
+import BankAccountPanel from '@/components/customer/BankAccountPanel';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -167,11 +168,13 @@ export default function CustomerCheckoutIndex({
                         Ready-to-Wear Checkout
                     </p>
                     <h1 className="mt-2 [font-family:var(--font-heading)] text-3xl font-semibold tracking-tight text-[#0F172A]">
-                        Konfirmasi pengiriman dan metode pembayaran sebelum order dibuat.
+                        Konfirmasi pengiriman dan metode pembayaran sebelum
+                        order dibuat.
                     </h1>
                     <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
-                        Stock tetap diverifikasi ulang di backend. Untuk delivery,
-                        ongkir mengikuti biaya master kurir tanpa markup toko.
+                        Stock tetap diverifikasi ulang di backend. Untuk
+                        delivery, ongkir mengikuti biaya master kurir tanpa
+                        markup toko.
                     </p>
                 </section>
 
@@ -183,12 +186,15 @@ export default function CustomerCheckoutIndex({
                                     Tipe Pengambilan
                                 </CardTitle>
                                 <CardDescription className="text-sm leading-6 text-slate-600">
-                                    Pilih pickup di toko atau delivery ke alamat customer.
+                                    Pilih pickup di toko atau delivery ke alamat
+                                    customer.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="grid gap-3 md:grid-cols-2">
                                 <OptionCard
-                                    active={form.data.delivery_type === 'pickup'}
+                                    active={
+                                        form.data.delivery_type === 'pickup'
+                                    }
                                     description="Ambil sendiri di lokasi, cocok untuk pembayaran cash."
                                     icon={Store}
                                     label="Pickup"
@@ -213,14 +219,15 @@ export default function CustomerCheckoutIndex({
                                         Detail Delivery
                                     </CardTitle>
                                     <CardDescription className="text-sm leading-6 text-slate-600">
-                                        Gunakan alamat tersimpan untuk mempercepat checkout.
+                                        Gunakan alamat tersimpan untuk
+                                        mempercepat checkout.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="grid gap-4">
                                     {addresses.length === 0 ? (
                                         <div className="rounded-2xl border border-dashed border-[#DBEAFE] bg-[#F8FAFF] p-5 text-sm leading-6 text-slate-600">
-                                            Belum ada alamat tersimpan. Tambahkan
-                                            dulu dari{' '}
+                                            Belum ada alamat tersimpan.
+                                            Tambahkan dulu dari{' '}
                                             <Link
                                                 href={customer.profile.edit({
                                                     query: {
@@ -253,19 +260,23 @@ export default function CustomerCheckoutIndex({
                                                     <option value="">
                                                         Pilih alamat
                                                     </option>
-                                                    {addresses.map((address) => (
-                                                        <option
-                                                            key={address.id}
-                                                            value={address.id}
-                                                        >
-                                                            {address.label ||
-                                                                'Alamat'}{' '}
-                                                            -{' '}
-                                                            {
-                                                                address.recipient_name
-                                                            }
-                                                        </option>
-                                                    ))}
+                                                    {addresses.map(
+                                                        (address) => (
+                                                            <option
+                                                                key={address.id}
+                                                                value={
+                                                                    address.id
+                                                                }
+                                                            >
+                                                                {address.label ||
+                                                                    'Alamat'}{' '}
+                                                                -{' '}
+                                                                {
+                                                                    address.recipient_name
+                                                                }
+                                                            </option>
+                                                        ),
+                                                    )}
                                                 </select>
                                                 {form.errors.address_id && (
                                                     <p className="text-sm text-red-600">
@@ -343,6 +354,8 @@ export default function CustomerCheckoutIndex({
                                     ))}
                                 </div>
 
+                                {transferSelected && <BankAccountPanel />}
+
                                 {transferSelected && (
                                     <>
                                         <div className="grid gap-2">
@@ -357,8 +370,8 @@ export default function CustomerCheckoutIndex({
                                                 onChange={(event) =>
                                                     form.setData('payment', {
                                                         ...form.data.payment,
-                                                        amount:
-                                                            event.target.value,
+                                                        amount: event.target
+                                                            .value,
                                                     })
                                                 }
                                             />
@@ -457,7 +470,8 @@ export default function CustomerCheckoutIndex({
                                 Ringkasan Order
                             </CardTitle>
                             <CardDescription className="text-white/80">
-                                Total akhir dan item RTW yang akan dibuat sebagai order.
+                                Total akhir dan item RTW yang akan dibuat
+                                sebagai order.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -470,7 +484,8 @@ export default function CustomerCheckoutIndex({
                                         {item.product.name}
                                     </p>
                                     <p className="mt-1 text-sm text-white/80">
-                                        Size {item.product.size} • Qty {item.qty}
+                                        Size {item.product.size} • Qty{' '}
+                                        {item.qty}
                                     </p>
                                     <p className="mt-2 text-sm text-white/90">
                                         {formatCurrency(item.subtotal)}

@@ -9,13 +9,13 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import CustomerLayout from '@/layouts/customer-layout';
-import customer from '@/routes/customer';
 import { login } from '@/routes';
+import customer from '@/routes/customer';
+import type { User } from '@/types/auth';
 import catalogHeroImage from '../../../../images/generated/catalog-hero-rtw.jpg';
 import catalogBatikImage from '../../../../images/generated/catalog-product-batik.jpg';
 import catalogCasualImage from '../../../../images/generated/catalog-product-casual.jpg';
 import catalogUniformImage from '../../../../images/generated/catalog-product-uniform.jpg';
-import type { User } from '@/types/auth';
 
 type Product = {
     id: number;
@@ -98,7 +98,8 @@ export default function CustomerCatalogIndex({
                             Ready-to-Wear Catalog
                         </p>
                         <h1 className="[font-family:var(--font-heading)] text-4xl font-semibold tracking-tight text-[#0F172A]">
-                            Belanja produk siap pakai dengan filter size dan stok yang jelas.
+                            Belanja produk siap pakai dengan filter size dan
+                            stok yang jelas.
                         </h1>
                         <p className="max-w-2xl text-sm leading-7 text-slate-600">
                             Katalog ini hanya menampilkan produk aktif. Stock
@@ -136,11 +137,17 @@ export default function CustomerCatalogIndex({
                                 Curated Stock
                             </p>
                             <h2 className="mt-3 max-w-sm [font-family:var(--font-heading)] text-2xl font-semibold">
-                                Koleksi siap pakai dengan stok dan ukuran yang jelas.
+                                Koleksi siap pakai dengan stok dan ukuran yang
+                                jelas.
                             </h2>
                             <div className="mt-5 grid gap-2 text-sm leading-6 text-white/85">
-                                <p>Clearance dan low stock ditandai langsung.</p>
-                                <p>Checkout tetap tervalidasi dari sisi backend.</p>
+                                <p>
+                                    Clearance dan low stock ditandai langsung.
+                                </p>
+                                <p>
+                                    Checkout tetap tervalidasi dari sisi
+                                    backend.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -232,7 +239,7 @@ export default function CustomerCatalogIndex({
                                         </CardDescription>
                                     </div>
                                     {product.is_clearance && (
-                                        <span className="rounded-full bg-[#F9C11A]/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#A16207]">
+                                        <span className="rounded-full bg-[#F9C11A]/20 px-3 py-1 text-xs font-semibold tracking-[0.18em] text-[#A16207] uppercase">
                                             Clearance
                                         </span>
                                     )}
@@ -268,7 +275,11 @@ export default function CustomerCatalogIndex({
 
                                 <div className="flex flex-wrap gap-3">
                                     <Button asChild variant="outline">
-                                        <Link href={customer.catalog.show(product.id)}>
+                                        <Link
+                                            href={customer.catalog.show(
+                                                product.id,
+                                            )}
+                                        >
                                             Detail
                                         </Link>
                                     </Button>
@@ -276,7 +287,9 @@ export default function CustomerCatalogIndex({
                                         <Button
                                             type="button"
                                             disabled={product.stock < 1}
-                                            onClick={() => addToCart(product.id)}
+                                            onClick={() =>
+                                                addToCart(product.id)
+                                            }
                                         >
                                             <ShoppingCart className="size-4" />
                                             Tambah ke Keranjang

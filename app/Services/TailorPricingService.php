@@ -10,8 +10,7 @@ class TailorPricingService
 {
     public function __construct(
         protected LoyaltyService $loyaltyService,
-    ) {
-    }
+    ) {}
 
     /**
      * @return array{

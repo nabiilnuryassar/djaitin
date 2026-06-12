@@ -3,15 +3,16 @@
 
 "use client"
 
-import {
+import type {
     ColumnDef,
     ColumnFiltersState,
+    SortingState} from "@tanstack/react-table";
+import {
     flexRender,
     getCoreRowModel,
     getFilteredRowModel,
     getPaginationRowModel,
     getSortedRowModel,
-    SortingState,
     useReactTable,
 } from "@tanstack/react-table"
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react"

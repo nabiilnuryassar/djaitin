@@ -1,12 +1,19 @@
 import { Head, router } from '@inertiajs/react';
+import { Inbox } from 'lucide-react';
 import DashboardController from '@/actions/App/Http/Controllers/Office/DashboardController';
 import { FlashMessage } from '@/components/flash-message';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import OfficeLayout from '@/layouts/office-layout';
 import office from '@/routes/office';
 import type { BreadcrumbItem } from '@/types';
+
+// Office Primitives
+import { PageHeader } from '@/components/office/page-header';
+import { FilterBar } from '@/components/office/filter-bar';
+import { StatusBadge } from '@/components/office/status-badge';
+import { EmptyState } from '@/components/office/empty-state';
+import { PremiumCard } from '@/components/office/premium-card';
 
 type Props = {
     filters: {
@@ -55,229 +62,218 @@ export default function ShippingIndex({
 }: Props) {
     return (
         <OfficeLayout breadcrumbs={breadcrumbs}>
-            <Head title="Shipping" />
+            <Head title="Manajemen Pengiriman" />
 
             <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
                 <FlashMessage />
 
-                <Card className="rounded-2xl border-slate-200/80 shadow-sm">
-                    <CardHeader>
-                        <CardTitle className="[font-family:var(--font-heading)] text-xl font-semibold text-[#0F172A]">
-                            Shipping management
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <form
-                            className="flex gap-3"
-                            onSubmit={(event) => {
-                                event.preventDefault();
-                                const formData = new FormData(
-                                    event.currentTarget,
-                                );
-                                router.get(
-                                    office.shipping.index.url({
-                                        query: {
-                                            status:
-                                                String(
-                                                    formData.get('status') || '',
-                                                ) || null,
-                                        },
-                                    }),
-                                    {},
-                                    {
-                                        preserveState: true,
-                                        preserveScroll: true,
+                <PageHeader
+                    eyebrow="Operasional"
+                    title="Manajemen Pengiriman"
+                    description="Kelola pengiriman pesanan, atur kurir, input nomor resi, dan lacak status penerimaan."
+                />
+
+                <FilterBar>
+                    <form
+                        className="flex gap-3 w-full max-w-sm"
+                        onSubmit={(event) => {
+                            event.preventDefault();
+                            const formData = new FormData(
+                                event.currentTarget,
+                            );
+                            router.get(
+                                office.shipping.index.url({
+                                    query: {
+                                        status:
+                                            String(
+                                                formData.get('status') ||
+                                                    '',
+                                            ) || null,
                                     },
-                                );
-                            }}
+                                }),
+                                {},
+                                {
+                                    preserveState: true,
+                                    preserveScroll: true,
+                                },
+                            );
+                        }}
+                    >
+                        <select
+                            name="status"
+                            defaultValue={filters.status}
+                            className="h-10 flex-1 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink cursor-pointer"
                         >
-                            <select
-                                name="status"
-                                defaultValue={filters.status}
-                                className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm"
+                            <option value="">Semua Status</option>
+                            {statuses.map((status) => (
+                                <option
+                                    key={status.value}
+                                    value={status.value}
+                                >
+                                    {status.label}
+                                </option>
+                            ))}
+                        </select>
+                        <Button type="submit" className="rounded-xl bg-brand-blue text-white hover:bg-brand-blue-deep cursor-pointer">
+                            Filter
+                        </Button>
+                    </form>
+                </FilterBar>
+
+                <div className="space-y-4">
+                    {shipments.data.length === 0 ? (
+                        <EmptyState
+                            icon={Inbox}
+                            title="Belum ada pengiriman"
+                            description="Belum ada data pengiriman yang cocok dengan filter saat ini."
+                        />
+                    ) : (
+                        shipments.data.map((shipment) => (
+                            <PremiumCard
+                                key={shipment.id}
+                                className="transition hover:border-brand-blue/30"
                             >
-                                <option value="">Semua status</option>
-                                {statuses.map((status) => (
-                                    <option
-                                        key={status.value}
-                                        value={status.value}
-                                    >
-                                        {status.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <Button type="submit">Filter</Button>
-                        </form>
-
-                        <div className="space-y-3">
-                            {shipments.data.length === 0 ? (
-                                <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">
-                                    Belum ada data shipment.
-                                </div>
-                            ) : (
-                                shipments.data.map((shipment) => (
-                                    <div
-                                        key={shipment.id}
-                                        className="rounded-2xl border border-slate-200/80 bg-white p-4"
-                                    >
-                                        <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
-                                            <div className="space-y-2">
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                    <p className="font-semibold text-[#0F172A]">
-                                                        {shipment.order
-                                                            .order_number ??
-                                                            'Shipment'}
-                                                    </p>
-                                                    <Badge variant="secondary">
-                                                        {formatLabel(
-                                                            shipment.status,
-                                                        )}
-                                                    </Badge>
-                                                </div>
-                                                <p className="text-sm text-slate-600">
-                                                    {shipment.order
-                                                        .customer_name ??
-                                                        'Tanpa pelanggan'}{' '}
-                                                    • {shipment.recipient_name}
-                                                </p>
-                                                <p className="text-sm text-slate-500">
-                                                    {shipment.recipient_phone ??
-                                                        '-'}{' '}
-                                                    •{' '}
-                                                    {shipment.tracking_number ??
-                                                        'Belum ada resi'}
-                                                </p>
-                                                <p className="text-sm text-slate-500">
-                                                    Ongkir:{' '}
-                                                    {formatCurrency(
-                                                        shipment.shipping_cost,
-                                                    )}
-                                                </p>
-                                                <p className="text-sm leading-6 text-slate-500">
-                                                    {shipment.recipient_address}
-                                                </p>
-                                            </div>
-
-                                            {can.update ? (
-                                                <form
-                                                    {...office.shipments.update.form(
-                                                        shipment.id,
-                                                    )}
-                                                    className="grid gap-2"
-                                                >
-                                                    <select
-                                                        name="courier_id"
-                                                        defaultValue={
-                                                            shipment.courier_id ??
-                                                            ''
-                                                        }
-                                                        className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm"
-                                                    >
-                                                        <option value="">
-                                                            Pilih kurir
-                                                        </option>
-                                                        {couriers.map(
-                                                            (courier) => (
-                                                                <option
-                                                                    key={
-                                                                        courier.id
-                                                                    }
-                                                                    value={
-                                                                        courier.id
-                                                                    }
-                                                                >
-                                                                    {
-                                                                        courier.name
-                                                                    }{' '}
-                                                                    -{' '}
-                                                                    {formatCurrency(
-                                                                        courier.base_fee,
-                                                                    )}
-                                                                </option>
-                                                            ),
-                                                        )}
-                                                    </select>
-                                                    <select
-                                                        name="status"
-                                                        defaultValue={
-                                                            shipment.status
-                                                        }
-                                                        className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm"
-                                                    >
-                                                        {statuses.map(
-                                                            (status) => (
-                                                                <option
-                                                                    key={
-                                                                        status.value
-                                                                    }
-                                                                    value={
-                                                                        status.value
-                                                                    }
-                                                                >
-                                                                    {
-                                                                        status.label
-                                                                    }
-                                                                </option>
-                                                            ),
-                                                        )}
-                                                    </select>
-                                                    <input
-                                                        name="tracking_number"
-                                                        defaultValue={
-                                                            shipment.tracking_number ??
-                                                            ''
-                                                        }
-                                                        placeholder="Nomor resi"
-                                                        className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm"
-                                                    />
-                                                    <textarea
-                                                        name="notes"
-                                                        defaultValue={
-                                                            shipment.notes ?? ''
-                                                        }
-                                                        placeholder="Catatan pengiriman"
-                                                        className="min-h-24 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
-                                                    />
-                                                    <Button type="submit">
-                                                        Simpan update
-                                                    </Button>
-                                                </form>
-                                            ) : (
-                                                <div className="space-y-2 text-sm text-slate-500">
-                                                    <p>
-                                                        Kurir:{' '}
-                                                        {shipment.courier_name ??
-                                                            '-'}
-                                                    </p>
-                                                    <p>
-                                                        Dikirim:{' '}
-                                                        {shipment.shipped_at ??
-                                                            '-'}
-                                                    </p>
-                                                    <p>
-                                                        Diterima:{' '}
-                                                        {shipment.delivered_at ??
-                                                            '-'}
-                                                    </p>
-                                                </div>
-                                            )}
+                                <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
+                                    <div className="space-y-2">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <p className="font-bold text-brand-ink text-base">
+                                                {shipment.order.order_number ?? 'Pengiriman'}
+                                            </p>
+                                            <StatusBadge value={shipment.status} domain="shipment" />
+                                        </div>
+                                        <p className="text-sm font-semibold text-brand-ink">
+                                            Pelanggan: {shipment.order.customer_name ?? 'Tanpa pelanggan'} · Penerima: {shipment.recipient_name}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            No. Telp: {shipment.recipient_phone ?? '-'} · Resi:{' '}
+                                            <span className="font-mono font-medium text-brand-ink">
+                                                {shipment.tracking_number ?? 'Belum ada resi'}
+                                            </span>
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            Ongkos Kirim:{' '}
+                                            <span className="font-semibold text-brand-ink">
+                                                {formatCurrency(shipment.shipping_cost)}
+                                            </span>
+                                        </p>
+                                        <div className="text-sm text-muted-foreground">
+                                            <p className="font-semibold text-brand-ink mb-1">Alamat Penerima:</p>
+                                            <p className="leading-6 bg-brand-mist/30 p-3 rounded-xl border border-border/50 text-brand-ink">
+                                                {shipment.recipient_address}
+                                            </p>
                                         </div>
                                     </div>
-                                ))
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
+
+                                    {can.update ? (
+                                        <form
+                                            {...office.shipments.update.form(
+                                                shipment.id,
+                                            )}
+                                            className="grid gap-2 border-t lg:border-t-0 lg:border-l border-border/70 pt-4 lg:pt-0 lg:pl-4 self-start"
+                                        >
+                                            <p className="text-sm font-semibold text-brand-ink mb-1">Update Pengiriman</p>
+                                            <select
+                                                name="courier_id"
+                                                defaultValue={
+                                                    shipment.courier_id ??
+                                                    ''
+                                                }
+                                                className="h-10 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink cursor-pointer"
+                                            >
+                                                <option value="">
+                                                    Pilih Kurir
+                                                </option>
+                                                {couriers.map(
+                                                    (courier) => (
+                                                        <option
+                                                            key={
+                                                                courier.id
+                                                            }
+                                                            value={
+                                                                courier.id
+                                                            }
+                                                        >
+                                                            {
+                                                                courier.name
+                                                            }{' '}
+                                                            -{' '}
+                                                            {formatCurrency(
+                                                                courier.base_fee,
+                                                            )}
+                                                        </option>
+                                                    ),
+                                                )}
+                                            </select>
+                                            <select
+                                                name="status"
+                                                defaultValue={
+                                                    shipment.status
+                                                }
+                                                className="h-10 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink cursor-pointer"
+                                            >
+                                                {statuses.map(
+                                                    (status) => (
+                                                        <option
+                                                            key={
+                                                                status.value
+                                                            }
+                                                            value={
+                                                                status.value
+                                                            }
+                                                        >
+                                                            {
+                                                                status.label
+                                                            }
+                                                        </option>
+                                                    ),
+                                                )}
+                                            </select>
+                                            <input
+                                                name="tracking_number"
+                                                defaultValue={
+                                                    shipment.tracking_number ??
+                                                    ''
+                                                }
+                                                placeholder="Nomor resi"
+                                                className="h-10 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink"
+                                            />
+                                            <textarea
+                                                name="notes"
+                                                defaultValue={
+                                                    shipment.notes ?? ''
+                                                }
+                                                placeholder="Catatan pengiriman"
+                                                className="min-h-20 rounded-xl border border-border bg-white px-3 py-2 text-sm text-brand-ink"
+                                            />
+                                            <Button type="submit" className="rounded-xl bg-brand-blue text-white hover:bg-brand-blue-deep cursor-pointer">
+                                                Simpan Update
+                                            </Button>
+                                        </form>
+                                    ) : (
+                                        <div className="space-y-2 text-sm border-t lg:border-t-0 lg:border-l border-border/70 pt-4 lg:pt-0 lg:pl-4 self-start">
+                                            <p className="font-semibold text-brand-ink">Status Lacak:</p>
+                                            <p className="text-muted-foreground">
+                                                Kurir:{' '}
+                                                <span className="font-medium text-brand-ink">{shipment.courier_name ?? '-'}</span>
+                                            </p>
+                                            <p className="text-muted-foreground">
+                                                Dikirim:{' '}
+                                                <span className="font-medium text-brand-ink">{shipment.shipped_at ?? '-'}</span>
+                                            </p>
+                                            <p className="text-muted-foreground">
+                                                Diterima:{' '}
+                                                <span className="font-medium text-brand-ink">{shipment.delivered_at ?? '-'}</span>
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            </PremiumCard>
+                        ))
+                    )}
+                </div>
             </div>
         </OfficeLayout>
     );
-}
-
-function formatLabel(value: string): string {
-    return value
-        .split('_')
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(' ');
 }
 
 function formatCurrency(value: number): string {

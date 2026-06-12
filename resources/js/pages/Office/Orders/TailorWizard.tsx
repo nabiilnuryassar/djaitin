@@ -5,8 +5,8 @@ import {
     index as ordersIndex,
     storeTailor,
 } from '@/actions/App/Http/Controllers/Office/OrderController';
-import InputError from '@/components/input-error';
 import { FlashMessage } from '@/components/flash-message';
+import InputError from '@/components/input-error';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -148,7 +148,7 @@ export default function TailorWizard({
                 >
                     <Card>
                         <CardHeader>
-                            <CardTitle className="[font-family:var(--font-heading)] text-xl font-semibold text-[#0F172A]">
+                            <CardTitle className="[font-family:var(--font-heading)] text-xl font-semibold text-brand-ink">
                                 Form order tailor
                             </CardTitle>
                             <CardDescription>

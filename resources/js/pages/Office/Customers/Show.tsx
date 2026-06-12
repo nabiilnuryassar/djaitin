@@ -1,30 +1,27 @@
 import { Form, Head, Link } from '@inertiajs/react';
-import DashboardController from '@/actions/App/Http/Controllers/Office/DashboardController';
-import { show as showOrder } from '@/actions/App/Http/Controllers/Office/OrderController';
 import {
     index as customersIndex,
     show as showCustomer,
     update as updateCustomer,
 } from '@/actions/App/Http/Controllers/Office/CustomerController';
+import DashboardController from '@/actions/App/Http/Controllers/Office/DashboardController';
 import {
     store as storeMeasurement,
     update as updateMeasurement,
 } from '@/actions/App/Http/Controllers/Office/MeasurementController';
-import InputError from '@/components/input-error';
+import { show as showOrder } from '@/actions/App/Http/Controllers/Office/OrderController';
 import { FlashMessage } from '@/components/flash-message';
+import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PageHeader } from '@/components/office/page-header';
+import { PremiumCard } from '@/components/office/premium-card';
+import { EmptyState } from '@/components/office/empty-state';
 import OfficeLayout from '@/layouts/office-layout';
 import type { BreadcrumbItem } from '@/types';
+import { Ruler, ShoppingBag, History, User } from 'lucide-react';
 
 type Measurement = {
     id: number;
@@ -79,189 +76,160 @@ export default function CustomersShow({ customer, can }: Props) {
             <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
                 <FlashMessage />
 
-                <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-                    <Card>
-                        <CardHeader>
-                            <div className="flex items-center gap-3">
-                                <CardTitle className="[font-family:var(--font-heading)] text-xl font-semibold text-[#0F172A]">
-                                    {customer.name}
-                                </CardTitle>
-                                {customer.is_loyalty_eligible && (
-                                    <Badge>Loyal</Badge>
-                                )}
-                            </div>
-                            <CardDescription>
-                                Kelola profil pelanggan dan data kontak.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {can.update ? (
-                                <Form
-                                    {...updateCustomer.form(customer.id)}
-                                    className="grid gap-4"
-                                >
-                                    {({ errors, processing }) => (
-                                        <>
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="name">
-                                                    Nama
-                                                </Label>
-                                                <Input
-                                                    id="name"
-                                                    name="name"
-                                                    defaultValue={customer.name}
-                                                />
-                                                <InputError
-                                                    message={errors.name}
-                                                />
-                                            </div>
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="phone">
-                                                    Telepon
-                                                </Label>
-                                                <Input
-                                                    id="phone"
-                                                    name="phone"
-                                                    defaultValue={
-                                                        customer.phone ?? ''
-                                                    }
-                                                />
-                                                <InputError
-                                                    message={errors.phone}
-                                                />
-                                            </div>
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="address">
-                                                    Alamat
-                                                </Label>
-                                                <textarea
-                                                    id="address"
-                                                    name="address"
-                                                    defaultValue={
-                                                        customer.address ?? ''
-                                                    }
-                                                    className="min-h-24 rounded-md border bg-transparent px-3 py-2 text-sm"
-                                                />
-                                                <InputError
-                                                    message={errors.address}
-                                                />
-                                            </div>
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="notes">
-                                                    Catatan
-                                                </Label>
-                                                <textarea
-                                                    id="notes"
-                                                    name="notes"
-                                                    defaultValue={
-                                                        customer.notes ?? ''
-                                                    }
-                                                    className="min-h-24 rounded-md border bg-transparent px-3 py-2 text-sm"
-                                                />
-                                                <InputError
-                                                    message={errors.notes}
-                                                />
-                                            </div>
-                                            <div className="flex justify-between text-sm text-muted-foreground">
-                                                <span>
-                                                    Loyalty count:{' '}
-                                                    {
-                                                        customer.loyalty_order_count
-                                                    }
-                                                </span>
-                                                <Button
-                                                    type="submit"
-                                                    disabled={processing}
-                                                >
-                                                    Simpan perubahan
-                                                </Button>
-                                            </div>
-                                        </>
-                                    )}
-                                </Form>
-                            ) : (
-                                <div className="space-y-2 text-sm text-muted-foreground">
-                                    <p>
-                                        {customer.phone ??
-                                            'Telepon belum diisi'}
-                                    </p>
-                                    <p>
-                                        {customer.address ??
-                                            'Alamat belum diisi'}
-                                    </p>
-                                    <p>
-                                        {customer.notes ??
-                                            'Tidak ada catatan tambahan.'}
-                                    </p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                <PageHeader
+                    eyebrow="Detail Pelanggan"
+                    title={customer.name}
+                    description="Kelola data profil kontak, riwayat ukuran garmen, dan daftar pesanan pelanggan."
+                    actions={
+                        customer.is_loyalty_eligible && (
+                            <Badge className="bg-brand-gold hover:bg-brand-gold/90 text-brand-ink rounded-full px-2.5 font-semibold text-xs border-0">
+                                Loyalty Aktif
+                            </Badge>
+                        )
+                    }
+                />
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Tambah ukuran baru</CardTitle>
-                            <CardDescription>
-                                Simpan snapshot ukuran pelanggan untuk order
-                                berikutnya.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {can.manage_measurements ? (
-                                <Form
-                                    {...storeMeasurement.form(customer.id)}
-                                    className="grid gap-4"
-                                >
-                                    {({ errors, processing }) => (
-                                        <>
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="label">
-                                                    Label ukuran
-                                                </Label>
-                                                <Input
-                                                    id="label"
-                                                    name="label"
-                                                />
-                                                <InputError
-                                                    message={errors.label}
-                                                />
-                                            </div>
-                                            <MeasurementFields
-                                                errors={errors}
+                <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+                    <PremiumCard>
+                        <div className="mb-4">
+                            <h3 className="text-lg font-semibold text-brand-ink">Profil Pelanggan</h3>
+                            <p className="text-xs text-muted-foreground mt-1">Data kontak dan catatan operasional pelanggan.</p>
+                        </div>
+                        {can.update ? (
+                            <Form
+                                {...updateCustomer.form(customer.id)}
+                                className="grid gap-4"
+                            >
+                                {({ errors, processing }) => (
+                                    <>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="name">Nama Lengkap</Label>
+                                            <Input
+                                                id="name"
+                                                name="name"
+                                                defaultValue={customer.name}
+                                                className="rounded-xl border border-border bg-white px-3 py-2 text-sm text-brand-ink"
                                             />
-                                            <div className="flex justify-end">
-                                                <Button
-                                                    type="submit"
-                                                    disabled={processing}
-                                                >
-                                                    Simpan ukuran
-                                                </Button>
-                                            </div>
-                                        </>
-                                    )}
-                                </Form>
-                            ) : (
-                                <p className="text-sm text-muted-foreground">
-                                    Role Anda hanya bisa melihat data ukuran.
-                                </p>
-                            )}
-                        </CardContent>
-                    </Card>
+                                            <InputError message={errors.name} />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="phone">Nomor Telepon</Label>
+                                            <Input
+                                                id="phone"
+                                                name="phone"
+                                                defaultValue={customer.phone ?? ''}
+                                                className="rounded-xl border border-border bg-white px-3 py-2 text-sm text-brand-ink"
+                                            />
+                                            <InputError message={errors.phone} />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="address">Alamat Lengkap</Label>
+                                            <textarea
+                                                id="address"
+                                                name="address"
+                                                defaultValue={customer.address ?? ''}
+                                                className="min-h-24 rounded-xl border border-border bg-white px-3 py-2 text-sm text-brand-ink"
+                                            />
+                                            <InputError message={errors.address} />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="notes">Catatan Internal</Label>
+                                            <textarea
+                                                id="notes"
+                                                name="notes"
+                                                defaultValue={customer.notes ?? ''}
+                                                className="min-h-24 rounded-xl border border-border bg-white px-3 py-2 text-sm text-brand-ink"
+                                            />
+                                            <InputError message={errors.notes} />
+                                        </div>
+                                        <div className="flex items-center justify-between border-t border-border/40 pt-4 mt-2">
+                                            <span className="text-xs text-brand-blue-deep font-semibold">
+                                                Total Order Loyalitas: {customer.loyalty_order_count}
+                                            </span>
+                                            <Button
+                                                type="submit"
+                                                disabled={processing}
+                                                className="rounded-xl cursor-pointer bg-brand-blue text-white hover:bg-brand-blue-deep"
+                                            >
+                                                Simpan Perubahan
+                                            </Button>
+                                        </div>
+                                    </>
+                                )}
+                            </Form>
+                        ) : (
+                            <div className="space-y-4 text-sm text-brand-ink border-t border-border/40 pt-4 mt-2">
+                                <div>
+                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Telepon</p>
+                                    <p className="mt-1 font-medium">{customer.phone ?? '-'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Alamat</p>
+                                    <p className="mt-1">{customer.address ?? '-'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Catatan</p>
+                                    <p className="mt-1 text-muted-foreground">{customer.notes ?? 'Tidak ada catatan tambahan.'}</p>
+                                </div>
+                            </div>
+                        )}
+                    </PremiumCard>
+
+                    <PremiumCard>
+                        <div className="mb-4">
+                            <h3 className="text-lg font-semibold text-brand-ink">Tambah Ukuran Baru</h3>
+                            <p className="text-xs text-muted-foreground mt-1">Simpan snapshot ukuran badan pelanggan untuk order berikutnya.</p>
+                        </div>
+                        {can.manage_measurements ? (
+                            <Form
+                                {...storeMeasurement.form(customer.id)}
+                                className="grid gap-4"
+                            >
+                                {({ errors, processing }) => (
+                                    <>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="label">Label Ukuran</Label>
+                                            <Input
+                                                id="label"
+                                                name="label"
+                                                placeholder="Contoh: Kemeja Kerja, Celana Jeans"
+                                                className="rounded-xl border border-border bg-white px-3 py-2 text-sm text-brand-ink"
+                                            />
+                                            <InputError message={errors.label} />
+                                        </div>
+                                        <MeasurementFields errors={errors} />
+                                        <div className="flex justify-end border-t border-border/40 pt-4 mt-2">
+                                            <Button
+                                                type="submit"
+                                                disabled={processing}
+                                                className="rounded-xl cursor-pointer bg-brand-blue text-white hover:bg-brand-blue-deep"
+                                            >
+                                                Simpan Ukuran
+                                            </Button>
+                                        </div>
+                                    </>
+                                )}
+                            </Form>
+                        ) : (
+                            <p className="text-sm text-muted-foreground text-center py-6 border-t border-border/40 mt-2">
+                                Role Anda hanya diizinkan untuk melihat data ukuran.
+                            </p>
+                        )}
+                    </PremiumCard>
                 </div>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Riwayat ukuran</CardTitle>
-                        <CardDescription>
-                            Update snapshot ukuran bila ada revisi fitting
-                            terbaru.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="grid gap-4">
+                <PremiumCard>
+                    <div className="mb-4">
+                        <h3 className="text-lg font-semibold text-brand-ink">Riwayat Ukuran</h3>
+                        <p className="text-xs text-muted-foreground mt-1">Daftar ukuran garmen yang pernah disimpan untuk pelanggan ini.</p>
+                    </div>
+                    <div className="grid gap-4 border-t border-border/40 pt-4">
                         {customer.measurements.length === 0 ? (
-                            <div className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-                                Belum ada data ukuran.
-                            </div>
+                            <EmptyState
+                                icon={Ruler}
+                                title="Belum ada data ukuran"
+                                description="Data ukuran badan pelanggan akan tersimpan di sini."
+                            />
                         ) : (
                             customer.measurements.map((measurement) => (
                                 <Form
@@ -270,20 +238,17 @@ export default function CustomersShow({ customer, can }: Props) {
                                         customer.id,
                                         measurement.id,
                                     ])}
-                                    className="rounded-xl border p-4"
+                                    className="rounded-2xl border border-border/70 bg-brand-mist/30 p-5"
                                 >
                                     {({ errors, processing }) => (
                                         <div className="grid gap-4">
-                                            <div className="flex items-center justify-between">
+                                            <div className="flex items-center justify-between border-b border-border/40 pb-3">
                                                 <div>
-                                                    <p className="font-medium">
-                                                        {measurement.label ??
-                                                            'Ukuran tanpa label'}
+                                                    <p className="font-semibold text-brand-ink">
+                                                        {measurement.label ?? 'Ukuran tanpa label'}
                                                     </p>
-                                                    <p className="text-xs text-muted-foreground">
-                                                        Dicatat{' '}
-                                                        {measurement.created_at ??
-                                                            '-'}
+                                                    <p className="text-xs text-muted-foreground mt-0.5">
+                                                        Dicatat pada {measurement.created_at ?? '-'}
                                                     </p>
                                                 </div>
                                                 {can.manage_measurements && (
@@ -291,6 +256,7 @@ export default function CustomersShow({ customer, can }: Props) {
                                                         type="submit"
                                                         variant="outline"
                                                         disabled={processing}
+                                                        className="rounded-xl cursor-pointer border-brand-blue text-brand-blue hover:bg-brand-blue/5"
                                                     >
                                                         Update
                                                     </Button>
@@ -300,52 +266,38 @@ export default function CustomersShow({ customer, can }: Props) {
                                                 <MeasurementInput
                                                     label="Chest"
                                                     name="chest"
-                                                    defaultValue={
-                                                        measurement.chest
-                                                    }
+                                                    defaultValue={measurement.chest}
                                                 />
                                                 <MeasurementInput
                                                     label="Waist"
                                                     name="waist"
-                                                    defaultValue={
-                                                        measurement.waist
-                                                    }
+                                                    defaultValue={measurement.waist}
                                                 />
                                                 <MeasurementInput
                                                     label="Hips"
                                                     name="hips"
-                                                    defaultValue={
-                                                        measurement.hips
-                                                    }
+                                                    defaultValue={measurement.hips}
                                                 />
                                                 <MeasurementInput
                                                     label="Shoulder"
                                                     name="shoulder"
-                                                    defaultValue={
-                                                        measurement.shoulder
-                                                    }
+                                                    defaultValue={measurement.shoulder}
                                                 />
                                                 <MeasurementInput
                                                     label="Sleeve"
                                                     name="sleeve_length"
-                                                    defaultValue={
-                                                        measurement.sleeve_length
-                                                    }
+                                                    defaultValue={measurement.sleeve_length}
                                                 />
                                             </div>
-                                            <div className="grid gap-2">
-                                                <Label
-                                                    htmlFor={`notes-${measurement.id}`}
-                                                >
-                                                    Catatan
+                                            <div className="grid gap-2 mt-2">
+                                                <Label htmlFor={`notes-${measurement.id}`}>
+                                                    Catatan Ukuran
                                                 </Label>
                                                 <textarea
                                                     id={`notes-${measurement.id}`}
                                                     name="notes"
-                                                    defaultValue={
-                                                        measurement.notes ?? ''
-                                                    }
-                                                    className="min-h-20 rounded-md border bg-transparent px-3 py-2 text-sm"
+                                                    defaultValue={measurement.notes ?? ''}
+                                                    className="min-h-20 rounded-xl border border-border bg-white px-3 py-2 text-sm text-brand-ink"
                                                 />
                                                 <InputError
                                                     message={
@@ -360,46 +312,49 @@ export default function CustomersShow({ customer, can }: Props) {
                                 </Form>
                             ))
                         )}
-                    </CardContent>
-                </Card>
+                    </div>
+                </PremiumCard>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Riwayat order</CardTitle>
-                    </CardHeader>
-                    <CardContent className="grid gap-3">
+                <PremiumCard>
+                    <div className="mb-4">
+                        <h3 className="text-lg font-semibold text-brand-ink">Riwayat Order</h3>
+                        <p className="text-xs text-muted-foreground mt-1">Daftar semua transaksi dan pesanan yang dilakukan oleh pelanggan.</p>
+                    </div>
+                    <div className="grid gap-3 border-t border-border/40 pt-4">
                         {customer.orders.length === 0 ? (
-                            <div className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-                                Pelanggan ini belum memiliki order.
-                            </div>
+                            <EmptyState
+                                icon={ShoppingBag}
+                                title="Belum ada transaksi"
+                                description="Pelanggan ini belum memiliki riwayat order."
+                            />
                         ) : (
                             customer.orders.map((order) => (
                                 <Link
                                     key={order.id}
                                     href={showOrder(order.id)}
-                                    className="flex items-center justify-between rounded-xl border p-4 transition hover:border-primary/40"
+                                    className="flex items-center justify-between rounded-2xl border border-border bg-brand-mist/10 p-4 transition hover:border-brand-blue/40 hover:bg-brand-blue/5 cursor-pointer"
                                 >
                                     <div>
-                                        <p className="font-medium">
+                                        <p className="font-semibold text-brand-ink">
                                             {order.order_number}
                                         </p>
-                                        <p className="text-sm text-muted-foreground">
-                                            {order.created_at}
+                                        <p className="text-xs text-muted-foreground mt-0.5">
+                                            Dibuat pada {order.created_at}
                                         </p>
                                     </div>
                                     <div className="text-right">
-                                        <Badge variant="secondary">
+                                        <Badge variant="secondary" className="rounded-full font-semibold">
                                             {order.status}
                                         </Badge>
-                                        <p className="mt-1 text-sm text-muted-foreground">
+                                        <p className="mt-1 text-sm font-semibold text-brand-ink">
                                             {formatCurrency(order.total_amount)}
                                         </p>
                                     </div>
                                 </Link>
                             ))
                         )}
-                    </CardContent>
-                </Card>
+                    </div>
+                </PremiumCard>
             </div>
         </OfficeLayout>
     );
@@ -421,7 +376,7 @@ function MeasurementFields({ errors }: { errors: Record<string, string> }) {
                 <textarea
                     id="notes"
                     name="notes"
-                    className="mt-2 min-h-24 w-full rounded-md border bg-transparent px-3 py-2 text-sm"
+                    className="mt-2 min-h-24 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm text-brand-ink"
                 />
                 <InputError message={errors.notes} />
             </div>
@@ -447,6 +402,7 @@ function MeasurementInput({
                 type="number"
                 step="0.01"
                 defaultValue={defaultValue ?? ''}
+                className="rounded-xl border border-border bg-white px-3 py-2 text-sm text-brand-ink"
             />
         </div>
     );

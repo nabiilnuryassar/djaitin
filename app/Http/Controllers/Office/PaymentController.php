@@ -25,7 +25,7 @@ class PaymentController extends Controller
         $this->authorize('viewAny', Payment::class);
 
         $pendingPayments = Payment::query()
-            ->with(['order.customer'])
+            ->with(['order.customer', 'refundedBy'])
             ->where('status', \App\Enums\PaymentStatus::PendingVerification)
             ->latest()
             ->get()
@@ -33,7 +33,7 @@ class PaymentController extends Controller
             ->values();
 
         $payments = Payment::query()
-            ->with(['order.customer'])
+            ->with(['order.customer', 'refundedBy'])
             ->latest()
             ->paginate(15)
             ->withQueryString()
@@ -45,6 +45,7 @@ class PaymentController extends Controller
             'can' => [
                 'verify' => $request->user()?->hasAnyRole([UserRole::Kasir, UserRole::Admin]) ?? false,
                 'reject' => $request->user()?->hasRole(UserRole::Admin) ?? false,
+                'refund' => $request->user()?->hasRole(UserRole::Admin) ?? false,
             ],
         ]);
     }
@@ -52,10 +53,13 @@ class PaymentController extends Controller
     public function store(StorePaymentRequest $request, Order $order): RedirectResponse
     {
         $this->authorize('view', $order);
+        $payload = $request->validated();
+        $payload['proof_image_path'] = $request->file('proof')?->store('payments/proofs', 'public');
+        unset($payload['proof']);
 
         $this->paymentService->record(
             $order,
-            $request->validated(),
+            $payload,
             $request->user(),
             $request->ip(),
         );
@@ -76,6 +80,8 @@ class PaymentController extends Controller
         RejectPaymentRequest $request,
         Payment $payment,
     ): RedirectResponse {
+        $this->authorize('reject', $payment);
+
         $this->paymentService->reject(
             $payment,
             $request->user(),
@@ -111,6 +117,9 @@ class PaymentController extends Controller
             ],
             'payment_date' => $payment->payment_date?->format('Y-m-d H:i'),
             'verified_at' => $payment->verified_at?->format('Y-m-d H:i'),
+            'refunded_at' => $payment->refunded_at?->format('Y-m-d H:i'),
+            'refunded_by_name' => $payment->refundedBy?->name,
+            'refund_reason' => $payment->refund_reason,
         ];
     }
 }

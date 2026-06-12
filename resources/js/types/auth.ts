@@ -21,13 +21,44 @@ export type Flash = {
     error?: string | null;
 };
 
+export type RecentNotification = {
+    id: string;
+    type: string;
+    title: string;
+    message: string;
+    order_id: number | null;
+    order_number: string | null;
+    read_at: string | null;
+    created_at: string | null;
+};
+
+export type BankAccount = {
+    bank: string;
+    account_number: string;
+    account_holder: string;
+    branch: string | null;
+};
+
+export type PaymentSupportContact = {
+    name: string;
+    whatsapp: string;
+};
+
+export type SharedPaymentInfo = {
+    bank_accounts: BankAccount[];
+    transfer_notes: string[];
+    support_contact: PaymentSupportContact | null;
+};
+
 export type SharedPageProps = {
     name: string;
     auth: Auth;
     flash: Flash;
     sidebarOpen: boolean;
     unread_notifications_count: number;
+    recent_notifications: RecentNotification[];
     pending_transfer_count: number;
+    payment: SharedPaymentInfo;
 };
 
 export type TwoFactorSetupData = {

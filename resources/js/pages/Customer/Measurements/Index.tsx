@@ -3,7 +3,13 @@ import { Pencil, Plus, Ruler } from 'lucide-react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -56,14 +62,15 @@ export default function CustomerMeasurementsIndex({ measurements }: Props) {
             <div className="space-y-6">
                 <div className="flex flex-col gap-4 rounded-[2rem] bg-white p-8 shadow-[0_20px_80px_rgba(31,23,38,0.08)] md:flex-row md:items-end md:justify-between">
                     <div>
-                        <p className="text-sm font-medium uppercase tracking-[0.22em] text-[#a34a2c]">
+                        <p className="text-sm font-medium tracking-[0.22em] text-[#a34a2c] uppercase">
                             Measurement Library
                         </p>
                         <h1 className="mt-2 text-3xl font-semibold tracking-tight">
                             Simpan dan revisi ukuran pribadi.
                         </h1>
                         <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-600">
-                            Measurement yang tersimpan di sini bisa dipakai kembali saat membuat order tailor berikutnya.
+                            Measurement yang tersimpan di sini bisa dipakai
+                            kembali saat membuat order tailor berikutnya.
                         </p>
                     </div>
                     <CreateMeasurementDialog />
@@ -71,7 +78,10 @@ export default function CustomerMeasurementsIndex({ measurements }: Props) {
 
                 <div className="grid gap-4 md:grid-cols-2">
                     {measurements.map((measurement) => (
-                        <MeasurementCard key={measurement.id} measurement={measurement} />
+                        <MeasurementCard
+                            key={measurement.id}
+                            measurement={measurement}
+                        />
                     ))}
 
                     {measurements.length === 0 && (
@@ -81,9 +91,13 @@ export default function CustomerMeasurementsIndex({ measurements }: Props) {
                                     <Ruler className="size-5" />
                                 </div>
                                 <div className="space-y-2">
-                                    <h2 className="text-xl font-semibold">Belum ada ukuran tersimpan</h2>
+                                    <h2 className="text-xl font-semibold">
+                                        Belum ada ukuran tersimpan
+                                    </h2>
                                     <p className="max-w-xl text-sm leading-6 text-slate-600">
-                                        Tambahkan measurement pertama agar langkah ukuran di tailor configurator lebih cepat.
+                                        Tambahkan measurement pertama agar
+                                        langkah ukuran di tailor configurator
+                                        lebih cepat.
                                     </p>
                                 </div>
                             </CardContent>
@@ -139,7 +153,9 @@ function MeasurementCard({ measurement }: { measurement: Measurement }) {
         <Card className="border-0 bg-white shadow-[0_16px_50px_rgba(31,23,38,0.06)]">
             <CardHeader className="flex flex-row items-start justify-between gap-4">
                 <div>
-                    <CardTitle>{measurement.label ?? `Ukuran #${measurement.id}`}</CardTitle>
+                    <CardTitle>
+                        {measurement.label ?? `Ukuran #${measurement.id}`}
+                    </CardTitle>
                     <CardDescription className="mt-2 text-sm leading-6 text-slate-600">
                         Gunakan data ini untuk repeat order tanpa input ulang.
                     </CardDescription>
@@ -149,12 +165,17 @@ function MeasurementCard({ measurement }: { measurement: Measurement }) {
             <CardContent className="space-y-4">
                 <div className="grid gap-3 sm:grid-cols-2">
                     {measurementInputs.map((field) => (
-                        <div key={field.key} className="rounded-2xl border border-[#eadfce] bg-[#fcfaf6] p-4">
-                            <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">
+                        <div
+                            key={field.key}
+                            className="rounded-2xl border border-[#eadfce] bg-[#fcfaf6] p-4"
+                        >
+                            <p className="text-xs font-medium tracking-[0.18em] text-slate-500 uppercase">
                                 {field.label}
                             </p>
                             <p className="mt-2 text-lg font-semibold text-[#1f1726]">
-                                {measurement[field.key] === null ? '-' : `${measurement[field.key]} cm`}
+                                {measurement[field.key] === null
+                                    ? '-'
+                                    : `${measurement[field.key]} cm`}
                             </p>
                         </div>
                     ))}
@@ -245,7 +266,9 @@ function MeasurementDialog({
                         <Input
                             id={`${title}-label`}
                             value={form.data.label}
-                            onChange={(event) => form.setData('label', event.target.value)}
+                            onChange={(event) =>
+                                form.setData('label', event.target.value)
+                            }
                         />
                         <InputError message={form.errors.label} />
                     </div>
@@ -253,14 +276,21 @@ function MeasurementDialog({
                     <div className="grid gap-4 md:grid-cols-2">
                         {measurementInputs.map((field) => (
                             <div key={field.key} className="grid gap-2">
-                                <Label htmlFor={`${title}-${field.key}`}>{field.label}</Label>
+                                <Label htmlFor={`${title}-${field.key}`}>
+                                    {field.label}
+                                </Label>
                                 <Input
                                     id={`${title}-${field.key}`}
                                     type="number"
                                     step="0.01"
                                     min="0"
                                     value={form.data[field.key]}
-                                    onChange={(event) => form.setData(field.key, event.target.value)}
+                                    onChange={(event) =>
+                                        form.setData(
+                                            field.key,
+                                            event.target.value,
+                                        )
+                                    }
                                 />
                                 <InputError message={form.errors[field.key]} />
                             </div>
@@ -273,7 +303,9 @@ function MeasurementDialog({
                             id={`${title}-notes`}
                             className="min-h-28 rounded-md border bg-transparent px-3 py-2 text-sm"
                             value={form.data.notes}
-                            onChange={(event) => form.setData('notes', event.target.value)}
+                            onChange={(event) =>
+                                form.setData('notes', event.target.value)
+                            }
                         />
                         <InputError message={form.errors.notes} />
                     </div>
@@ -288,7 +320,11 @@ function MeasurementDialog({
                     >
                         Batal
                     </Button>
-                    <Button type="button" disabled={form.processing} onClick={onSubmit}>
+                    <Button
+                        type="button"
+                        disabled={form.processing}
+                        onClick={onSubmit}
+                    >
                         {submitLabel}
                     </Button>
                 </DialogFooter>
@@ -300,7 +336,14 @@ function MeasurementDialog({
 const measurementInputs: Array<{
     key: keyof Pick<
         Measurement,
-        'chest' | 'waist' | 'hips' | 'shoulder' | 'sleeve_length' | 'shirt_length' | 'inseam' | 'trouser_waist'
+        | 'chest'
+        | 'waist'
+        | 'hips'
+        | 'shoulder'
+        | 'sleeve_length'
+        | 'shirt_length'
+        | 'inseam'
+        | 'trouser_waist'
     >;
     label: string;
 }> = [

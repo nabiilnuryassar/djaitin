@@ -296,9 +296,7 @@ export default function CustomerDashboard({
                         >
                             Terms of Service
                         </Link>
-                        <Link href={customer.notifications.index()}>
-                            Contact Support
-                        </Link>
+                        <Link href={customer.dashboard()}>Contact Support</Link>
                     </div>
                 </footer>
             </div>

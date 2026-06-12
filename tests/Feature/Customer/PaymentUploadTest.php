@@ -21,7 +21,7 @@ test('customer can reupload proof for rejected transfer payment', function () {
 
     $this->actingAs($user)
         ->post(route('customer.payments.upload-proof', $payment), [
-            'proof' => UploadedFile::fake()->image('retry-proof.jpg'),
+            'proof' => UploadedFile::fake()->image('.png'),
         ])
         ->assertRedirect();
 

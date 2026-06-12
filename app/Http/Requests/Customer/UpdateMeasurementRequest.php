@@ -13,6 +13,6 @@ class UpdateMeasurementRequest extends FormRequest
 
     public function rules(): array
     {
-        return (new StoreMeasurementRequest())->rules();
+        return (new StoreMeasurementRequest)->rules();
     }
 }

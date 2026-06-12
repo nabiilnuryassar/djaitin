@@ -1,5 +1,6 @@
 import { Form, Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import { Inbox } from 'lucide-react';
 import DashboardController from '@/actions/App/Http/Controllers/Office/DashboardController';
 import {
     index as ordersIndex,
@@ -12,17 +13,11 @@ import {
     store as storePayment,
     verify as verifyPayment,
 } from '@/actions/App/Http/Controllers/Office/PaymentController';
+import refundPayment from '@/actions/App/Http/Controllers/Office/PaymentRefundController';
 import { FlashMessage } from '@/components/flash-message';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import {
     Dialog,
     DialogContent,
@@ -30,6 +25,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -40,6 +36,14 @@ import {
 } from '@/routes/office/orders';
 import { kwitansi as printReceiptRoute } from '@/routes/office/payments';
 import type { BreadcrumbItem } from '@/types';
+
+// Office Primitives
+import { PageHeader } from '@/components/office/page-header';
+import { PremiumCard } from '@/components/office/premium-card';
+import { SegmentedTabs } from '@/components/office/segmented-tabs';
+import { SectionShell } from '@/components/office/section-shell';
+import { StatusBadge } from '@/components/office/status-badge';
+import { EmptyState } from '@/components/office/empty-state';
 
 type Payment = {
     id: number;
@@ -52,6 +56,9 @@ type Payment = {
     notes: string | null;
     payment_date: string | null;
     verified_at: string | null;
+    refunded_at: string | null;
+    refunded_by_name: string | null;
+    refund_reason: string | null;
     can_print_receipt: boolean;
     proof_image_path: string | null;
     proof_image_url: string | null;
@@ -142,6 +149,7 @@ type Props = {
         upload_attachment: boolean;
         verify_payment: boolean;
         reject_payment: boolean;
+        refund_payment: boolean;
         print_nota: boolean;
     };
 };
@@ -161,7 +169,7 @@ export default function OrdersShow({
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: DashboardController() },
-        { title: 'Orders', href: ordersIndex() },
+        { title: 'Pesanan', href: ordersIndex() },
         { title: order.order_number, href: showOrder(order.id) },
     ];
 
@@ -172,57 +180,58 @@ export default function OrdersShow({
             <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
                 <FlashMessage />
 
-                <SectionTabs
-                    tabs={[
-                        { id: 'overview', label: 'Overview' },
-                        ...(order.order_type === 'convection'
-                            ? [
-                                  {
-                                      id: 'production',
-                                      label: 'Produksi & File',
-                                  } as const,
-                              ]
-                            : []),
-                        { id: 'payments', label: 'Pembayaran' },
-                        { id: 'activity', label: 'Activity' },
-                    ]}
-                    activeTab={activeTab}
-                    onChange={(tabId) =>
-                        setActiveTab(
-                            tabId as
-                                | 'overview'
-                                | 'production'
-                                | 'payments'
-                                | 'activity',
-                        )
+                <PageHeader
+                    eyebrow="Detail Pesanan"
+                    title={order.order_number}
+                    description="Detail order, pembayaran, dokumen, dan riwayat aktivitas."
+                    actions={
+                        <div className="flex items-center gap-2">
+                            <StatusBadge value={order.status} domain="order" />
+                            <Badge variant="outline" className="rounded-full">
+                                {order.order_type === 'convection' ? 'Konveksi' : 'RTW'}
+                            </Badge>
+                            {order.is_loyalty_applied && (
+                                <Badge className="rounded-full bg-brand-gold text-brand-navy border-none font-semibold">
+                                    Loyalty
+                                </Badge>
+                            )}
+                        </div>
                     }
                 />
 
+                <div className="mb-2">
+                    <SegmentedTabs
+                        items={[
+                            { value: 'overview', label: 'Ringkasan' },
+                            ...(order.order_type === 'convection'
+                                ? [
+                                      {
+                                          value: 'production',
+                                          label: 'Produksi & File',
+                                      } as const,
+                                  ]
+                                : []),
+                            { value: 'payments', label: 'Pembayaran' },
+                            { value: 'activity', label: 'Aktivitas' },
+                        ]}
+                        value={activeTab}
+                        onChange={(tabId) =>
+                            setActiveTab(
+                                tabId as
+                                    | 'overview'
+                                    | 'production'
+                                    | 'payments'
+                                    | 'activity',
+                            )
+                        }
+                    />
+                </div>
+
                 {activeTab === 'overview' && (
                     <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-                        <Card>
-                            <CardHeader>
-                                <div className="flex items-center gap-3">
-                                    <CardTitle className="[font-family:var(--font-heading)] text-xl font-semibold text-[#0F172A]">
-                                        {order.order_number}
-                                    </CardTitle>
-                                    <Badge variant="secondary">
-                                        {formatLabel(order.status)}
-                                    </Badge>
-                                    <Badge variant="outline">
-                                        {formatLabel(order.order_type)}
-                                    </Badge>
-                                    {order.is_loyalty_applied && (
-                                        <Badge>Loyalty</Badge>
-                                    )}
-                                </div>
-                                <CardDescription>
-                                    Detail order, pembayaran, dokumen, dan
-                                    activity log.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="grid gap-5">
-                                <div className="grid gap-3 md:grid-cols-2">
+                        <div className="grid gap-6">
+                            <SectionShell title="Informasi Umum">
+                                <div className="grid gap-4 md:grid-cols-2">
                                     <InfoBlock
                                         label="Pelanggan"
                                         value={order.customer.name ?? '-'}
@@ -257,22 +266,51 @@ export default function OrdersShow({
                                     />
                                     <InfoBlock
                                         label="Tahap produksi"
-                                        value={formatLabel(
-                                            order.production_stage ??
-                                                'belum_diatur',
-                                        )}
-                                    />
-                                    <InfoBlock
-                                        label="Catatan"
                                         value={
-                                            order.spec_notes ??
-                                            'Tidak ada catatan'
+                                            order.production_stage
+                                                ? formatLabel(order.production_stage)
+                                                : 'Belum diatur'
                                         }
                                     />
+                                    <div className="md:col-span-2">
+                                        <InfoBlock
+                                            label="Catatan Spesifikasi"
+                                            value={
+                                                order.spec_notes ??
+                                                'Tidak ada catatan'
+                                            }
+                                        />
+                                    </div>
                                 </div>
+                            </SectionShell>
 
-                                <div className="rounded-xl bg-muted/50 p-4">
-                                    <div className="grid gap-2 text-sm">
+                            <SectionShell title="Item Pesanan">
+                                <div className="grid gap-3">
+                                    {order.items.map((item) => (
+                                        <div
+                                            key={item.id}
+                                            className="rounded-2xl border border-border/70 bg-brand-mist/30 p-4 text-sm"
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <p className="font-semibold text-brand-ink">
+                                                    {item.item_name}
+                                                </p>
+                                                <span className="font-medium">{item.qty} pcs</span>
+                                            </div>
+                                            <p className="mt-1 text-muted-foreground">
+                                                {`${formatCurrency(item.unit_price)} per item`}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </SectionShell>
+                        </div>
+
+                        <div className="grid gap-6">
+                            <PremiumCard className="sticky top-6">
+                                <h3 className="text-lg font-semibold text-brand-ink mb-4">Ringkasan Biaya</h3>
+                                <div className="rounded-2xl bg-brand-mist/50 p-4 mb-4">
+                                    <div className="grid gap-3 text-sm">
                                         <PriceRow
                                             label="Subtotal"
                                             value={order.subtotal}
@@ -281,11 +319,13 @@ export default function OrdersShow({
                                             label="Diskon"
                                             value={order.discount_amount}
                                         />
-                                        <PriceRow
-                                            label="Total"
-                                            value={order.total_amount}
-                                            highlight
-                                        />
+                                        <div className="border-t border-border/70 my-2 pt-2">
+                                            <PriceRow
+                                                label="Total Akhir"
+                                                value={order.total_amount}
+                                                highlight
+                                            />
+                                        </div>
                                         <PriceRow
                                             label="Sudah dibayar"
                                             value={order.paid_amount}
@@ -293,62 +333,43 @@ export default function OrdersShow({
                                         <PriceRow
                                             label="Sisa tagihan"
                                             value={order.outstanding_amount}
+                                            highlight={order.outstanding_amount > 0}
                                         />
                                     </div>
                                 </div>
 
                                 {order.shipment && (
-                                    <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 text-sm">
-                                        <p className="font-medium text-[#0F172A]">
-                                            Informasi pengiriman
+                                    <div className="rounded-2xl border border-border/70 bg-brand-mist/30 p-4 text-sm mb-4">
+                                        <p className="font-semibold text-brand-ink">
+                                            Informasi Pengiriman
                                         </p>
-                                        <p className="mt-2 text-slate-600">
-                                            {formatLabel(order.shipment.status)}{' '}
-                                            •{' '}
-                                            {order.shipment.courier_name ??
-                                                'Kurir belum diatur'}
+                                        <div className="mt-2 flex items-center gap-2">
+                                            <StatusBadge value={order.shipment.status} domain="shipment" />
+                                            <span className="text-muted-foreground">•</span>
+                                            <span className="font-medium text-brand-ink">
+                                                {order.shipment.courier_name ??
+                                                    'Kurir belum diatur'}
+                                            </span>
+                                        </div>
+                                        <p className="mt-1 text-muted-foreground">
+                                            Penerima: {order.shipment.recipient_name}
                                         </p>
-                                        <p className="text-slate-500">
-                                            {order.shipment.recipient_name} •{' '}
-                                            {order.shipment.tracking_number ??
-                                                'Belum ada resi'}
-                                        </p>
+                                        {order.shipment.tracking_number && (
+                                            <p className="mt-1 text-xs font-mono bg-white/80 w-fit px-2 py-1 rounded border border-border/50 text-brand-ink">
+                                                No. Resi: {order.shipment.tracking_number}
+                                            </p>
+                                        )}
                                     </div>
                                 )}
 
-                                <div className="grid gap-3">
-                                    {order.items.map((item) => (
-                                        <div
-                                            key={item.id}
-                                            className="rounded-xl border p-4 text-sm"
-                                        >
-                                            <div className="flex items-center justify-between">
-                                                <p className="font-medium">
-                                                    {item.item_name}
-                                                </p>
-                                                <span>{item.qty} pcs</span>
-                                            </div>
-                                            <p className="mt-1 text-muted-foreground">
-                                                {`${formatCurrency(item.unit_price)} per item`}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <div className="grid gap-6">
-                            {can.update_status && (
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Update status</CardTitle>
-                                    </CardHeader>
-                                    <CardContent>
+                                {can.update_status && (
+                                    <div className="border-t border-border/70 pt-4 mt-4">
+                                        <h4 className="text-sm font-semibold text-brand-ink mb-2">Update Status Pesanan</h4>
                                         <Form
                                             {...updateOrderStatus.form(
                                                 order.id,
                                             )}
-                                            className="grid gap-4"
+                                            className="grid gap-3"
                                         >
                                             {({ processing, errors }) => (
                                                 <>
@@ -357,7 +378,7 @@ export default function OrdersShow({
                                                         defaultValue={
                                                             order.status
                                                         }
-                                                        className="h-10 rounded-md border bg-transparent px-3 text-sm"
+                                                        className="h-10 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink cursor-pointer"
                                                     >
                                                         {statuses.map(
                                                             (status) => (
@@ -381,51 +402,17 @@ export default function OrdersShow({
                                                     />
                                                     <Button
                                                         type="submit"
+                                                        className="rounded-xl bg-brand-blue text-white hover:bg-brand-blue-deep cursor-pointer"
                                                         disabled={processing}
                                                     >
-                                                        Simpan status
+                                                        Simpan Status
                                                     </Button>
                                                 </>
                                             )}
                                         </Form>
-                                    </CardContent>
-                                </Card>
-                            )}
-
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Ringkasan aksi</CardTitle>
-                                    <CardDescription>
-                                        Gunakan tab di atas untuk membuka
-                                        produksi & file, pembayaran, dokumen
-                                        produksi, dan activity log tanpa
-                                        menumpuk semua panel sekaligus.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="grid gap-3 text-sm text-slate-600">
-                                    <div className="rounded-xl border bg-muted/40 p-4">
-                                        <p className="font-medium text-[#0F172A]">
-                                            Overview
-                                        </p>
-                                        <p className="mt-1">
-                                            Fokus ke identitas order, nilai
-                                            tagihan, dan update status utama.
-                                        </p>
                                     </div>
-                                    <div className="rounded-xl border bg-muted/40 p-4">
-                                        <p className="font-medium text-[#0F172A]">
-                                            {order.order_type === 'convection'
-                                                ? 'Produksi & File'
-                                                : 'Pembayaran'}
-                                        </p>
-                                        <p className="mt-1">
-                                            {order.order_type === 'convection'
-                                                ? 'Kelola file desain, dokumen, dan tahap produksi tanpa bercampur dengan panel lain.'
-                                                : 'Gunakan tab pembayaran untuk pencatatan transaksi dan verifikasi transfer.'}
-                                        </p>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                                )}
+                            </PremiumCard>
                         </div>
                     </div>
                 )}
@@ -433,37 +420,30 @@ export default function OrdersShow({
                 {activeTab === 'production' &&
                     order.order_type === 'convection' && (
                         <div className="grid gap-6">
-                            <div className="grid gap-6 xl:grid-cols-[1fr_0.9fr]">
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Ringkasan item</CardTitle>
-                                        <CardDescription>
-                                            Detail item konveksi dan nilai order
-                                            yang sedang diproses.
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="grid gap-3">
+                            <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+                                <SectionShell title="Ringkasan Item">
+                                    <div className="grid gap-3">
                                         {order.items.map((item) => (
                                             <div
                                                 key={item.id}
-                                                className="rounded-xl border p-4 text-sm"
+                                                className="rounded-2xl border border-border/70 bg-brand-mist/30 p-4 text-sm"
                                             >
                                                 <div className="flex items-center justify-between gap-4">
                                                     <div>
-                                                        <p className="font-medium">
+                                                        <p className="font-semibold text-brand-ink">
                                                             {item.item_name}
                                                         </p>
-                                                        <p className="text-slate-500">
+                                                        <p className="text-muted-foreground mt-1">
                                                             {item.qty} pcs
                                                         </p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="font-medium">
+                                                        <p className="font-semibold text-brand-ink">
                                                             {formatCurrency(
                                                                 item.unit_price,
                                                             )}
                                                         </p>
-                                                        <p className="text-slate-500">
+                                                        <p className="text-muted-foreground mt-1">
                                                             {formatCurrency(
                                                                 item.subtotal,
                                                             )}
@@ -472,22 +452,13 @@ export default function OrdersShow({
                                                 </div>
                                             </div>
                                         ))}
-                                    </CardContent>
-                                </Card>
+                                    </div>
+                                </SectionShell>
 
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>
-                                            Dokumen & Produksi
-                                        </CardTitle>
-                                        <CardDescription>
-                                            Cetak nota dan update tahap produksi
-                                            untuk order konveksi.
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="grid gap-4">
+                                <SectionShell title="Dokumen & Produksi">
+                                    <div className="grid gap-4">
                                         {can.print_nota ? (
-                                            <Button asChild variant="outline">
+                                            <Button asChild variant="outline" className="rounded-xl cursor-pointer">
                                                 <a
                                                     href={
                                                         printNotaRoute(order.id)
@@ -496,13 +467,12 @@ export default function OrdersShow({
                                                     target="_blank"
                                                     rel="noreferrer"
                                                 >
-                                                    Print nota
+                                                    Cetak Nota
                                                 </a>
                                             </Button>
                                         ) : (
-                                            <p className="text-sm text-slate-500">
-                                                Nota tersedia setelah ada
-                                                pembayaran verified.
+                                            <p className="text-sm text-muted-foreground">
+                                                Nota tersedia setelah ada pembayaran verified.
                                             </p>
                                         )}
 
@@ -521,7 +491,7 @@ export default function OrdersShow({
                                                                 order.production_stage ??
                                                                 'design'
                                                             }
-                                                            className="h-10 rounded-md border bg-transparent px-3 text-sm"
+                                                            className="h-10 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink cursor-pointer"
                                                         >
                                                             {productionStages.map(
                                                                 (stage) => (
@@ -542,236 +512,214 @@ export default function OrdersShow({
                                                         </select>
                                                         <Button
                                                             type="submit"
+                                                            className="rounded-xl bg-brand-blue text-white hover:bg-brand-blue-deep cursor-pointer"
                                                             disabled={
                                                                 processing
                                                             }
                                                         >
-                                                            Update tahap
-                                                            produksi
+                                                            Update Tahap Produksi
                                                         </Button>
                                                     </>
                                                 )}
                                             </Form>
                                         )}
-                                    </CardContent>
-                                </Card>
+                                    </div>
+                                </SectionShell>
                             </div>
 
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Kolaborasi desain</CardTitle>
-                                    <CardDescription>
-                                        Kirim proposal desain, final artwork,
-                                        atau file revisi ke customer. Semua
-                                        lampiran ditampilkan sebagai daftar file
-                                        dan catatan sederhana.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="grid gap-4">
-                                    <div className="rounded-2xl border border-[#DBEAFE] bg-[linear-gradient(135deg,#F8FAFF_0%,#EFF4FF_100%)] p-4">
-                                        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                                            <div>
-                                                <p className="text-sm font-semibold tracking-[0.18em] text-[#2563EB] uppercase">
-                                                    Collaboration Desk
-                                                </p>
-                                                <p className="mt-1 [font-family:var(--font-heading)] text-xl font-semibold text-[#0F172A]">
-                                                    Semua file desain dan
-                                                    keputusan customer terkumpul
-                                                    di sini
-                                                </p>
-                                            </div>
-                                            <div className="rounded-2xl bg-white/80 px-4 py-3 text-sm text-slate-600 shadow-sm">
-                                                <p className="font-semibold text-[#0F172A]">
-                                                    {order.attachments.length}{' '}
-                                                    file kolaborasi
-                                                </p>
-                                                <p className="mt-1 text-xs">
-                                                    Referensi customer, revisi,
-                                                    dan final artwork
-                                                    ditampilkan dalam satu
-                                                    daftar sederhana.
-                                                </p>
-                                            </div>
+                            <PremiumCard>
+                                <div className="mb-6 rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
+                                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                                        <div>
+                                            <p className="text-xs font-semibold tracking-wider text-brand-blue uppercase">
+                                                Collaboration Desk
+                                            </p>
+                                            <h4 className="mt-1 text-lg font-bold text-brand-ink">
+                                                Semua file desain dan keputusan customer terkumpul di sini
+                                            </h4>
+                                        </div>
+                                        <div className="rounded-xl bg-white p-3 text-sm text-muted-foreground shadow-sm">
+                                            <p className="font-semibold text-brand-ink">
+                                                {order.attachments.length} file kolaborasi
+                                            </p>
+                                            <p className="mt-1 text-xs">
+                                                Referensi customer, revisi, dan final artwork.
+                                            </p>
                                         </div>
                                     </div>
+                                </div>
 
-                                    {order.attachments.length === 0 ? (
-                                        <div className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-                                            Belum ada file kolaborasi pada order
-                                            ini.
-                                        </div>
-                                    ) : (
-                                        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                                            {order.attachments.map(
-                                                (attachment) => (
-                                                    <SimpleAttachmentCard
-                                                        key={attachment.id}
-                                                        attachment={attachment}
-                                                        onClick={() =>
-                                                            setSelectedAttachment(
-                                                                attachment,
-                                                            )
-                                                        }
-                                                    />
-                                                ),
-                                            )}
-                                        </div>
-                                    )}
+                                {order.attachments.length === 0 ? (
+                                    <EmptyState
+                                        icon={Inbox}
+                                        title="Belum ada file kolaborasi"
+                                        description="Belum ada file kolaborasi pada order ini."
+                                    />
+                                ) : (
+                                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 mb-6">
+                                        {order.attachments.map(
+                                            (attachment) => (
+                                                <SimpleAttachmentCard
+                                                    key={attachment.id}
+                                                    attachment={attachment}
+                                                    onClick={() =>
+                                                        setSelectedAttachment(
+                                                            attachment,
+                                                        )
+                                                    }
+                                                />
+                                            ),
+                                        )}
+                                    </div>
+                                )}
 
-                                    {can.upload_attachment && (
+                                {can.upload_attachment && (
+                                    <div className="border-t border-border/70 pt-6 mt-6">
                                         <OfficeAttachmentUploader
                                             orderId={order.id}
                                         />
-                                    )}
-                                </CardContent>
-                            </Card>
-
-                            <DesignAttachmentDetailDialog
-                                attachment={selectedAttachment}
-                                open={selectedAttachment !== null}
-                                onOpenChange={(open) => {
-                                    if (!open) {
-                                        setSelectedAttachment(null);
-                                    }
-                                }}
-                            />
+                                    </div>
+                                )}
+                            </PremiumCard>
                         </div>
                     )}
 
                 {activeTab === 'payments' && (
                     <div className="grid gap-6">
                         {can.record_payment && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Catat pembayaran</CardTitle>
-                                    <CardDescription>
-                                        Cash akan langsung verified, transfer
-                                        masuk antrean verifikasi.
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <Form
-                                        {...storePayment.form(order.id)}
-                                        className="grid gap-4 md:grid-cols-2"
-                                    >
-                                        {({ processing, errors }) => (
-                                            <>
-                                                <div className="grid gap-2">
-                                                    <Label htmlFor="method">
-                                                        Metode
-                                                    </Label>
-                                                    <select
-                                                        id="method"
-                                                        name="method"
-                                                        className="h-10 rounded-md border bg-transparent px-3 text-sm"
-                                                        defaultValue="cash"
-                                                    >
-                                                        <option value="cash">
-                                                            Cash
-                                                        </option>
-                                                        <option value="transfer">
-                                                            Transfer
-                                                        </option>
-                                                    </select>
-                                                    <InputError
-                                                        message={errors.method}
-                                                    />
-                                                </div>
-                                                <div className="grid gap-2">
-                                                    <Label htmlFor="amount">
-                                                        Nominal
-                                                    </Label>
-                                                    <Input
-                                                        id="amount"
-                                                        name="amount"
-                                                        type="number"
-                                                        min="1"
-                                                    />
-                                                    <InputError
-                                                        message={errors.amount}
-                                                    />
-                                                </div>
-                                                <div className="grid gap-2">
-                                                    <Label htmlFor="reference_number">
-                                                        Referensi transfer
-                                                    </Label>
-                                                    <Input
-                                                        id="reference_number"
-                                                        name="reference_number"
-                                                    />
-                                                    <InputError
-                                                        message={
-                                                            errors.reference_number
-                                                        }
-                                                    />
-                                                </div>
-                                                <div className="grid gap-2 md:col-span-2">
-                                                    <Label htmlFor="notes">
-                                                        Catatan
-                                                    </Label>
-                                                    <textarea
-                                                        id="notes"
-                                                        name="notes"
-                                                        className="min-h-20 rounded-md border bg-transparent px-3 py-2 text-sm"
-                                                    />
-                                                </div>
-                                                <div className="md:col-span-2">
-                                                    <Button
-                                                        type="submit"
-                                                        disabled={processing}
-                                                    >
-                                                        Simpan pembayaran
-                                                    </Button>
-                                                </div>
-                                            </>
-                                        )}
-                                    </Form>
-                                </CardContent>
-                            </Card>
+                            <SectionShell
+                                title="Catat Pembayaran"
+                                description="Cash akan langsung verified, transfer masuk antrean verifikasi."
+                            >
+                                <Form
+                                    {...storePayment.form(order.id)}
+                                    className="grid gap-4 md:grid-cols-2"
+                                >
+                                    {({ processing, errors }) => (
+                                        <>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="method">
+                                                    Metode
+                                                </Label>
+                                                <select
+                                                    id="method"
+                                                    name="method"
+                                                    className="h-10 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink cursor-pointer"
+                                                    defaultValue="cash"
+                                                >
+                                                    <option value="cash">
+                                                        Cash
+                                                    </option>
+                                                    <option value="transfer">
+                                                        Transfer
+                                                    </option>
+                                                </select>
+                                                <InputError
+                                                    message={errors.method}
+                                                />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="amount">
+                                                    Nominal
+                                                </Label>
+                                                <Input
+                                                    id="amount"
+                                                    name="amount"
+                                                    type="number"
+                                                    min="1"
+                                                    className="rounded-xl border border-border"
+                                                />
+                                                <InputError
+                                                    message={errors.amount}
+                                                />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="reference_number">
+                                                    Referensi transfer
+                                                </Label>
+                                                <Input
+                                                    id="reference_number"
+                                                    name="reference_number"
+                                                    className="rounded-xl border border-border"
+                                                />
+                                                <InputError
+                                                    message={
+                                                        errors.reference_number
+                                                    }
+                                                />
+                                            </div>
+                                            <div className="grid gap-2 md:col-span-2">
+                                                <Label htmlFor="notes">
+                                                    Catatan
+                                                </Label>
+                                                <textarea
+                                                    id="notes"
+                                                    name="notes"
+                                                    className="min-h-20 rounded-xl border border-border bg-white px-3 py-2 text-sm text-brand-ink"
+                                                />
+                                            </div>
+                                            <div className="grid gap-2 md:col-span-2">
+                                                <Label htmlFor="proof">
+                                                    Bukti pembayaran
+                                                </Label>
+                                                <Input
+                                                    id="proof"
+                                                    name="proof"
+                                                    type="file"
+                                                    accept=".jpg,.jpeg,.png,.pdf"
+                                                    className="rounded-xl border border-border cursor-pointer"
+                                                />
+                                                <InputError
+                                                    message={errors.proof}
+                                                />
+                                            </div>
+                                            <div className="md:col-span-2">
+                                                <Button
+                                                    type="submit"
+                                                    className="rounded-xl bg-brand-blue text-white hover:bg-brand-blue-deep cursor-pointer"
+                                                    disabled={processing}
+                                                >
+                                                    Simpan Pembayaran
+                                                </Button>
+                                            </div>
+                                        </>
+                                    )}
+                                </Form>
+                            </SectionShell>
                         )}
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Riwayat pembayaran</CardTitle>
-                            </CardHeader>
-                            <CardContent className="grid gap-4">
-                                {order.payments.length === 0 ? (
-                                    <div className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-                                        Belum ada pembayaran pada order ini.
-                                    </div>
-                                ) : (
-                                    order.payments.map((payment) => (
+                        <SectionShell title="Riwayat Pembayaran">
+                            {order.payments.length === 0 ? (
+                                <EmptyState
+                                    icon={Inbox}
+                                    title="Belum ada pembayaran"
+                                    description="Belum ada pembayaran pada order ini."
+                                />
+                            ) : (
+                                <div className="grid gap-4">
+                                    {order.payments.map((payment) => (
                                         <div
                                             key={payment.id}
-                                            className="grid gap-4 rounded-xl border p-4 xl:grid-cols-[1fr_220px]"
+                                            className="grid gap-4 rounded-2xl border border-border/70 bg-brand-mist/30 p-4 xl:grid-cols-[1fr_220px]"
                                         >
                                             <div className="space-y-2">
                                                 <div className="flex items-center gap-2">
-                                                    <p className="font-medium">
+                                                    <p className="font-semibold text-brand-ink">
                                                         {payment.payment_number}
                                                     </p>
-                                                    <Badge variant="secondary">
-                                                        {formatLabel(
-                                                            payment.status,
-                                                        )}
-                                                    </Badge>
-                                                    <Badge variant="outline">
-                                                        {formatLabel(
-                                                            payment.method,
-                                                        )}
+                                                    <StatusBadge value={payment.status} domain="payment" />
+                                                    <Badge variant="outline" className="rounded-full">
+                                                        {formatLabel(payment.method)}
                                                     </Badge>
                                                 </div>
-                                                <p className="text-sm text-muted-foreground">
+                                                <p className="text-sm font-semibold text-brand-ink">
                                                     {formatCurrency(
                                                         payment.amount,
                                                     )}
                                                 </p>
                                                 {payment.reference_number && (
-                                                    <p className="text-sm text-muted-foreground">
-                                                        Ref:{' '}
-                                                        {
-                                                            payment.reference_number
-                                                        }
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Ref: {payment.reference_number}
                                                     </p>
                                                 )}
                                                 {payment.can_print_receipt && (
@@ -783,17 +731,14 @@ export default function OrdersShow({
                                                         }
                                                         target="_blank"
                                                         rel="noreferrer"
-                                                        className="inline-flex text-sm font-medium text-[#2563EB]"
+                                                        className="inline-flex text-xs font-semibold text-brand-blue hover:underline"
                                                     >
-                                                        Print kwitansi
+                                                        Cetak Kwitansi
                                                     </a>
                                                 )}
                                                 {payment.rejection_reason && (
-                                                    <p className="text-sm text-destructive">
-                                                        Alasan reject:{' '}
-                                                        {
-                                                            payment.rejection_reason
-                                                        }
+                                                    <p className="text-xs text-destructive font-semibold">
+                                                        Alasan penolakan: {payment.rejection_reason}
                                                     </p>
                                                 )}
                                                 <PaymentProofPreview
@@ -805,7 +750,7 @@ export default function OrdersShow({
                                                 can.reject_payment) &&
                                                 payment.status ===
                                                     'pending_verification' && (
-                                                    <div className="grid gap-3">
+                                                    <div className="grid gap-2 self-start">
                                                         {can.verify_payment && (
                                                             <Form
                                                                 {...verifyPayment.form(
@@ -817,7 +762,7 @@ export default function OrdersShow({
                                                                 }) => (
                                                                     <Button
                                                                         type="submit"
-                                                                        className="w-full"
+                                                                        className="w-full rounded-xl bg-brand-blue text-white hover:bg-brand-blue-deep cursor-pointer"
                                                                         disabled={
                                                                             processing
                                                                         }
@@ -832,7 +777,7 @@ export default function OrdersShow({
                                                                 {...rejectPayment.form(
                                                                     payment.id,
                                                                 )}
-                                                                className="grid gap-3"
+                                                                className="grid gap-2"
                                                             >
                                                                 {({
                                                                     errors,
@@ -842,7 +787,7 @@ export default function OrdersShow({
                                                                         <textarea
                                                                             name="rejection_reason"
                                                                             placeholder="Alasan penolakan"
-                                                                            className="min-h-20 rounded-md border bg-transparent px-3 py-2 text-sm"
+                                                                            className="min-h-16 rounded-xl border border-border bg-white px-3 py-2 text-xs text-brand-ink"
                                                                         />
                                                                         <InputError
                                                                             message={
@@ -852,12 +797,12 @@ export default function OrdersShow({
                                                                         <Button
                                                                             type="submit"
                                                                             variant="destructive"
+                                                                            className="w-full rounded-xl cursor-pointer"
                                                                             disabled={
                                                                                 processing
                                                                             }
                                                                         >
-                                                                            Tolak
-                                                                            transfer
+                                                                            Tolak Transfer
                                                                         </Button>
                                                                     </>
                                                                 )}
@@ -865,57 +810,78 @@ export default function OrdersShow({
                                                         )}
                                                     </div>
                                                 )}
+                                            {can.refund_payment &&
+                                                payment.status ===
+                                                    'verified' && (
+                                                    <RefundPaymentDialog
+                                                        payment={payment}
+                                                    />
+                                                )}
+                                            {payment.status === 'refunded' && (
+                                                <RefundSummary
+                                                    payment={payment}
+                                                />
+                                            )}
                                         </div>
-                                    ))
-                                )}
-                            </CardContent>
-                        </Card>
+                                    ))}
+                                </div>
+                            )}
+                        </SectionShell>
                     </div>
                 )}
 
                 {activeTab === 'activity' && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Activity log</CardTitle>
-                        </CardHeader>
-                        <CardContent className="grid gap-3">
-                            {order.activity.length === 0 ? (
-                                <div className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-                                    Belum ada activity log.
-                                </div>
-                            ) : (
-                                order.activity.map((activity) => (
+                    <SectionShell title="Log Aktivitas">
+                        {order.activity.length === 0 ? (
+                            <EmptyState
+                                icon={Inbox}
+                                title="Belum ada aktivitas"
+                                description="Belum ada aktivitas tercatat pada order ini."
+                            />
+                        ) : (
+                            <div className="grid gap-3">
+                                {order.activity.map((activity) => (
                                     <div
                                         key={activity.id}
-                                        className="rounded-xl border p-4"
+                                        className="rounded-2xl border border-border/70 bg-brand-mist/30 p-4 text-sm"
                                     >
                                         <div className="flex items-center justify-between gap-4">
                                             <div>
-                                                <p className="font-medium">
+                                                <p className="font-semibold text-brand-ink">
                                                     {activity.action}
                                                 </p>
-                                                <p className="text-sm text-muted-foreground">
+                                                <p className="text-sm text-muted-foreground mt-1">
                                                     {activity.notes ?? '-'}
                                                 </p>
                                             </div>
                                             <div className="text-right text-xs text-muted-foreground">
-                                                <p>
+                                                <p className="font-medium text-brand-ink">
                                                     {activity.user_name ??
-                                                        'System'}
+                                                        'Sistem'}
                                                 </p>
-                                                <p>
+                                                <p className="mt-0.5">
                                                     {activity.created_at ?? '-'}
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
-                                ))
-                            )}
-                        </CardContent>
-                    </Card>
+                                ))}
+                            </div>
+                        )}
+                    </SectionShell>
                 )}
-            </div>
-        </OfficeLayout>
+        </div>
+
+        <DesignAttachmentDetailDialog
+            attachment={selectedAttachment}
+            open={selectedAttachment !== null}
+            onOpenChange={(open) => {
+                if (!open) {
+                    setSelectedAttachment(null);
+                }
+            }}
+        />
+    </OfficeLayout>
     );
 }
 
@@ -929,13 +895,13 @@ function InfoBlock({
     helper?: string;
 }) {
     return (
-        <div className="rounded-xl border p-4">
-            <p className="text-xs tracking-wide text-muted-foreground uppercase">
+        <div className="rounded-2xl border border-border/70 bg-brand-mist/30 p-4">
+            <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                 {label}
             </p>
-            <p className="mt-2 font-medium">{value}</p>
+            <p className="mt-2 font-semibold text-brand-ink">{value}</p>
             {helper && (
-                <p className="mt-1 text-sm text-muted-foreground">{helper}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{helper}</p>
             )}
         </div>
     );
@@ -953,11 +919,11 @@ function PriceRow({
     return (
         <div className="flex items-center justify-between">
             <span
-                className={highlight ? 'font-medium' : 'text-muted-foreground'}
+                className={highlight ? 'font-semibold text-brand-ink' : 'text-muted-foreground'}
             >
                 {label}
             </span>
-            <span className={highlight ? 'font-semibold' : ''}>
+            <span className={highlight ? 'font-bold text-lg text-brand-ink' : 'font-medium text-brand-ink'}>
                 {formatCurrency(value)}
             </span>
         </div>
@@ -973,12 +939,12 @@ function OfficeAttachmentUploader({ orderId }: { orderId: number }) {
     });
 
     return (
-        <div className="grid gap-4 rounded-2xl border border-[#DBEAFE] bg-[#F8FAFF] p-5">
+        <div className="grid gap-4 rounded-2xl border border-blue-100 bg-blue-50/20 p-5">
             <div>
-                <p className="font-medium text-[#0F172A]">
+                <p className="font-semibold text-brand-ink text-base">
                     Kirim file ke customer
                 </p>
-                <p className="mt-1 text-sm leading-6 text-slate-600">
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
                     Upload file desain, revisi, atau final artwork. Semua file
                     akan muncul di portal customer sebagai daftar lampiran.
                 </p>
@@ -995,6 +961,7 @@ function OfficeAttachmentUploader({ orderId }: { orderId: number }) {
                         form.setData('title', event.target.value)
                     }
                     placeholder="Contoh: Mockup seragam event v1"
+                    className="rounded-xl border border-border bg-white"
                 />
                 <InputError message={form.errors.title} />
             </div>
@@ -1009,7 +976,7 @@ function OfficeAttachmentUploader({ orderId }: { orderId: number }) {
                     onChange={(event) =>
                         form.setData('attachment_type', event.target.value)
                     }
-                    className="h-10 rounded-md border bg-white px-3 text-sm"
+                    className="h-10 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink cursor-pointer"
                 >
                     <option value="design_proposal">Proposal Desain</option>
                     <option value="final_artwork">Final Artwork</option>
@@ -1029,7 +996,7 @@ function OfficeAttachmentUploader({ orderId }: { orderId: number }) {
                     onChange={(event) =>
                         form.setData('notes', event.target.value)
                     }
-                    className="min-h-24 rounded-md border bg-white px-3 py-2 text-sm"
+                    className="min-h-24 rounded-xl border border-border bg-white px-3 py-2 text-sm text-brand-ink"
                     placeholder="Jelaskan poin desain, warna, atau bagian yang perlu dicek customer."
                 />
                 <InputError message={form.errors.notes} />
@@ -1046,6 +1013,7 @@ function OfficeAttachmentUploader({ orderId }: { orderId: number }) {
                     onChange={(event) =>
                         form.setData('file', event.target.files?.[0] ?? null)
                     }
+                    className="rounded-xl border border-border bg-white cursor-pointer"
                 />
                 <InputError message={form.errors.file} />
             </div>
@@ -1059,8 +1027,9 @@ function OfficeAttachmentUploader({ orderId }: { orderId: number }) {
                         preserveScroll: true,
                     })
                 }
+                className="rounded-xl bg-brand-blue text-white hover:bg-brand-blue-deep cursor-pointer"
             >
-                Kirim file kolaborasi
+                Kirim File Kolaborasi
             </Button>
         </div>
     );
@@ -1077,7 +1046,7 @@ function SimpleAttachmentCard({
         <button
             type="button"
             onClick={onClick}
-            className="grid gap-3 rounded-2xl border border-white/70 bg-white p-4 text-left shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(37,99,235,0.12)]"
+            className="grid gap-3 rounded-2xl border border-border/70 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md hover:border-brand-blue/30 cursor-pointer"
         >
             <div className="flex flex-wrap gap-2">
                 <OfficeBadge tone="blue">
@@ -1090,10 +1059,10 @@ function SimpleAttachmentCard({
                 </OfficeBadge>
             </div>
             <div>
-                <p className="font-semibold text-[#0F172A]">
+                <p className="font-semibold text-brand-ink">
                     {attachment.title}
                 </p>
-                <p className="mt-1 text-xs leading-5 text-slate-500">
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
                     {attachment.uploaded_by_role === 'customer'
                         ? 'Dari customer'
                         : 'Dari office'}
@@ -1101,12 +1070,12 @@ function SimpleAttachmentCard({
                     {attachment.uploaded_by ?? 'User'}
                 </p>
             </div>
-            <p className="line-clamp-3 text-sm leading-6 text-slate-600">
+            <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
                 {attachment.notes ?? attachment.file_name}
             </p>
-            <div className="flex items-center justify-between gap-3 text-xs text-slate-500">
+            <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
                 <span>{attachment.uploaded_at ?? '-'}</span>
-                <span>Klik detail</span>
+                <span className="font-medium text-brand-blue">Detail</span>
             </div>
         </button>
     );
@@ -1127,9 +1096,9 @@ function DesignAttachmentDetailDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="border-[#DBEAFE] bg-white sm:max-w-2xl">
+            <DialogContent className="border-border bg-white sm:max-w-2xl">
                 <DialogHeader>
-                    <DialogTitle>{attachment.title}</DialogTitle>
+                    <DialogTitle className="text-brand-ink">{attachment.title}</DialogTitle>
                     <DialogDescription>
                         Detail file, sumber upload, dan catatan yang dikirim.
                     </DialogDescription>
@@ -1148,20 +1117,20 @@ function DesignAttachmentDetailDialog({
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2">
-                        <div className="rounded-2xl bg-[#F8FAFF] p-4 text-sm leading-6 text-slate-600">
-                            <p className="text-xs font-semibold tracking-[0.16em] text-[#1B5EC5] uppercase">
+                        <div className="rounded-2xl bg-brand-mist/30 border border-border/50 p-4 text-sm leading-6 text-muted-foreground">
+                            <p className="text-xs font-semibold tracking-wider text-brand-blue uppercase">
                                 File
                             </p>
-                            <p className="mt-2 font-medium text-[#0F172A]">
+                            <p className="mt-2 font-semibold text-brand-ink">
                                 {attachment.file_name}
                             </p>
                             <p className="mt-1">{attachment.file_type}</p>
                         </div>
-                        <div className="rounded-2xl bg-[#F8FAFF] p-4 text-sm leading-6 text-slate-600">
-                            <p className="text-xs font-semibold tracking-[0.16em] text-[#1B5EC5] uppercase">
+                        <div className="rounded-2xl bg-brand-mist/30 border border-border/50 p-4 text-sm leading-6 text-muted-foreground">
+                            <p className="text-xs font-semibold tracking-wider text-brand-blue uppercase">
                                 Upload
                             </p>
-                            <p className="mt-2 font-medium text-[#0F172A]">
+                            <p className="mt-2 font-semibold text-brand-ink">
                                 {attachment.uploaded_by ?? 'User'}
                             </p>
                             <p className="mt-1">
@@ -1171,8 +1140,8 @@ function DesignAttachmentDetailDialog({
                     </div>
 
                     {attachment.notes && (
-                        <div className="rounded-2xl bg-[#F8FAFF] p-4 text-sm leading-7 text-slate-700">
-                            <p className="mb-2 text-xs font-semibold tracking-[0.16em] text-[#1B5EC5] uppercase">
+                        <div className="rounded-2xl bg-brand-mist/30 border border-border/50 p-4 text-sm leading-7 text-brand-ink">
+                            <p className="mb-2 text-xs font-semibold tracking-wider text-brand-blue uppercase">
                                 Catatan file
                             </p>
                             {attachment.notes}
@@ -1181,13 +1150,13 @@ function DesignAttachmentDetailDialog({
                 </div>
 
                 <DialogFooter>
-                    <Button asChild variant="outline">
+                    <Button asChild variant="outline" className="rounded-xl cursor-pointer">
                         <a
                             href={attachment.url}
                             target="_blank"
                             rel="noreferrer"
                         >
-                            Buka file
+                            Buka File
                         </a>
                     </Button>
                 </DialogFooter>
@@ -1205,16 +1174,16 @@ function OfficeBadge({
 }) {
     const toneClass =
         tone === 'green'
-            ? 'bg-emerald-50 text-emerald-700'
+            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
             : tone === 'amber'
-              ? 'bg-amber-50 text-amber-700'
+              ? 'bg-amber-50 text-amber-700 border-amber-200'
               : tone === 'slate'
-                ? 'bg-slate-100 text-slate-700'
-                : 'bg-[#EFF4FF] text-[#1B5EC5]';
+                ? 'bg-slate-100 text-slate-700 border-slate-200'
+                : 'bg-[#EFF4FF] text-brand-blue border-blue-200';
 
     return (
         <span
-            className={`rounded-full px-3 py-1 text-[11px] font-semibold tracking-[0.16em] uppercase ${toneClass}`}
+            className={`rounded-full border px-3 py-1 text-[11px] font-semibold tracking-wider uppercase ${toneClass}`}
         >
             {children}
         </span>
@@ -1239,7 +1208,7 @@ function formatLabel(value: string): string {
 function PaymentProofPreview({ payment }: { payment: Payment }) {
     if (!payment.proof_image_url) {
         return (
-            <div className="rounded-md border border-dashed bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+            <div className="rounded-xl border border-dashed bg-brand-mist/20 px-3 py-2 text-xs text-muted-foreground">
                 Customer belum mengunggah bukti transfer.
             </div>
         );
@@ -1249,7 +1218,7 @@ function PaymentProofPreview({ payment }: { payment: Payment }) {
 
     return (
         <div className="space-y-2 pt-1">
-            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
                 Bukti transfer
             </p>
             {isPdf ? (
@@ -1257,7 +1226,7 @@ function PaymentProofPreview({ payment }: { payment: Payment }) {
                     href={payment.proof_image_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm font-medium text-[#2563EB] hover:bg-muted/60"
+                    className="inline-flex items-center gap-2 rounded-xl border bg-white/80 px-3 py-2 text-xs font-semibold text-brand-blue hover:bg-white cursor-pointer"
                 >
                     Buka bukti (PDF)
                 </a>
@@ -1266,13 +1235,13 @@ function PaymentProofPreview({ payment }: { payment: Payment }) {
                     href={payment.proof_image_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="block w-fit overflow-hidden rounded-md border"
+                    className="block w-fit overflow-hidden rounded-2xl border border-border/70 hover:opacity-90 cursor-pointer"
                     title="Klik untuk perbesar"
                 >
                     <img
                         src={payment.proof_image_url}
                         alt={`Bukti transfer ${payment.payment_number}`}
-                        className="h-40 w-auto max-w-xs object-cover"
+                        className="h-40 w-auto max-w-xs object-cover rounded-2xl"
                         loading="lazy"
                     />
                 </a>
@@ -1281,33 +1250,76 @@ function PaymentProofPreview({ payment }: { payment: Payment }) {
     );
 }
 
-function SectionTabs({
-    tabs,
-    activeTab,
-    onChange,
-}: {
-    tabs: Array<{ id: string; label: string }>;
-    activeTab: string;
-    onChange: (tabId: string) => void;
-}) {
+function RefundPaymentDialog({ payment }: { payment: Payment }) {
     return (
-        <div className="rounded-2xl border bg-card p-2 shadow-sm">
-            <div className="flex flex-wrap gap-2">
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        type="button"
-                        className={
-                            activeTab === tab.id
-                                ? 'rounded-xl bg-[#1B5EC5] px-4 py-2.5 text-sm font-semibold text-white'
-                                : 'rounded-xl px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-muted hover:text-[#1B5EC5]'
-                        }
-                        onClick={() => onChange(tab.id)}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button type="button" variant="destructive" className="w-full rounded-xl cursor-pointer">
+                    Refund pembayaran
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="border-red-100 bg-white sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>Konfirmasi refund</DialogTitle>
+                    <DialogDescription>
+                        Refund akan mengubah status pembayaran, menghitung ulang
+                        nilai order, dan membatalkan order jika masih aktif.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div className="rounded-xl border border-red-100 bg-red-50/60 p-4 text-sm leading-6 text-red-900">
+                    <p className="font-semibold">{payment.payment_number}</p>
+                    <p className="font-bold">{formatCurrency(payment.amount)}</p>
+                    <p className="mt-1 text-xs text-red-700">
+                        Aksi ini dicatat di audit log office.
+                    </p>
+                </div>
+
+                <Form
+                    {...refundPayment.form(payment.id)}
+                    className="grid gap-3"
+                >
+                    {({ errors, processing }) => (
+                        <>
+                            <div className="grid gap-2">
+                                <Label htmlFor={`refund-reason-${payment.id}`}>
+                                    Alasan refund
+                                </Label>
+                                <textarea
+                                    id={`refund-reason-${payment.id}`}
+                                    name="reason"
+                                    placeholder="Contoh: Customer membatalkan pesanan."
+                                    className="min-h-24 rounded-xl border bg-white px-3 py-2 text-sm text-brand-ink"
+                                />
+                                <InputError message={errors.reason} />
+                            </div>
+                            <DialogFooter>
+                                <Button
+                                    type="submit"
+                                    variant="destructive"
+                                    disabled={processing}
+                                    className="rounded-xl cursor-pointer"
+                                >
+                                    Konfirmasi refund
+                                </Button>
+                            </DialogFooter>
+                        </>
+                    )}
+                </Form>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function RefundSummary({ payment }: { payment: Payment }) {
+    return (
+        <div className="rounded-xl border border-red-100 bg-red-50/60 p-3 text-sm leading-6 text-red-900">
+            <p className="font-semibold">Refund tercatat</p>
+            <p className="text-xs">{payment.refund_reason ?? 'Alasan refund tidak tersedia.'}</p>
+            <p className="mt-1 text-[11px] text-red-700 font-medium">
+                {payment.refunded_at ?? '-'} ·{' '}
+                {payment.refunded_by_name ?? 'Admin'}
+            </p>
         </div>
     );
 }

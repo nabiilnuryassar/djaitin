@@ -93,13 +93,13 @@ test('customer can only access owned orders and payments', function () {
 
     $this->actingAs($user)
         ->post(route('customer.payments.upload-proof', $foreignPayment), [
-            'proof' => \Illuminate\Http\UploadedFile::fake()->image('foreign-proof.jpg'),
+            'proof' => \Illuminate\Http\UploadedFile::fake()->image('.png'),
         ])
         ->assertForbidden();
 
     $this->actingAs($user)
         ->post(route('customer.payments.upload-proof', $ownedPayment), [
-            'proof' => \Illuminate\Http\UploadedFile::fake()->image('owned-proof.jpg'),
+            'proof' => \Illuminate\Http\UploadedFile::fake()->image('.png'),
         ])
         ->assertRedirect();
 });

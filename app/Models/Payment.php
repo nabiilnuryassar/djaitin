@@ -4,9 +4,6 @@ namespace App\Models;
 
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
-use App\Models\AuditLog;
-use App\Models\Order;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,6 +25,9 @@ class Payment extends Model
         'created_by',
         'verified_by',
         'verified_at',
+        'refunded_at',
+        'refunded_by',
+        'refund_reason',
         'rejection_reason',
         'notes',
     ];
@@ -40,6 +40,7 @@ class Payment extends Model
             'amount' => 'decimal:2',
             'payment_date' => 'datetime',
             'verified_at' => 'datetime',
+            'refunded_at' => 'datetime',
         ];
     }
 
@@ -56,6 +57,11 @@ class Payment extends Model
     public function verifiedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    public function refundedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'refunded_by');
     }
 
     public function auditLogs(): MorphMany

@@ -1,7 +1,14 @@
 import { Link } from '@inertiajs/react';
 import type { InertiaLinkProps } from '@inertiajs/react';
-import { Home, Layers, GitBranch, LogIn, LayoutDashboard, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
+import {
+    Home,
+    Layers,
+    GitBranch,
+    LogIn,
+    LayoutDashboard,
+    Sparkles,
+} from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -22,13 +29,16 @@ export function MobileBottomBar({
         const handleScroll = () => {
             const sections = ['hero', 'services', 'workflow', 'cta'];
             let current = 'hero';
-            
+
             for (const section of sections) {
                 const element = document.getElementById(section);
                 if (element) {
                     const rect = element.getBoundingClientRect();
                     // Jika elemen terlihat di atas atau setengah tengah viewport
-                    if (rect.top <= window.innerHeight / 2 && rect.bottom >= window.innerHeight / 3) {
+                    if (
+                        rect.top <= window.innerHeight / 2 &&
+                        rect.bottom >= window.innerHeight / 3
+                    ) {
                         current = section;
                     }
                 }
@@ -59,16 +69,17 @@ export function MobileBottomBar({
             transition={{ type: 'spring', stiffness: 260, damping: 20 }}
         >
             <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-white/50 bg-white/75 p-1.5 shadow-[0_8px_32px_rgba(15,23,42,0.12)] ring-1 ring-slate-900/5 backdrop-blur-xl">
-                
                 {navItems.map((item) => {
                     const isActive = activeSection === item.id;
                     const Icon = item.icon;
-                    
+
                     return (
                         <button
                             className={cn(
-                                "group relative flex h-12 w-12 flex-col items-center justify-center rounded-full transition-colors duration-300",
-                                isActive ? "text-[#2563EB]" : "text-[#64748B] hover:text-[#0F172A]"
+                                'group relative flex h-12 w-12 flex-col items-center justify-center rounded-full transition-colors duration-300',
+                                isActive
+                                    ? 'text-[#2563EB]'
+                                    : 'text-[#64748B] hover:text-[#0F172A]',
                             )}
                             key={item.id}
                             onClick={() => handleNavigate(item.id)}
@@ -79,11 +90,20 @@ export function MobileBottomBar({
                                 <motion.div
                                     className="absolute inset-0 rounded-full bg-[#EFF4FF]"
                                     layoutId="mobile-nav-active-bubble"
-                                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                    transition={{
+                                        type: 'spring',
+                                        stiffness: 300,
+                                        damping: 25,
+                                    }}
                                 />
                             )}
                             <div className="relative z-10 flex flex-col items-center justify-center">
-                                <Icon className={cn("size-5 transition-transform group-hover:scale-110", isActive && "fill-[#DBEAFE]/50")} />
+                                <Icon
+                                    className={cn(
+                                        'size-5 transition-transform group-hover:scale-110',
+                                        isActive && 'fill-[#DBEAFE]/50',
+                                    )}
+                                />
                             </div>
                         </button>
                     );
@@ -97,7 +117,9 @@ export function MobileBottomBar({
                     type="button"
                 >
                     <Sparkles className="size-4 text-[#F9C11A]" />
-                    <span className="pr-1 text-sm font-semibold tracking-tight">Demo</span>
+                    <span className="pr-1 text-sm font-semibold tracking-tight">
+                        Demo
+                    </span>
                 </button>
 
                 <div className="mx-1 h-8 w-px bg-slate-200/60" />

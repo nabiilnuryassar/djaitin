@@ -5,24 +5,44 @@ use App\Models\Measurement;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
-test('guests can visit the customer home page', function () {
-    $this->get(route('customer.home'))
+test('guests are redirected to login when visiting the customer home page', function () {
+    $this->get(route('customer.home'))->assertRedirect(route('login'));
+});
+
+test('guests are redirected to login when visiting customer service pages', function () {
+    $this->get(route('customer.services.convection'))->assertRedirect(route('login'));
+    $this->get(route('customer.services.tailor'))->assertRedirect(route('login'));
+    $this->get(route('customer.services.rtw'))->assertRedirect(route('login'));
+});
+
+test('guests are redirected to login when visiting the catalog routes', function () {
+    $this->get(route('customer.catalog.index'))->assertRedirect(route('login'));
+});
+
+test('guests are redirected to login when visiting customer dashboard', function () {
+    $this->get(route('customer.dashboard'))->assertRedirect(route('login'));
+});
+
+test('authenticated customers can visit the customer home page', function () {
+    $user = User::factory()->customer()->create();
+
+    $this->actingAs($user)
+        ->get(route('customer.home'))
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Customer/Home')
         );
 });
 
-test('guests can visit the customer convection service page', function () {
-    $this->get(route('customer.services.convection'))
+test('authenticated customers can visit the convection service page', function () {
+    $user = User::factory()->customer()->create();
+
+    $this->actingAs($user)
+        ->get(route('customer.services.convection'))
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Customer/Services/Convection')
         );
-});
-
-test('guests are redirected to login when visiting customer dashboard', function () {
-    $this->get(route('customer.dashboard'))->assertRedirect(route('login'));
 });
 
 test('customers can access the customer dashboard', function () {

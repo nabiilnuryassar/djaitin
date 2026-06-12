@@ -1,12 +1,20 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { Inbox, ClipboardList } from 'lucide-react';
 import DashboardController from '@/actions/App/Http/Controllers/Office/DashboardController';
 import { FlashMessage } from '@/components/flash-message';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import OfficeLayout from '@/layouts/office-layout';
 import office from '@/routes/office';
 import type { BreadcrumbItem } from '@/types';
+import { cn } from '@/lib/utils';
+
+// Office Primitives
+import { PageHeader } from '@/components/office/page-header';
+import { FilterBar } from '@/components/office/filter-bar';
+import { StatusBadge } from '@/components/office/status-badge';
+import { EmptyState } from '@/components/office/empty-state';
+import { PremiumCard } from '@/components/office/premium-card';
 
 type Props = {
     filters: {
@@ -69,282 +77,260 @@ export default function ProductionIndex({
 
     return (
         <OfficeLayout breadcrumbs={breadcrumbs}>
-            <Head title="Production Board" />
+            <Head title="Papan Produksi" />
 
             <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
                 <FlashMessage />
 
-                <Card className="rounded-2xl border-slate-200/80 shadow-sm">
-                    <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                        <div>
-                            <CardTitle className="[font-family:var(--font-heading)] text-xl font-semibold text-[#0F172A]">
-                                Production board
-                            </CardTitle>
-                            <p className="text-sm text-slate-600">
-                                Pantau due date, progres konveksi, dan update
-                                status order langsung dari board produksi.
-                            </p>
-                        </div>
-                        <Button asChild variant="outline">
+                <PageHeader
+                    eyebrow="Operasional"
+                    title="Papan Produksi"
+                    description="Pantau due date, progres konveksi, dan update status order langsung dari board produksi."
+                    actions={
+                        <Button asChild variant="outline" className="rounded-xl cursor-pointer">
                             <Link href={office.orders.index()}>
-                                Lihat daftar order
+                                Lihat Semua Pesanan
                             </Link>
                         </Button>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <form
-                            className="grid gap-3 md:grid-cols-3"
-                            onSubmit={(event) => {
-                                event.preventDefault();
-                                submitFilters(
-                                    new FormData(event.currentTarget),
-                                );
-                            }}
+                    }
+                />
+
+                <FilterBar>
+                    <form
+                        className="grid gap-3 md:grid-cols-3 w-full"
+                        onSubmit={(event) => {
+                            event.preventDefault();
+                            submitFilters(
+                                new FormData(event.currentTarget),
+                            );
+                        }}
+                    >
+                        <select
+                            name="status"
+                            defaultValue={filters.status}
+                            className="h-10 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink cursor-pointer"
                         >
-                            <select
-                                name="status"
-                                defaultValue={filters.status}
-                                className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"
+                            <option value="">Semua Status</option>
+                            {statuses.map((status) => (
+                                <option
+                                    key={status.value}
+                                    value={status.value}
+                                >
+                                    {status.label}
+                                </option>
+                            ))}
+                        </select>
+                        <select
+                            name="order_type"
+                            defaultValue={filters.order_type}
+                            className="h-10 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink cursor-pointer"
+                        >
+                            <option value="">Semua Tipe</option>
+                            {orderTypes.map((type) => (
+                                <option key={type.value} value={type.value}>
+                                    {type.label}
+                                </option>
+                            ))}
+                        </select>
+                        <Button type="submit" className="rounded-xl bg-brand-blue text-white hover:bg-brand-blue-deep cursor-pointer">
+                            Terapkan Filter
+                        </Button>
+                    </form>
+                </FilterBar>
+
+                <div className="space-y-4">
+                    {orders.data.length === 0 ? (
+                        <EmptyState
+                            icon={Inbox}
+                            title="Tidak ada order produksi"
+                            description="Tidak ada order produksi yang cocok dengan filter saat ini."
+                        />
+                    ) : (
+                        orders.data.map((order) => (
+                            <PremiumCard
+                                key={order.id}
+                                className="transition hover:border-brand-blue/30"
                             >
-                                <option value="">Semua status</option>
-                                {statuses.map((status) => (
-                                    <option
-                                        key={status.value}
-                                        value={status.value}
-                                    >
-                                        {status.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <select
-                                name="order_type"
-                                defaultValue={filters.order_type}
-                                className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"
-                            >
-                                <option value="">Semua tipe</option>
-                                {orderTypes.map((type) => (
-                                    <option key={type.value} value={type.value}>
-                                        {type.label}
-                                    </option>
-                                ))}
-                            </select>
-                            <Button type="submit">Terapkan filter</Button>
-                        </form>
-
-                        <div className="space-y-3">
-                            {orders.data.length === 0 ? (
-                                <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">
-                                    Tidak ada order produksi yang cocok dengan
-                                    filter.
-                                </div>
-                            ) : (
-                                orders.data.map((order) => (
-                                    <div
-                                        key={order.id}
-                                        className="rounded-2xl border border-slate-200/80 bg-white p-4"
-                                    >
-                                        <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-                                            <div className="space-y-3 xl:max-w-lg">
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                    <Link
-                                                        href={office.orders.show(
-                                                            order.id,
-                                                        )}
-                                                        className="font-semibold text-[#0F172A]"
-                                                    >
-                                                        {order.order_number}
-                                                    </Link>
-                                                    <Badge variant="secondary">
-                                                        {formatLabel(
-                                                            order.order_type,
-                                                        )}
-                                                    </Badge>
-                                                    <Badge
-                                                        className={
-                                                            order.overdue
-                                                                ? 'bg-red-100 text-red-800'
-                                                                : 'bg-blue-100 text-blue-800'
-                                                        }
-                                                    >
-                                                        {order.overdue
-                                                            ? 'Overdue'
-                                                            : 'On Track'}
-                                                    </Badge>
-                                                    <Badge variant="outline">
-                                                        {formatLabel(
-                                                            order.status,
-                                                        )}
-                                                    </Badge>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <p className="text-sm font-medium text-slate-700">
-                                                        {order.customer_name ??
-                                                            'Tanpa nama pelanggan'}
-                                                    </p>
-                                                    <p className="text-sm text-slate-500">
-                                                        Due date:{' '}
-                                                        {order.due_date ?? '-'}
-                                                    </p>
-                                                    <p className="text-sm text-slate-500">
-                                                        Sisa tagihan:{' '}
-                                                        {formatCurrency(
-                                                            order.outstanding_amount,
-                                                        )}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div className="grid gap-4 xl:min-w-[430px] xl:grid-cols-2">
-                                                {can.update_status ? (
-                                                    <form
-                                                        {...office.orders.status.form(
-                                                            order.id,
-                                                        )}
-                                                        className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4"
-                                                    >
-                                                        <div className="space-y-3">
-                                                            <div>
-                                                                <p className="text-sm font-semibold text-[#0F172A]">
-                                                                    Quick
-                                                                    status
-                                                                </p>
-                                                                <p className="text-xs text-slate-500">
-                                                                    Update
-                                                                    progres
-                                                                    operasional
-                                                                    tanpa masuk
-                                                                    detail order.
-                                                                </p>
-                                                            </div>
-                                                            <select
-                                                                name="status"
-                                                                defaultValue={
-                                                                    order.status
-                                                                }
-                                                                className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"
-                                                            >
-                                                                {quickStatuses.map(
-                                                                    (
-                                                                        status,
-                                                                    ) => (
-                                                                        <option
-                                                                            key={
-                                                                                status.value
-                                                                            }
-                                                                            value={
-                                                                                status.value
-                                                                            }
-                                                                        >
-                                                                            {
-                                                                                status.label
-                                                                            }
-                                                                        </option>
-                                                                    ),
-                                                                )}
-                                                            </select>
-                                                            <Button
-                                                                type="submit"
-                                                                className="w-full"
-                                                            >
-                                                                Update status
-                                                            </Button>
-                                                        </div>
-                                                    </form>
-                                                ) : (
-                                                    <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-                                                        <p className="text-sm font-semibold text-[#0F172A]">
-                                                            Status order
-                                                        </p>
-                                                        <p className="mt-2 text-sm text-slate-600">
-                                                            {formatLabel(
-                                                                order.status,
-                                                            )}
-                                                        </p>
-                                                    </div>
+                                <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+                                    <div className="space-y-3 xl:max-w-lg">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <Link
+                                                href={office.orders.show(
+                                                    order.id,
                                                 )}
-
-                                                {order.order_type ===
-                                                    'convection' &&
-                                                can.update_stage ? (
-                                                    <form
-                                                        {...office.orders.productionStage.form(
-                                                            order.id,
-                                                        )}
-                                                        className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4"
-                                                    >
-                                                        <div className="space-y-3">
-                                                            <div>
-                                                                <p className="text-sm font-semibold text-[#0F172A]">
-                                                                    Tahap
-                                                                    produksi
-                                                                </p>
-                                                                <p className="text-xs text-slate-500">
-                                                                    Cocok untuk
-                                                                    order
-                                                                    konveksi
-                                                                    yang butuh
-                                                                    tracking
-                                                                    bertahap.
-                                                                </p>
-                                                            </div>
-                                                            <select
-                                                                name="production_stage"
-                                                                defaultValue={
-                                                                    order.production_stage ??
-                                                                    'design'
-                                                                }
-                                                                className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"
-                                                            >
-                                                                {productionStages.map(
-                                                                    (stage) => (
-                                                                        <option
-                                                                            key={
-                                                                                stage.value
-                                                                            }
-                                                                            value={
-                                                                                stage.value
-                                                                            }
-                                                                        >
-                                                                            {
-                                                                                stage.label
-                                                                            }
-                                                                        </option>
-                                                                    ),
-                                                                )}
-                                                            </select>
-                                                            <Button
-                                                                type="submit"
-                                                                variant="outline"
-                                                                className="w-full"
-                                                            >
-                                                                Update tahap
-                                                            </Button>
-                                                        </div>
-                                                    </form>
-                                                ) : (
-                                                    <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-                                                        <p className="text-sm font-semibold text-[#0F172A]">
-                                                            Tahap produksi
-                                                        </p>
-                                                        <p className="mt-2 text-sm text-slate-600">
-                                                            {order.order_type ===
-                                                            'convection'
-                                                                ? formatLabel(
-                                                                      order.production_stage ??
-                                                                          'belum_diatur',
-                                                                  )
-                                                                : 'Tidak memakai tracking tahap produksi'}
-                                                        </p>
-                                                    </div>
+                                                className="font-bold text-brand-ink text-base hover:text-brand-blue transition"
+                                            >
+                                                {order.order_number}
+                                            </Link>
+                                            <Badge variant="outline" className="rounded-full">
+                                                {order.order_type === 'convection' ? 'Konveksi' : 'RTW'}
+                                            </Badge>
+                                            <Badge
+                                                className={cn(
+                                                    'rounded-full border-none font-semibold',
+                                                    order.overdue
+                                                        ? 'bg-red-50 text-red-700'
+                                                        : 'bg-emerald-50 text-emerald-700'
                                                 )}
-                                            </div>
+                                            >
+                                                {order.overdue
+                                                    ? 'Terlambat (Overdue)'
+                                                    : 'Tepat Waktu'}
+                                            </Badge>
+                                            <StatusBadge value={order.status} domain="order" />
+                                        </div>
+                                        <div className="space-y-1 text-sm">
+                                            <p className="font-semibold text-brand-ink">
+                                                {order.customer_name ??
+                                                    'Tanpa nama pelanggan'}
+                                            </p>
+                                            <p className="text-muted-foreground">
+                                                Tenggat: <span className="font-medium text-brand-ink">{order.due_date ?? '-'}</span>
+                                            </p>
+                                            <p className="text-muted-foreground">
+                                                Sisa tagihan: <span className="font-semibold text-brand-ink">{formatCurrency(
+                                                    order.outstanding_amount,
+                                                )}</span>
+                                            </p>
                                         </div>
                                     </div>
-                                ))
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
+
+                                    <div className="grid gap-4 xl:min-w-[430px] xl:grid-cols-2">
+                                        {can.update_status ? (
+                                            <form
+                                                {...office.orders.status.form(
+                                                    order.id,
+                                                )}
+                                                className="rounded-2xl border border-border/70 bg-brand-mist/30 p-4"
+                                            >
+                                                <div className="space-y-3">
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-brand-ink">
+                                                            Status Cepat
+                                                        </p>
+                                                        <p className="text-xs text-muted-foreground mt-0.5">
+                                                            Perbarui status operasional pesanan.
+                                                        </p>
+                                                    </div>
+                                                    <select
+                                                        name="status"
+                                                        defaultValue={
+                                                            order.status
+                                                        }
+                                                        className="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-brand-ink cursor-pointer"
+                                                    >
+                                                        {quickStatuses.map(
+                                                            (
+                                                                status,
+                                                            ) => (
+                                                                <option
+                                                                    key={
+                                                                        status.value
+                                                                    }
+                                                                    value={
+                                                                        status.value
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        status.label
+                                                                    }
+                                                                </option>
+                                                            ),
+                                                        )}
+                                                    </select>
+                                                    <Button
+                                                        type="submit"
+                                                        className="w-full rounded-xl bg-brand-blue text-white hover:bg-brand-blue-deep cursor-pointer"
+                                                    >
+                                                        Perbarui Status
+                                                    </Button>
+                                                </div>
+                                            </form>
+                                        ) : (
+                                            <div className="rounded-2xl border border-border/70 bg-brand-mist/30 p-4">
+                                                <p className="text-sm font-semibold text-brand-ink">
+                                                    Status Pesanan
+                                                </p>
+                                                <div className="mt-2">
+                                                    <StatusBadge value={order.status} domain="order" />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {order.order_type ===
+                                            'convection' &&
+                                        can.update_stage ? (
+                                            <form
+                                                {...office.orders.productionStage.form(
+                                                    order.id,
+                                                )}
+                                                className="rounded-2xl border border-border/70 bg-brand-mist/30 p-4"
+                                            >
+                                                <div className="space-y-3">
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-brand-ink">
+                                                            Tahap Produksi
+                                                        </p>
+                                                        <p className="text-xs text-muted-foreground mt-0.5">
+                                                            Perbarui progress produksi konveksi.
+                                                        </p>
+                                                    </div>
+                                                    <select
+                                                        name="production_stage"
+                                                        defaultValue={
+                                                            order.production_stage ??
+                                                            'design'
+                                                        }
+                                                        className="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-brand-ink cursor-pointer"
+                                                    >
+                                                        {productionStages.map(
+                                                            (stage) => (
+                                                                <option
+                                                                    key={
+                                                                        stage.value
+                                                                    }
+                                                                    value={
+                                                                        stage.value
+                                                                    }
+                                                                >
+                                                                    {
+                                                                        stage.label
+                                                                    }
+                                                                </option>
+                                                            ),
+                                                        )}
+                                                    </select>
+                                                    <Button
+                                                        type="submit"
+                                                        variant="outline"
+                                                        className="w-full rounded-xl cursor-pointer"
+                                                    >
+                                                        Perbarui Tahap
+                                                    </Button>
+                                                </div>
+                                            </form>
+                                        ) : (
+                                            <div className="rounded-2xl border border-border/70 bg-brand-mist/30 p-4">
+                                                <p className="text-sm font-semibold text-brand-ink">
+                                                    Tahap Produksi
+                                                </p>
+                                                <p className="mt-2 text-sm text-muted-foreground">
+                                                    {order.order_type ===
+                                                    'convection'
+                                                        ? formatLabel(
+                                                              order.production_stage ??
+                                                                  'belum_diatur',
+                                                          )
+                                                        : 'RTW (Tanpa tahapan produksi)'}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </PremiumCard>
+                        ))
+                    )}
+                </div>
             </div>
         </OfficeLayout>
     );

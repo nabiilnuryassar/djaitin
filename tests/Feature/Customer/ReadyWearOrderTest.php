@@ -41,7 +41,7 @@ test('customer can not checkout ready to wear order when cart quantity exceeds c
                 'method' => PaymentMethod::Transfer->value,
                 'amount' => 100000,
                 'reference_number' => 'RTW-STOCK-001',
-                'proof' => UploadedFile::fake()->image('proof.jpg'),
+                'proof' => UploadedFile::fake()->image('.png'),
             ],
         ])
         ->assertSessionHasErrors('qty');
@@ -75,7 +75,7 @@ test('ready to wear stock is decremented only after transfer payment is verified
                 'method' => PaymentMethod::Transfer->value,
                 'amount' => 300000,
                 'reference_number' => 'RTW-VERIFY-001',
-                'proof' => UploadedFile::fake()->image('transfer.jpg'),
+                'proof' => UploadedFile::fake()->image('.png'),
             ],
         ])
         ->assertRedirect();
@@ -167,7 +167,7 @@ test('delivery checkout requires customer address and pickup does not', function
                 'method' => PaymentMethod::Transfer->value,
                 'amount' => 100000,
                 'reference_number' => 'RTW-DELIVERY-001',
-                'proof' => UploadedFile::fake()->image('delivery-proof.jpg'),
+                'proof' => UploadedFile::fake()->image('.png'),
             ],
         ])
         ->assertSessionHasErrors('address_id');
@@ -203,7 +203,7 @@ test('delivery checkout requires customer address and pickup does not', function
                 'method' => PaymentMethod::Transfer->value,
                 'amount' => 120000,
                 'reference_number' => 'RTW-DELIVERY-002',
-                'proof' => UploadedFile::fake()->image('delivery-proof-2.jpg'),
+                'proof' => UploadedFile::fake()->image('.png'),
             ],
         ])
         ->assertRedirect();

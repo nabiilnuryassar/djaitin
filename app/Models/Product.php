@@ -22,6 +22,7 @@ class Product extends Model
         'discount_percent',
         'is_clearance',
         'stock',
+        'reserved_stock',
         'image_path',
         'is_active',
     ];
@@ -35,6 +36,7 @@ class Product extends Model
             'discount_percent' => 'decimal:2',
             'is_clearance' => 'boolean',
             'stock' => 'integer',
+            'reserved_stock' => 'integer',
             'is_active' => 'boolean',
         ];
     }

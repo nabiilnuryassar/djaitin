@@ -1,4 +1,4 @@
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { ArrowLeft, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,12 +10,12 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import CustomerLayout from '@/layouts/customer-layout';
-import customer from '@/routes/customer';
 import { login } from '@/routes';
+import customer from '@/routes/customer';
+import type { User } from '@/types/auth';
 import catalogBatikImage from '../../../../images/generated/catalog-product-batik.jpg';
 import catalogCasualImage from '../../../../images/generated/catalog-product-casual.jpg';
 import catalogUniformImage from '../../../../images/generated/catalog-product-uniform.jpg';
-import type { User } from '@/types/auth';
 
 type Product = {
     id: number;
@@ -134,7 +134,9 @@ export default function CustomerCatalogShow({ product, variants }: Props) {
                                     ) : (
                                         <Link
                                             key={variant.id}
-                                            href={customer.catalog.show(variant.id)}
+                                            href={customer.catalog.show(
+                                                variant.id,
+                                            )}
                                             className={
                                                 variant.id === product.id
                                                     ? 'rounded-full bg-[#2563EB] px-4 py-2 text-sm font-medium text-white'

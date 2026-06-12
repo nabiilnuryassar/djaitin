@@ -1,22 +1,15 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import {
-    Bell,
-    ClipboardList,
-    Home,
-    LogOut,
-    ShoppingBag,
-    Shirt,
-    UserCircle2,
-} from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import { CustomerMobileBottomBar } from '@/components/customer-mobile-bottom-bar';
+import { CustomerNotificationPopover } from '@/components/customer-notification-popover';
 import { FlashMessage } from '@/components/flash-message';
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { useForceLightTheme } from '@/hooks/use-force-light-theme';
+import { login, logout, register } from '@/routes';
 import customer from '@/routes/customer';
 import office from '@/routes/office';
-import { login, logout, register } from '@/routes';
 import type { SharedPageProps } from '@/types/auth';
 
 type NavigationItem = {
@@ -33,6 +26,7 @@ export default function CustomerLayout({ children }: PropsWithChildren) {
     const user = page.props.auth.user;
     const isCustomer = user?.role === 'customer';
     const unreadNotificationsCount = page.props.unread_notifications_count ?? 0;
+    const recentNotifications = page.props.recent_notifications ?? [];
     const customerNavigation: NavigationItem[] = [
         {
             label: 'Beranda',
@@ -107,17 +101,10 @@ export default function CustomerLayout({ children }: PropsWithChildren) {
                     <div className="hidden items-center gap-3 md:flex">
                         {isCustomer ? (
                             <>
-                                <Link
-                                    href={customer.notifications.index()}
-                                    className="relative inline-flex size-10 items-center justify-center rounded-full bg-white text-[#162044] ring-1 ring-[#dbe4f5] transition hover:bg-[#f3f7ff]"
-                                >
-                                    <Bell className="size-4" />
-                                    {unreadNotificationsCount > 0 && (
-                                        <span className="absolute top-0.5 right-0.5 inline-flex min-w-5 items-center justify-center rounded-full bg-[#f4b21a] px-1 py-0.5 text-[10px] font-semibold text-[#162044]">
-                                            {unreadNotificationsCount}
-                                        </span>
-                                    )}
-                                </Link>
+                                <CustomerNotificationPopover
+                                    notifications={recentNotifications}
+                                    unreadCount={unreadNotificationsCount}
+                                />
                                 <div className="flex items-center gap-3 rounded-full bg-white px-2 py-1.5 ring-1 ring-[#dbe4f5]">
                                     <div className="text-right">
                                         <p className="text-sm font-semibold text-[#162044]">

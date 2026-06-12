@@ -13,6 +13,7 @@ use App\Http\Controllers\Office\DocumentController;
 use App\Http\Controllers\Office\MeasurementController;
 use App\Http\Controllers\Office\OrderController;
 use App\Http\Controllers\Office\PaymentController;
+use App\Http\Controllers\Office\PaymentRefundController;
 use App\Http\Controllers\Office\ProductionController;
 use App\Http\Controllers\Office\ReportController;
 use App\Http\Controllers\Office\ShippingController;
@@ -42,6 +43,7 @@ Route::controller(PaymentController::class)
         Route::get('/', 'index')->name('index');
         Route::post('{payment}/verify', 'verify')->name('verify');
         Route::post('{payment}/reject', 'reject')->name('reject');
+        Route::post('{payment}/refund', PaymentRefundController::class)->name('refund');
         Route::get('{payment}/kwitansi', [DocumentController::class, 'kwitansi'])->name('kwitansi');
     });
 

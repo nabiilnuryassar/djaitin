@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
@@ -13,6 +14,7 @@ use App\Notifications\PaymentVerifiedNotification;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class PaymentService
@@ -35,8 +37,7 @@ class PaymentService
     {
         $method = PaymentMethod::from($payload['method']);
         $amount = round((float) $payload['amount'], 2);
-        $shouldDecrementStock = $method === PaymentMethod::Cash
-            && $this->shouldDecrementStock($order);
+        $proofImagePath = $payload['proof_image_path'] ?? null;
 
         if ($amount <= 0) {
             throw ValidationException::withMessages([
@@ -44,23 +45,37 @@ class PaymentService
             ]);
         }
 
-        if ($amount > (float) $order->outstanding_amount) {
+        if ($method === PaymentMethod::Transfer && blank($proofImagePath)) {
             throw ValidationException::withMessages([
-                'amount' => 'Nominal pembayaran tidak boleh melebihi sisa tagihan order.',
+                'proof' => 'Bukti transfer wajib dilampirkan.',
             ]);
         }
 
-        return DB::transaction(function () use ($order, $payload, $user, $ipAddress, $method, $amount, $shouldDecrementStock): Payment {
+        return DB::transaction(function () use ($order, $payload, $user, $ipAddress, $method, $amount, $proofImagePath): Payment {
+            $lockedOrder = Order::query()
+                ->whereKey($order->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $this->validateRecordAmount($lockedOrder, $amount);
+
+            if ($method === PaymentMethod::Transfer) {
+                $this->ensureNoPendingVerificationExists($lockedOrder);
+            }
+
+            $shouldDecrementStock = $method === PaymentMethod::Cash
+                && $this->shouldDecrementStock($lockedOrder);
+
             $payment = Payment::query()->create([
                 'payment_number' => $this->nextPaymentNumber(),
-                'order_id' => $order->id,
+                'order_id' => $lockedOrder->id,
                 'method' => $method,
                 'status' => $method === PaymentMethod::Cash
                     ? PaymentStatus::Verified
                     : PaymentStatus::PendingVerification,
                 'amount' => $amount,
                 'reference_number' => $payload['reference_number'] ?? null,
-                'proof_image_path' => $payload['proof_image_path'] ?? null,
+                'proof_image_path' => $proofImagePath,
                 'payment_date' => now(),
                 'created_by' => $user->id,
                 'verified_by' => $method === PaymentMethod::Cash ? $user->id : null,
@@ -69,10 +84,10 @@ class PaymentService
             ]);
 
             if ($payment->status === PaymentStatus::Verified) {
-                $this->updateOrderAmounts($order);
+                $refreshedOrder = $this->updateOrderAmounts($lockedOrder);
 
                 if ($shouldDecrementStock) {
-                    $this->stockService->decrementOnVerifiedPayment($order->refresh());
+                    $this->stockService->decrementOnVerifiedPayment($refreshedOrder);
                 }
             }
 
@@ -99,15 +114,18 @@ class PaymentService
         User $user,
         ?string $ipAddress = null,
     ): Payment {
-        if ($payment->method !== PaymentMethod::Transfer) {
-            throw ValidationException::withMessages([
-                'payment' => 'Hanya pembayaran transfer yang dapat menerima bukti transfer.',
-            ]);
-        }
+        $proofResult = DB::transaction(function () use ($payment, $proof, $user, $ipAddress): array {
+            $payment = Payment::query()
+                ->with('order')
+                ->whereKey($payment->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        return DB::transaction(function () use ($payment, $proof, $user, $ipAddress): Payment {
+            $this->ensureCanUploadProof($payment);
+
             $oldStatus = $payment->status;
             $proofPath = $proof->store('payments/proofs', 'public');
+            $oldProofPath = $payment->proof_image_path;
 
             $payment->update([
                 'proof_image_path' => $proofPath,
@@ -130,17 +148,40 @@ class PaymentService
                 ipAddress: $ipAddress,
             );
 
-            return $payment->refresh();
+            return [
+                'payment' => $payment->refresh(),
+                'old_proof_path' => $oldProofPath,
+                'new_proof_path' => $proofPath,
+            ];
         });
+
+        $oldProofPath = $proofResult['old_proof_path'];
+        $newProofPath = $proofResult['new_proof_path'];
+
+        if ($oldProofPath !== null && $oldProofPath !== $newProofPath && Storage::disk('public')->exists($oldProofPath)) {
+            Storage::disk('public')->delete($oldProofPath);
+        }
+
+        return $proofResult['payment'];
     }
 
     public function verifyTransfer(Payment $payment, User $user, ?string $ipAddress = null): Payment
     {
-        $this->ensureTransferPending($payment);
-        $order = $payment->order()->firstOrFail();
-        $shouldDecrementStock = $this->shouldDecrementStock($order);
+        $verified = DB::transaction(function () use ($payment, $user, $ipAddress): array {
+            $payment = Payment::query()
+                ->whereKey($payment->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        $verifiedPayment = DB::transaction(function () use ($payment, $user, $ipAddress): Payment {
+            $this->ensureTransferPending($payment);
+
+            $lockedOrder = Order::query()
+                ->whereKey($payment->order_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $shouldDecrementStock = $this->shouldDecrementStock($lockedOrder);
+
             $payment->update([
                 'status' => PaymentStatus::Verified,
                 'verified_by' => $user->id,
@@ -148,7 +189,11 @@ class PaymentService
                 'rejection_reason' => null,
             ]);
 
-            $this->updateOrderAmounts($payment->order()->firstOrFail());
+            $updatedOrder = $this->updateOrderAmounts($lockedOrder);
+
+            if ($shouldDecrementStock) {
+                $this->stockService->decrementOnVerifiedPayment($updatedOrder);
+            }
 
             $this->auditLogService->log(
                 user: $user,
@@ -160,28 +205,30 @@ class PaymentService
                 ipAddress: $ipAddress,
             );
 
-            return $payment->refresh();
+            return [
+                'payment' => $payment->refresh(),
+                'order' => $updatedOrder->refresh(),
+            ];
         });
 
-        if ($shouldDecrementStock) {
-            $this->stockService->decrementOnVerifiedPayment($order->refresh());
-        }
-
-        $refreshedOrder = $order->refresh();
-
         $this->notifyCustomer(
-            $refreshedOrder,
-            new PaymentVerifiedNotification($refreshedOrder, $verifiedPayment),
+            $verified['order'],
+            new PaymentVerifiedNotification($verified['order'], $verified['payment']),
         );
 
-        return $verifiedPayment;
+        return $verified['payment'];
     }
 
     public function reject(Payment $payment, User $user, string $reason, ?string $ipAddress = null): Payment
     {
-        $this->ensureTransferPending($payment);
-
         $rejectedPayment = DB::transaction(function () use ($payment, $user, $reason, $ipAddress): Payment {
+            $payment = Payment::query()
+                ->whereKey($payment->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $this->ensureTransferPending($payment);
+
             $payment->update([
                 'status' => PaymentStatus::Rejected,
                 'verified_by' => $user->id,
@@ -219,18 +266,23 @@ class PaymentService
 
     public function updateOrderAmounts(Order $order): Order
     {
-        $verifiedAmount = (float) $order->payments()
+        $lockedOrder = Order::query()
+            ->whereKey($order->id)
+            ->lockForUpdate()
+            ->firstOrFail();
+
+        $verifiedAmount = (float) $lockedOrder->payments()
             ->where('status', PaymentStatus::Verified)
             ->sum('amount');
 
-        $outstandingAmount = max((float) $order->total_amount - $verifiedAmount, 0);
+        $outstandingAmount = max((float) $lockedOrder->total_amount - $verifiedAmount, 0);
 
-        $order->update([
+        $lockedOrder->update([
             'paid_amount' => $verifiedAmount,
             'outstanding_amount' => $outstandingAmount,
         ]);
 
-        return $order->refresh();
+        return $lockedOrder->refresh();
     }
 
     protected function ensureTransferPending(Payment $payment): void
@@ -256,6 +308,50 @@ class PaymentService
             && ! $order->payments()
                 ->where('status', PaymentStatus::Verified)
                 ->exists();
+    }
+
+    protected function ensureCanUploadProof(Payment $payment): void
+    {
+        if ($payment->method !== PaymentMethod::Transfer) {
+            throw ValidationException::withMessages([
+                'payment' => 'Hanya pembayaran transfer yang dapat menerima bukti transfer.',
+            ]);
+        }
+
+        if (! in_array($payment->status, [PaymentStatus::PendingVerification, PaymentStatus::Rejected], true)) {
+            throw ValidationException::withMessages([
+                'payment' => 'Status pembayaran saat ini tidak dapat menerima upload bukti transfer.',
+            ]);
+        }
+
+        $orderStatus = $payment->order?->status;
+        if (in_array($orderStatus, [OrderStatus::Closed, OrderStatus::Cancelled], true)) {
+            throw ValidationException::withMessages([
+                'payment' => 'Order terkait sudah ditutup. Upload bukti transfer tidak diizinkan.',
+            ]);
+        }
+    }
+
+    protected function validateRecordAmount(Order $order, float $amount): void
+    {
+        if ($amount > (float) $order->outstanding_amount) {
+            throw ValidationException::withMessages([
+                'amount' => 'Nominal pembayaran tidak boleh melebihi sisa tagihan order.',
+            ]);
+        }
+    }
+
+    protected function ensureNoPendingVerificationExists(Order $order): void
+    {
+        $hasPendingVerification = $order->payments()
+            ->where('status', PaymentStatus::PendingVerification)
+            ->exists();
+
+        if ($hasPendingVerification) {
+            throw ValidationException::withMessages([
+                'payment' => 'Masih ada pembayaran yang menunggu verifikasi.',
+            ]);
+        }
     }
 
     protected function notifyCustomer(Order $order, Notification $notification): void

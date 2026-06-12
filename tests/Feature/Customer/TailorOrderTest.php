@@ -15,7 +15,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
-test('guest and authenticated customer can load tailor configurator with expected data', function () {
+test('guest is redirected from tailor configurator and customer can load expected data', function () {
     $user = User::factory()->customer()->create();
     $customer = $user->customer()->firstOrFail();
     $measurement = Measurement::factory()->for($customer)->create([
@@ -45,15 +45,7 @@ test('guest and authenticated customer can load tailor configurator with expecte
     ]);
 
     $this->get(route('customer.tailor.configure'))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('Customer/Tailor/Configurator')
-            ->where('customerMeta', null)
-            ->where('measurements', [])
-            ->has('garmentModels')
-            ->has('fabrics')
-            ->where('draft', null)
-        );
+        ->assertRedirect(route('login'));
 
     $this->actingAs($user)
         ->get(route('customer.tailor.configure'))
@@ -106,7 +98,7 @@ test('customer tailor submit uses backend pricing and loyalty discount', functio
                 'amount' => 280000,
                 'reference_number' => 'TRX-CUSTOMER-001',
                 'notes' => 'DP awal',
-                'proof' => UploadedFile::fake()->image('proof.jpg'),
+                'proof' => UploadedFile::fake()->image('.png'),
             ],
         ])
         ->assertRedirect();
@@ -179,7 +171,7 @@ test('customer can save draft and later submit it with manual measurement', func
                 'method' => PaymentMethod::Transfer->value,
                 'amount' => 150000,
                 'reference_number' => 'TRX-DRAFT-001',
-                'proof' => UploadedFile::fake()->image('draft-proof.jpg'),
+                'proof' => UploadedFile::fake()->image('.png'),
             ],
         ])
         ->assertRedirect();
@@ -222,7 +214,7 @@ test('customer tailor submit requires minimum fifty percent down payment', funct
                 'method' => PaymentMethod::Transfer->value,
                 'amount' => 150000,
                 'reference_number' => 'TRX-DP-LOW',
-                'proof' => UploadedFile::fake()->image('proof-low.jpg'),
+                'proof' => UploadedFile::fake()->image('.png'),
             ],
         ])
         ->assertSessionHasErrors('payment.amount');

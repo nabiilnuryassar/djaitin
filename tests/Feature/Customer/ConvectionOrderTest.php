@@ -52,7 +52,7 @@ test('customer can load convection create page and submit convection order with 
                 'amount' => 3200000,
                 'reference_number' => 'CNV-TRX-001',
                 'notes' => 'Pelunasan konveksi',
-                'proof' => UploadedFile::fake()->image('transfer-proof.jpg'),
+                'proof' => UploadedFile::fake()->image('.png'),
             ],
         ])
         ->assertRedirect();

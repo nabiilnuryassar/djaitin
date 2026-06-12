@@ -55,7 +55,7 @@ export function AppMobileBottomBar() {
             initial={{ y: 40, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 28 }}
         >
-            <div className="mx-auto flex max-w-md items-end justify-between rounded-2xl border border-white/10 bg-[#162044]/95 px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_8px_32px_rgba(22,32,68,0.28)] backdrop-blur-xl">
+            <div className="mx-auto flex max-w-md items-end justify-between rounded-2xl border border-white/10 bg-brand-navy/95 px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_8px_32px_rgba(22,32,68,0.28)] backdrop-blur-xl">
                 {navigationItems.slice(0, 2).map((item) => (
                     <NavItem
                         key={item.label}
@@ -66,7 +66,7 @@ export function AppMobileBottomBar() {
 
                 <Link
                     aria-label="Tambah order"
-                    className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#F9C11A] text-[#162044] shadow-[0_10px_24px_rgba(249,193,26,0.28)] transition-transform duration-200 active:scale-95"
+                    className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-brand-gold text-brand-navy shadow-[0_10px_24px_rgba(249,193,26,0.28)] transition-transform duration-200 active:scale-95"
                     href={tailor.create()}
                     prefetch
                 >
@@ -102,7 +102,7 @@ function NavItem({
         <Link
             className={cn(
                 'flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-2 py-1.5 text-xs font-medium transition-colors duration-200',
-                active ? 'text-[#F9C11A]' : 'text-white/80',
+                active ? 'text-brand-gold' : 'text-white/80',
             )}
             href={href}
             prefetch
@@ -111,7 +111,7 @@ function NavItem({
             <span
                 className={cn(
                     'h-1.5 w-1.5 rounded-full bg-transparent transition-colors duration-200',
-                    active && 'bg-[#F9C11A]',
+                    active && 'bg-brand-gold',
                 )}
             />
             <span>{label}</span>

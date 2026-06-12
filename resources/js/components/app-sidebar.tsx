@@ -3,10 +3,12 @@ import {
     Archive,
     ClipboardList,
     CreditCard,
+    Layers3,
     LayoutDashboard,
     PackageCheck,
     ScrollText,
     Shield,
+    Tag,
     Users,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
@@ -23,8 +25,8 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import office from '@/routes/office';
-import type { SharedPageProps } from '@/types/auth';
 import type { NavItem } from '@/types';
+import type { SharedPageProps } from '@/types/auth';
 
 export function AppSidebar() {
     const { auth } = usePage<SharedPageProps>().props;
@@ -74,11 +76,28 @@ export function AppSidebar() {
     ];
 
     if (role === 'admin' || role === 'owner') {
-        mainNavItems.push({
-            title: 'Admin',
-            href: office.admin.users.index(),
-            icon: Shield,
-        });
+        mainNavItems.push(
+            {
+                title: 'Pengguna',
+                href: office.admin.users.index(),
+                icon: Users,
+            },
+            {
+                title: 'Produk RTW',
+                href: office.admin.products.index(),
+                icon: PackageCheck,
+            },
+            {
+                title: 'Master Data',
+                href: office.admin.garmentModels.index(),
+                icon: Layers3,
+            },
+            {
+                title: 'Diskon Loyalitas',
+                href: office.admin.discounts.index(),
+                icon: Tag,
+            },
+        );
     }
 
     return (

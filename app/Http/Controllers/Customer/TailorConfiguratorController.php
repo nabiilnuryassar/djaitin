@@ -14,8 +14,7 @@ class TailorConfiguratorController extends Controller
 {
     public function __construct(
         protected LoyaltyService $loyaltyService,
-    ) {
-    }
+    ) {}
 
     public function __invoke(Request $request): Response
     {

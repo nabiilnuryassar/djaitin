@@ -1,4 +1,5 @@
 import { Form, Head, Link } from '@inertiajs/react';
+import { CreditCard, Inbox } from 'lucide-react';
 import DashboardController from '@/actions/App/Http/Controllers/Office/DashboardController';
 import { show as showOrder } from '@/actions/App/Http/Controllers/Office/OrderController';
 import {
@@ -6,17 +7,25 @@ import {
     reject as rejectPayment,
     verify as verifyPayment,
 } from '@/actions/App/Http/Controllers/Office/PaymentController';
-import InputError from '@/components/input-error';
+import refundPayment from '@/actions/App/Http/Controllers/Office/PaymentRefundController';
+import { EmptyState } from '@/components/office/empty-state';
+import { PageHeader } from '@/components/office/page-header';
+import { PremiumCard } from '@/components/office/premium-card';
+import { StatusBadge } from '@/components/office/status-badge';
 import { FlashMessage } from '@/components/flash-message';
+import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import OfficeLayout from '@/layouts/office-layout';
 import type { BreadcrumbItem } from '@/types';
 
@@ -37,6 +46,9 @@ type Payment = {
     };
     payment_date: string | null;
     verified_at: string | null;
+    refunded_at: string | null;
+    refunded_by_name: string | null;
+    refund_reason: string | null;
 };
 
 type Props = {
@@ -47,6 +59,7 @@ type Props = {
     can: {
         verify: boolean;
         reject: boolean;
+        refund: boolean;
     };
 };
 
@@ -64,23 +77,31 @@ export default function PaymentsIndex({
         <OfficeLayout breadcrumbs={breadcrumbs}>
             <Head title="Pembayaran" />
 
-            <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
+            <div className="flex flex-1 flex-col gap-6 bg-brand-mist p-4 md:p-6">
                 <FlashMessage />
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="[font-family:var(--font-heading)] text-xl font-semibold text-[#0F172A]">
-                            Pending verification
-                        </CardTitle>
-                        <CardDescription>
+                <PageHeader
+                    eyebrow="Pembayaran"
+                    title="Verifikasi & Riwayat Pembayaran"
+                    description="Validasi transfer pending dan kelola riwayat pembayaran order."
+                />
+
+                <PremiumCard padded={false}>
+                    <div className="border-b border-border/70 px-6 py-5">
+                        <h2 className="text-lg font-semibold text-brand-ink">
+                            Menunggu Verifikasi
+                        </h2>
+                        <p className="mt-1 text-sm text-muted-foreground">
                             Transfer yang masih menunggu validasi.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="grid gap-4">
+                        </p>
+                    </div>
+                    <div className="grid gap-4 p-5">
                         {pendingPayments.length === 0 ? (
-                            <div className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-                                Tidak ada transfer pending saat ini.
-                            </div>
+                            <EmptyState
+                                icon={CreditCard}
+                                title="Tidak ada transfer pending"
+                                description="Tidak ada transfer pending saat ini."
+                            />
                         ) : (
                             pendingPayments.map((payment) => (
                                 <PaymentCard
@@ -90,50 +111,76 @@ export default function PaymentsIndex({
                                 />
                             ))
                         )}
-                    </CardContent>
-                </Card>
+                    </div>
+                </PremiumCard>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="[font-family:var(--font-heading)] text-xl font-semibold text-[#0F172A]">
-                            Semua pembayaran
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="grid gap-3">
-                        {payments.data.map((payment) => (
-                            <div
-                                key={payment.id}
-                                className="flex flex-col gap-3 rounded-xl border p-4 md:flex-row md:items-center md:justify-between"
-                            >
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <p className="font-medium">
-                                            {payment.payment_number}
+                <PremiumCard padded={false}>
+                    <div className="border-b border-border/70 px-6 py-5">
+                        <h2 className="text-lg font-semibold text-brand-ink">
+                            Semua Pembayaran
+                        </h2>
+                    </div>
+                    <div className="grid gap-3 p-5">
+                        {payments.data.length === 0 ? (
+                            <EmptyState
+                                icon={Inbox}
+                                title="Belum ada pembayaran"
+                                description="Riwayat pembayaran akan tampil di sini."
+                            />
+                        ) : (
+                            payments.data.map((payment) => (
+                                <div
+                                    key={payment.id}
+                                    className="grid gap-4 rounded-2xl border border-border/70 bg-brand-mist/50 p-4 xl:grid-cols-[1fr_220px]"
+                                >
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <p className="font-semibold text-brand-ink">
+                                                {payment.payment_number}
+                                            </p>
+                                            <StatusBadge value={payment.status} domain="payment" />
+                                            <Badge variant="outline" className="rounded-full">
+                                                {payment.method}
+                                            </Badge>
+                                        </div>
+                                        <p className="mt-1 text-sm text-muted-foreground">
+                                            {payment.order.customer_name ?? '-'} ·{' '}
+                                            {payment.order.id ? (
+                                                <Link
+                                                    href={showOrder(
+                                                        payment.order.id,
+                                                    )}
+                                                    className="font-medium text-brand-blue underline-offset-4 hover:underline"
+                                                >
+                                                    {payment.order.order_number}
+                                                </Link>
+                                            ) : (
+                                                (payment.order.order_number ?? '-')
+                                            )}
                                         </p>
-                                        <Badge variant="secondary">
-                                            {payment.status}
-                                        </Badge>
-                                        <Badge variant="outline">
-                                            {payment.method}
-                                        </Badge>
+                                        <p className="text-sm font-semibold text-brand-ink">
+                                            {formatCurrency(payment.amount)}
+                                        </p>
+                                        <p className="text-muted-foreground">
+                                            {payment.payment_date ?? '-'}
+                                        </p>
+                                        {payment.status === 'refunded' && (
+                                            <RefundSummary payment={payment} />
+                                        )}
                                     </div>
-                                    <p className="mt-1 text-sm text-muted-foreground">
-                                        {payment.order.customer_name ?? '-'} ·{' '}
-                                        {payment.order.order_number ?? '-'}
-                                    </p>
+                                    <div className="grid content-start gap-3">
+                                        {can.refund &&
+                                            payment.status === 'verified' && (
+                                                <RefundPaymentDialog
+                                                    payment={payment}
+                                                />
+                                            )}
+                                    </div>
                                 </div>
-                                <div className="text-sm md:text-right">
-                                    <p className="font-medium">
-                                        {formatCurrency(payment.amount)}
-                                    </p>
-                                    <p className="text-muted-foreground">
-                                        {payment.payment_date ?? '-'}
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
+                            ))
+                        )}
+                    </div>
+                </PremiumCard>
             </div>
         </OfficeLayout>
     );
@@ -147,22 +194,23 @@ function PaymentCard({
     can: {
         verify: boolean;
         reject: boolean;
+        refund: boolean;
     };
 }) {
     return (
-        <div className="grid gap-4 rounded-xl border p-4 xl:grid-cols-[1fr_240px]">
+        <div className="grid gap-4 rounded-2xl border border-border/70 bg-brand-mist/50 p-4 xl:grid-cols-[1fr_240px]">
             <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                    <p className="font-medium">{payment.payment_number}</p>
-                    <Badge variant="secondary">{payment.status}</Badge>
-                    <Badge variant="outline">{payment.method}</Badge>
+                    <p className="font-semibold text-brand-ink">{payment.payment_number}</p>
+                    <StatusBadge value={payment.status} domain="payment" />
+                    <Badge variant="outline" className="rounded-full">{payment.method}</Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">
                     {payment.order.customer_name ?? '-'} ·{' '}
                     {payment.order.id ? (
                         <Link
                             href={showOrder(payment.order.id)}
-                            className="underline-offset-4 hover:underline"
+                            className="font-medium text-brand-blue underline-offset-4 hover:underline"
                         >
                             {payment.order.order_number}
                         </Link>
@@ -170,7 +218,7 @@ function PaymentCard({
                         (payment.order.order_number ?? '-')
                     )}
                 </p>
-                <p className="text-sm">{formatCurrency(payment.amount)}</p>
+                <p className="text-sm font-semibold text-brand-ink">{formatCurrency(payment.amount)}</p>
                 {payment.reference_number && (
                     <p className="text-sm text-muted-foreground">
                         Ref: {payment.reference_number}
@@ -185,7 +233,7 @@ function PaymentCard({
                         {({ processing }) => (
                             <Button
                                 type="submit"
-                                className="w-full"
+                                className="w-full rounded-xl bg-brand-blue text-white hover:bg-brand-blue-deep"
                                 disabled={processing}
                             >
                                 Verifikasi transfer
@@ -209,6 +257,7 @@ function PaymentCard({
                                 <Button
                                     type="submit"
                                     variant="destructive"
+                                    className="rounded-xl"
                                     disabled={processing}
                                 >
                                     Tolak transfer
@@ -218,6 +267,79 @@ function PaymentCard({
                     </Form>
                 )}
             </div>
+        </div>
+    );
+}
+
+function RefundPaymentDialog({ payment }: { payment: Payment }) {
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button type="button" variant="destructive" className="w-full rounded-xl">
+                    Refund
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="border-red-100 bg-white sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>Konfirmasi refund</DialogTitle>
+                    <DialogDescription>
+                        Refund akan mengubah status pembayaran, menghitung ulang
+                        nilai order, dan membatalkan order jika masih aktif.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div className="rounded-xl border border-red-100 bg-red-50/60 p-4 text-sm leading-6 text-red-900">
+                    <p className="font-semibold">{payment.payment_number}</p>
+                    <p>{formatCurrency(payment.amount)}</p>
+                    <p className="mt-1 text-red-700">
+                        Aksi ini dicatat di audit log office.
+                    </p>
+                </div>
+
+                <Form
+                    {...refundPayment.form(payment.id)}
+                    className="grid gap-3"
+                >
+                    {({ errors, processing }) => (
+                        <>
+                            <div className="grid gap-2">
+                                <Label htmlFor={`refund-reason-${payment.id}`}>
+                                    Alasan refund
+                                </Label>
+                                <textarea
+                                    id={`refund-reason-${payment.id}`}
+                                    name="reason"
+                                    placeholder="Contoh: Customer membatalkan pesanan."
+                                    className="min-h-24 rounded-md border bg-white px-3 py-2 text-sm"
+                                />
+                                <InputError message={errors.reason} />
+                            </div>
+                            <DialogFooter>
+                                <Button
+                                    type="submit"
+                                    variant="destructive"
+                                    disabled={processing}
+                                >
+                                    Konfirmasi refund
+                                </Button>
+                            </DialogFooter>
+                        </>
+                    )}
+                </Form>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function RefundSummary({ payment }: { payment: Payment }) {
+    return (
+        <div className="rounded-xl border border-red-100 bg-red-50/60 p-3 text-sm leading-6 text-red-900">
+            <p className="font-semibold">Refund tercatat</p>
+            <p>{payment.refund_reason ?? 'Alasan refund tidak tersedia.'}</p>
+            <p className="mt-1 text-xs text-red-700">
+                {payment.refunded_at ?? '-'} ·{' '}
+                {payment.refunded_by_name ?? 'Admin'}
+            </p>
         </div>
     );
 }
@@ -243,7 +365,7 @@ function PaymentProofPreview({ payment }: { payment: Payment }) {
                     href={payment.proof_image_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm font-medium text-[#2563EB] hover:bg-muted/60"
+                    className="inline-flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm font-medium text-brand-blue hover:bg-muted/60"
                 >
                     Buka bukti (PDF)
                 </a>
