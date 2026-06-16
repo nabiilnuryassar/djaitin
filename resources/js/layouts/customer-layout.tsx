@@ -46,36 +46,36 @@ export default function CustomerLayout({
     const customerNavigation: NavigationItem[] = [
         {
             label: 'Beranda',
-            href: isCustomer ? customer.dashboard() : customer.home(),
+            href: isCustomer ? customer.dashboard.url() : customer.home.url(),
             match: isCustomer ? customer.dashboard.url() : '/app',
         },
         {
             label: 'Tailor',
             href: isCustomer
-                ? customer.tailor.configure()
-                : customer.services.tailor(),
+                ? customer.tailor.configure.url()
+                : customer.services.tailor.url(),
             match: isCustomer
                 ? customer.tailor.configure.url()
                 : '/app/services/tailor',
         },
         {
             label: 'Katalog',
-            href: customer.catalog.index(),
+            href: customer.catalog.index.url(),
             match: '/app/catalog',
         },
         {
             label: 'Pesanan',
-            href: customer.orders.index(),
+            href: customer.orders.index.url(),
             match: '/app/orders',
         },
         {
             label: 'Pembayaran',
-            href: customer.payments.index(),
+            href: customer.payments.index.url(),
             match: '/app/payments',
         },
         {
             label: 'Profil',
-            href: customer.profile.edit({
+            href: customer.profile.edit.url({
                 query: { section: 'profile' },
             }),
             match: '/app/profile',

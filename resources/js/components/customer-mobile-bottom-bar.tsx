@@ -36,14 +36,13 @@ import { Separator } from '@/components/ui/separator';
 import {
     Sheet,
     SheetContent,
+    SheetDescription,
     SheetHeader,
     SheetTitle,
     SheetTrigger,
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
-import { login, logout } from '@/routes';
-import customer from '@/routes/customer';
-import office from '@/routes/office';
+import { login, logout, register } from '@/routes';
 import type { SharedPageProps } from '@/types/auth';
 
 type MobileBarProps = {
