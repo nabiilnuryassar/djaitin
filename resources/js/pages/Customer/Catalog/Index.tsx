@@ -1,4 +1,5 @@
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { FloatingCartButton } from '@/components/FloatingCartButton';
+import { useState } from 'react';
 import { ArrowRight, ShoppingBag, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -79,11 +80,24 @@ export default function CustomerCatalogIndex({
         );
     };
 
+    const [cartItemCount, setCartItemCount] = useState(0);
+    const [isAddingToCart, setIsAddingToCart] = useState(false);
+
     const addToCart = (productId: number) => {
+        setIsAddingToCart(true);
         router.post(
             customer.cart.items.store().url,
             { product_id: productId, qty: 1 },
-            { preserveScroll: true },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setCartItemCount((prev) => prev + 1);
+                    setTimeout(() => setIsAddingToCart(false), 600);
+                },
+                onError: () => {
+                    setIsAddingToCart(false);
+                },
+            },
         );
     };
 
@@ -351,6 +365,10 @@ export default function CustomerCatalogIndex({
                     ))}
                 </div>
             </div>
+            <FloatingCartButton
+                itemCount={cartItemCount}
+                isAnimating={isAddingToCart}
+            />
         </CustomerLayout>
     );
 }
