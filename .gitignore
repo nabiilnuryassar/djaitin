@@ -27,3 +27,7 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Test artifacts (stored outside repo)
+tests/automation/screenshots/
+tests/automation/test-report.json

@@ -10,8 +10,8 @@ const fs = require('fs');
 const path = require('path');
 
 const BASE_URL = 'http://localhost:8004';
-const SCREENSHOT_DIR = path.join(__dirname, 'screenshots');
-
+const TEST_RESULTS_DIR = path.join(require('os').homedir(), 'djaitin-test-results');
+const SCREENSHOT_DIR = path.join(TEST_RESULTS_DIR, 'screenshots');
 // Ensure screenshot directory exists
 if (!fs.existsSync(SCREENSHOT_DIR)) {
     fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
@@ -397,7 +397,6 @@ async function runP0Tests() {
         await testOfficeDashboard(page);
         await testOfficeOrdersList(page);
         await testOfficePaymentsList(page);
-        
     } finally {
         await browser.close();
     }
@@ -426,7 +425,7 @@ async function runP0Tests() {
     }
     
     // Save detailed report
-    const reportPath = path.join(__dirname, 'test-report.json');
+    const reportPath = path.join(TEST_RESULTS_DIR, 'test-report.json');
     fs.writeFileSync(reportPath, JSON.stringify({
         timestamp: new Date().toISOString(),
         summary: { total, passed, failed, skipped },
