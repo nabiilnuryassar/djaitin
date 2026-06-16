@@ -28,7 +28,11 @@ type NavigationItem = {
     match: string;
 };
 
-export default function CustomerLayout({ children }: { children: React.ReactNode }) {
+export default function CustomerLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
     useForceLightTheme();
 
     const page = usePage<SharedPageProps>();
@@ -86,7 +90,7 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
     return (
         <div className="min-h-screen bg-[#eef3fb] bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.12),_transparent_32%),linear-gradient(180deg,_#f7f9fe_0%,_#eef3fb_100%)] pb-[env(safe-area-inset-bottom)] text-[#0F172A]">
             <AppToaster />
-            
+
             <header className="sticky top-0 z-20 border-b border-white/60 bg-white/78 backdrop-blur-xl">
                 <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -178,12 +182,16 @@ export default function CustomerLayout({ children }: { children: React.ReactNode
                 pageProps={page.props}
             />
 
-            <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+            <AlertDialog
+                open={showLogoutDialog}
+                onOpenChange={setShowLogoutDialog}
+            >
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Konfirmasi Logout</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Apakah Anda yakin ingin keluar dari akun Anda? Anda perlu login kembali untuk mengakses fitur.
+                            Apakah Anda yakin ingin keluar dari akun Anda? Anda
+                            perlu login kembali untuk mengakses fitur.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

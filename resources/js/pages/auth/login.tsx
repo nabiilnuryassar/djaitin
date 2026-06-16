@@ -1,4 +1,6 @@
 import { Form, Head } from '@inertiajs/react';
+import { LockKeyhole, Mail, Eye, EyeOff } from 'lucide-react';
+import { useState } from 'react';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -21,10 +23,12 @@ export default function Login({
     canResetPassword,
     canRegister,
 }: Props) {
+    const [showPassword, setShowPassword] = useState(false);
+
     return (
         <AuthLayout
-            title="Log in to your account"
-            description="Enter your email and password below to log in"
+            title="Welcome Back"
+            description="Masuk ke akun Djaitin Anda untuk melanjutkan."
         >
             <Head title="Log in" />
 
@@ -35,65 +39,111 @@ export default function Login({
             >
                 {({ processing, errors }) => (
                     <>
-                        <div className="grid gap-6">
+                        <div className="grid gap-5">
+                            {/* Email Field */}
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    name="email"
-                                    required
-                                    autoFocus
-                                    tabIndex={1}
-                                    autoComplete="email"
-                                    placeholder="email@example.com"
-                                />
+                                <Label htmlFor="email">
+                                    Email
+                                </Label>
+                                <div className="relative">
+                                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[#123c78]/40">
+                                        <Mail className="h-4 w-4" />
+                                    </div>
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        name="email"
+                                        required
+                                        autoFocus
+                                        tabIndex={1}
+                                        autoComplete="email"
+                                        placeholder="email@example.com"
+                                        className="border-[#dbe4f5] bg-white/80 pl-10 text-[#0F172A] transition-all duration-200 placeholder:text-[#94A3B8] focus:border-[#2a6bb2] focus:bg-white focus:ring-2 focus:ring-[#2a6bb2]/10"
+                                    />
+                                </div>
                                 <InputError message={errors.email} />
                             </div>
 
+                            {/* Password Field */}
                             <div className="grid gap-2">
                                 <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
+                                    <Label htmlFor="password">
+                                        Password
+                                    </Label>
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
-                                            className="ml-auto text-sm"
+                                            className="ml-auto text-sm font-medium text-[#2a6bb2] hover:text-[#123c78]"
                                             tabIndex={5}
                                         >
-                                            Forgot password?
+                                            Lupa password?
                                         </TextLink>
                                     )}
                                 </div>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    name="password"
-                                    required
-                                    tabIndex={2}
-                                    autoComplete="current-password"
-                                    placeholder="Password"
-                                />
+                                <div className="relative">
+                                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[#123c78]/40">
+                                        <LockKeyhole className="h-4 w-4" />
+                                    </div>
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? 'text' : 'password'}
+                                        name="password"
+                                        required
+                                        tabIndex={2}
+                                        autoComplete="current-password"
+                                        placeholder="Masukkan password"
+                                        className="border-[#dbe4f5] bg-white/80 pl-10 pr-10 text-[#0F172A] transition-all duration-200 placeholder:text-[#94A3B8] focus:border-[#2a6bb2] focus:bg-white focus:ring-2 focus:ring-[#2a6bb2]/10"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setShowPassword(!showPassword)
+                                        }
+                                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#123c78]/40 hover:text-[#123c78]/60"
+                                        tabIndex={-1}
+                                    >
+                                        {showPassword ? (
+                                            <EyeOff className="h-4 w-4" />
+                                        ) : (
+                                            <Eye className="h-4 w-4" />
+                                        )}
+                                    </button>
+                                </div>
                                 <InputError message={errors.password} />
                             </div>
 
-                            <div className="flex items-center space-x-3">
+                            {/* Remember Me */}
+                            <div className="flex items-center gap-3">
                                 <Checkbox
                                     id="remember"
                                     name="remember"
                                     tabIndex={3}
+                                    className="border-[#dbe4f5] text-[#2a6bb2] data-[state=checked]:bg-[#2a6bb2] data-[state=checked]:border-[#2a6bb2]"
                                 />
-                                <Label htmlFor="remember">Remember me</Label>
+                                <Label
+                                    htmlFor="remember"
+                                    className="cursor-pointer text-sm text-[#64748B]"
+                                >
+                                    Ingat saya
+                                </Label>
                             </div>
 
+                            {/* Submit Button */}
                             <Button
                                 type="submit"
-                                className="mt-4 w-full"
+                                className="mt-2 w-full rounded-xl bg-gradient-to-r from-[#123c78] to-[#2a6bb2] py-6 text-base font-semibold text-white shadow-lg shadow-[#123c78]/20 transition-all duration-300 hover:from-[#123c78] hover:to-[#2a6bb2] hover:shadow-xl hover:shadow-[#123c78]/30 active:scale-[0.98] disabled:opacity-60"
                                 tabIndex={4}
                                 disabled={processing}
                                 data-test="login-button"
                             >
-                                {processing && <Spinner />}
-                                Log in
+                                {processing ? (
+                                    <span className="flex items-center gap-2">
+                                        <Spinner className="h-5 w-5" />
+                                        Memproses...
+                                    </span>
+                                ) : (
+                                    'Masuk'
+                                )}
                             </Button>
                         </div>
                     </>
@@ -101,15 +151,18 @@ export default function Login({
             </Form>
 
             {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
+                <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm font-medium text-emerald-700">
                     {status}
                 </div>
             )}
 
             {canRegister && (
-                <div className="text-center text-sm text-muted-foreground">
+                <div className="text-center text-sm text-[#64748B]">
                     Belum punya akun?{' '}
-                    <TextLink href="/register">
+                    <TextLink
+                        href="/register"
+                        className="font-semibold text-[#2a6bb2] hover:text-[#123c78]"
+                    >
                         Daftar sebagai customer
                     </TextLink>
                 </div>

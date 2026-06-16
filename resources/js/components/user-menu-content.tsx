@@ -71,7 +71,10 @@ export function UserMenuContent({ user }: Props) {
                 </Link>
             </DropdownMenuItem>
 
-            <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+            <AlertDialog
+                open={showLogoutDialog}
+                onOpenChange={setShowLogoutDialog}
+            >
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Konfirmasi Logout</AlertDialogTitle>
