@@ -128,6 +128,108 @@ curl http://localhost:8000
 - Aplikasi accessible di `http://localhost:8000`
 - No error logs critical
 
+
+## Fresh Install vs Update Production
+
+### Skenario 1: Fresh Install Pertama Kali (Database Kosong)
+
+Gunakan ini saat deploy pertama kali ke server baru atau database masih kosong:
+
+```bash
+# 1. Setup .env.docker dengan config production
+cp .env.docker.example .env.docker
+nano .env.docker
+```
+
+Konfigurasi minimum `.env.docker`:
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://domain-production.com
+APP_PORT=8000
+
+DB_CONNECTION=pgsql
+DB_HOST=postgres
+DB_PORT=5432
+DB_DATABASE=djaitin
+DB_USERNAME=postgres
+DB_PASSWORD=your_strong_password
+```
+
+```bash
+# 2. Build dan start containers
+docker compose --env-file .env.docker up -d --build
+
+# 3. Generate APP_KEY
+docker compose --env-file .env.docker exec app php artisan key:generate
+
+# 4. Jalankan migrate:fresh dengan seed (AMAN karena database masih kosong)
+docker compose --env-file .env.docker exec app php artisan migrate:fresh --seed --force
+
+# 5. Optimize
+docker compose --env-file .env.docker exec app php artisan optimize
+docker compose --env-file .env.docker exec app php artisan queue:restart
+```
+
+### Skenario 2: Sudah Ada Data di Production (UPDATE BUKAN FRESH)
+
+**PERINGATAN: JANGAN pakai `migrate:fresh`** karena akan menghapus semua data!
+
+```bash
+# 1. Backup database dulu
+docker compose --env-file .env.docker exec postgres pg_dump -U postgres djaitin > backup-$(date +%Y%m%d-%H%M%S).sql
+
+# 2. Pull latest code
+git pull origin main
+
+# 3. Maintenance mode
+docker compose --env-file .env.docker exec app php artisan down
+
+# 4. Rebuild containers
+docker compose --env-file .env.docker build --pull
+docker compose --env-file .env.docker up -d
+
+# 5. Jalankan migrate biasa (BUKAN fresh)
+docker compose --env-file .env.docker exec app php artisan migrate --force
+
+# 6. Seed data tambahan (jika ada seeder baru)
+docker compose --env-file .env.docker exec app php artisan db:seed --class=ProductionStarterSeeder --force
+
+# 7. Clear cache dan optimize
+docker compose --env-file .env.docker exec app php artisan optimize:clear
+docker compose --env-file .env.docker exec app php artisan optimize
+docker compose --env-file .env.docker exec app php artisan queue:restart
+docker compose --env-file .env.docker restart worker
+
+# 8. Exit maintenance mode
+docker compose --env-file .env.docker exec app php artisan up
+```
+
+### Skenario 3: Emergency Reset Total di Production
+
+Gunakan ini HANYA jika data corrupt atau staging environment yang perlu reset:
+
+```bash
+# 1. BACKUP DULU! (WAJIB!)
+docker compose --env-file .env.docker exec postgres pg_dump -U postgres djaitin > backup-before-reset-$(date +%Y%m%d-%H%M%S).sql
+
+# 2. Maintenance mode
+docker compose --env-file .env.docker exec app php artisan down
+
+# 3. Reset database dengan seed
+docker compose --env-file .env.docker exec app php artisan migrate:fresh --seed --force
+
+# 4. Optimize
+docker compose --env-file .env.docker exec app php artisan optimize
+
+# 5. Exit maintenance
+docker compose --env-file .env.docker exec app php artisan up
+```
+
+**Rekomendasi:**
+- Production baru pertama kali deploy → pakai **Skenario 1**
+- Production sudah jalan dan ada data → pakai **Skenario 2**
+- Mau reset total → backup dulu, baru reset (**Skenario 3**)
 ## Setup SSL/TLS (Production)
 
 Djaitin tidak include SSL langsung. Gunakan reverse proxy:
