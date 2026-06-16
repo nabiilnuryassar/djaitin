@@ -1,3 +1,4 @@
+import { Head, Link, router, usePage, useForm } from '@inertiajs/react';
 import { FloatingCartButton } from '@/components/FloatingCartButton';
 import { useState } from 'react';
 import { ArrowRight, ShoppingBag, ShoppingCart } from 'lucide-react';
