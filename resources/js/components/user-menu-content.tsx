@@ -1,17 +1,5 @@
-import { Link, router } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { LogOut, Settings } from 'lucide-react';
-import { useState } from 'react';
-import { createPortal } from 'react-dom';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -20,23 +8,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
-import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
 
 type Props = {
     user: User;
+    onLogoutClick: () => void;
 };
 
-export function UserMenuContent({ user }: Props) {
+export function UserMenuContent({ user, onLogoutClick }: Props) {
     const cleanup = useMobileNavigation();
-    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-
-    const handleLogout = () => {
-        cleanup();
-        setShowLogoutDialog(false);
-        router.post(logout().url);
-    };
 
     return (
         <>
@@ -60,46 +41,17 @@ export function UserMenuContent({ user }: Props) {
                 </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-                <Link
-                    className="block w-full cursor-pointer"
-                    as="button"
-                    onClick={() => setShowLogoutDialog(true)}
-                    data-test="logout-button"
-                >
-                    <LogOut className="mr-2" />
-                    Log out
-                </Link>
+            <DropdownMenuItem
+                className="block w-full cursor-pointer"
+                onSelect={(e) => {
+                    e.preventDefault();
+                    onLogoutClick();
+                }}
+                data-test="logout-button"
+            >
+                <LogOut className="mr-2" />
+                Log out
             </DropdownMenuItem>
-
-            {typeof document !== 'undefined' &&
-                createPortal(
-                    <AlertDialog
-                        open={showLogoutDialog}
-                        onOpenChange={setShowLogoutDialog}
-                    >
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                    Konfirmasi Logout
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Apakah Anda yakin ingin keluar dari akun
-                                    Anda?
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>
-                                    Batal
-                                </AlertDialogCancel>
-                                <AlertDialogAction onClick={handleLogout}>
-                                    Ya, Keluar
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>,
-                    document.body,
-                )}
         </>
     );
 }

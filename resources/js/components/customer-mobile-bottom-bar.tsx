@@ -14,6 +14,7 @@ import {
     ShoppingBag,
     ShoppingCart,
     User,
+    UserCircle2,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
