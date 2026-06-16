@@ -1,16 +1,17 @@
 import { Link, router } from '@inertiajs/react';
 import {
+    ClipboardList,
+    FileText,
     Home,
     LogIn,
     LogOut,
-    Ruler,
-    ShoppingBag,
-    Shirt,
-    ShoppingCart,
-    Percent,
-    FileText,
-    User,
     Menu,
+    Percent,
+    Ruler,
+    Shirt,
+    ShoppingBag,
+    ShoppingCart,
+    User,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState } from 'react';
