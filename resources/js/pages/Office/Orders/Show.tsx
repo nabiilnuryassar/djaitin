@@ -1,6 +1,6 @@
 import { Form, Head, useForm } from '@inertiajs/react';
-import { useState } from 'react';
 import { Inbox } from 'lucide-react';
+import { useState } from 'react';
 import DashboardController from '@/actions/App/Http/Controllers/Office/DashboardController';
 import {
     index as ordersIndex,
@@ -16,6 +16,12 @@ import {
 import refundPayment from '@/actions/App/Http/Controllers/Office/PaymentRefundController';
 import { FlashMessage } from '@/components/flash-message';
 import InputError from '@/components/input-error';
+import { EmptyState } from '@/components/office/empty-state';
+import { PageHeader } from '@/components/office/page-header';
+import { PremiumCard } from '@/components/office/premium-card';
+import { SectionShell } from '@/components/office/section-shell';
+import { SegmentedTabs } from '@/components/office/segmented-tabs';
+import { StatusBadge } from '@/components/office/status-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,12 +44,6 @@ import { kwitansi as printReceiptRoute } from '@/routes/office/payments';
 import type { BreadcrumbItem } from '@/types';
 
 // Office Primitives
-import { PageHeader } from '@/components/office/page-header';
-import { PremiumCard } from '@/components/office/premium-card';
-import { SegmentedTabs } from '@/components/office/segmented-tabs';
-import { SectionShell } from '@/components/office/section-shell';
-import { StatusBadge } from '@/components/office/status-badge';
-import { EmptyState } from '@/components/office/empty-state';
 
 type Payment = {
     id: number;

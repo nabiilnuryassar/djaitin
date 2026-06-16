@@ -1,5 +1,5 @@
-const pptxgen = require('pptxgenjs');
 const path = require('path');
+const pptxgen = require('pptxgenjs');
 
 const ROOT = '/mnt/c/laragon/www/djaitin/docs/presentation/Presentasi-Djaitin';
 const LOGO = path.join(ROOT, 'diagrams/logo-djaitin.png');

@@ -1,6 +1,11 @@
 import { Head, Link, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import DashboardController from '@/actions/App/Http/Controllers/Office/DashboardController';
+import { DataTable, DataTableHead, DataTableBody, DataTableCell, DataTableHeaderCell } from '@/components/office/data-table';
+import { PageHeader } from '@/components/office/page-header';
+import { PremiumCard } from '@/components/office/premium-card';
+import { SegmentedTabs } from '@/components/office/segmented-tabs';
+import { StatusBadge } from '@/components/office/status-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import OfficeLayout from '@/layouts/office-layout';
@@ -8,11 +13,6 @@ import office from '@/routes/office';
 import type { BreadcrumbItem } from '@/types';
 
 // Office Primitives
-import { PageHeader } from '@/components/office/page-header';
-import { SegmentedTabs } from '@/components/office/segmented-tabs';
-import { PremiumCard } from '@/components/office/premium-card';
-import { DataTable, DataTableHead, DataTableBody, DataTableCell, DataTableHeaderCell } from '@/components/office/data-table';
-import { StatusBadge } from '@/components/office/status-badge';
 
 type BaseItem = {
     id: number;

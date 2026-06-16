@@ -1,5 +1,5 @@
+import type {ReactNode} from 'react';
 import { PremiumCard } from '@/components/office/premium-card';
-import { type ReactNode } from 'react';
 
 interface FilterBarProps {
     children: ReactNode;

@@ -1,4 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Users } from 'lucide-react';
 import {
     create as createCustomer,
     index as customersIndex,
@@ -6,15 +7,14 @@ import {
 } from '@/actions/App/Http/Controllers/Office/CustomerController';
 import DashboardController from '@/actions/App/Http/Controllers/Office/DashboardController';
 import { FlashMessage } from '@/components/flash-message';
+import { EmptyState } from '@/components/office/empty-state';
+import { FilterBar } from '@/components/office/filter-bar';
+import { PageHeader } from '@/components/office/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { PageHeader } from '@/components/office/page-header';
-import { FilterBar } from '@/components/office/filter-bar';
-import { EmptyState } from '@/components/office/empty-state';
 import OfficeLayout from '@/layouts/office-layout';
 import type { BreadcrumbItem } from '@/types';
-import { Users } from 'lucide-react';
 
 type Props = {
     filters: {

@@ -1,4 +1,5 @@
 import { Head, router } from '@inertiajs/react';
+import { TrendingUp, CreditCard, Users, AlertTriangle, Inbox } from 'lucide-react';
 import { useState } from 'react';
 import {
     Bar,
@@ -12,21 +13,20 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
-import { TrendingUp, CreditCard, Users, AlertTriangle, Inbox } from 'lucide-react';
 import DashboardController from '@/actions/App/Http/Controllers/Office/DashboardController';
-import { Button } from '@/components/ui/button';
-import OfficeLayout from '@/layouts/office-layout';
-import office from '@/routes/office';
-import type { BreadcrumbItem } from '@/types';
-import { cn } from '@/lib/utils';
-
-// Office Primitives
-import { PageHeader } from '@/components/office/page-header';
+import { EmptyState } from '@/components/office/empty-state';
 import { FilterBar } from '@/components/office/filter-bar';
 import { KpiTile } from '@/components/office/kpi-tile';
+import { PageHeader } from '@/components/office/page-header';
 import { PremiumCard } from '@/components/office/premium-card';
 import { SegmentedTabs } from '@/components/office/segmented-tabs';
-import { EmptyState } from '@/components/office/empty-state';
+import { Button } from '@/components/ui/button';
+import OfficeLayout from '@/layouts/office-layout';
+import { cn } from '@/lib/utils';
+import office from '@/routes/office';
+import type { BreadcrumbItem } from '@/types';
+
+// Office Primitives
 
 type Props = {
     filters: {

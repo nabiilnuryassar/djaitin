@@ -1,16 +1,16 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Inbox } from 'lucide-react';
 import DashboardController from '@/actions/App/Http/Controllers/Office/DashboardController';
+import { EmptyState } from '@/components/office/empty-state';
+import { FilterBar } from '@/components/office/filter-bar';
+import { PageHeader } from '@/components/office/page-header';
+import { OfficePagination } from '@/components/office/pagination';
 import { Button } from '@/components/ui/button';
 import OfficeLayout from '@/layouts/office-layout';
 import office from '@/routes/office';
 import type { BreadcrumbItem } from '@/types';
 
 // Office Primitives
-import { PageHeader } from '@/components/office/page-header';
-import { FilterBar } from '@/components/office/filter-bar';
-import { EmptyState } from '@/components/office/empty-state';
-import { OfficePagination } from '@/components/office/pagination';
 
 type PaginationLink = {
     url: string | null;

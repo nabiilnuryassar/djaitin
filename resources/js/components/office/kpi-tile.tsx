@@ -1,6 +1,6 @@
+import type {LucideIcon} from 'lucide-react';
 import { PremiumCard } from '@/components/office/premium-card';
 import { cn } from '@/lib/utils';
-import { type LucideIcon } from 'lucide-react';
 
 interface KpiTileProps {
     label: string;

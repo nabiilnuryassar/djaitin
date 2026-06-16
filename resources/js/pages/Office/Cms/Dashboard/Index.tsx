@@ -1,11 +1,11 @@
 import { Head, Link } from '@inertiajs/react';
 import { LayoutGrid, PackageCheck, Layers3 } from 'lucide-react';
+import { PageHeader } from '@/components/office/page-header';
+import { PremiumCard } from '@/components/office/premium-card';
 import OfficeLayout from '@/layouts/office-layout';
 import office from '@/routes/office';
 
 // Office Primitives
-import { PageHeader } from '@/components/office/page-header';
-import { PremiumCard } from '@/components/office/premium-card';
 
 const breadcrumbs = [{ title: 'CMS', href: '/cms/dashboard' }];
 

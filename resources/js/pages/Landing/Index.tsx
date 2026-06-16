@@ -39,12 +39,12 @@ import readyToWearImage from '../../../images/card-image/ready-to-wear.jpg';
 import catalogBatikImage from '../../../images/generated/catalog-product-batik.jpg';
 import catalogCasualImage from '../../../images/generated/catalog-product-casual.jpg';
 import catalogUniformImage from '../../../images/generated/catalog-product-uniform.jpg';
+import bannerImage from '../../../images/generated/landing-banner.png';
 import { CountUpStat } from './components/CountUpStat';
 import { FloatingNavbar } from './components/FloatingNavbar';
 import { LenisProvider } from './components/LenisProvider';
 import { TextReveal } from './components/TextReveal';
 import type { LandingNavItem } from './types';
-import bannerImage from '../../../images/generated/landing-banner.png';
 
 type LandingPageProps = {
     brand: {

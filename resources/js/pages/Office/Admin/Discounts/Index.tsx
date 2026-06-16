@@ -2,15 +2,15 @@ import { Head } from '@inertiajs/react';
 import { Inbox } from 'lucide-react';
 import DashboardController from '@/actions/App/Http/Controllers/Office/DashboardController';
 import { FlashMessage } from '@/components/flash-message';
+import { EmptyState } from '@/components/office/empty-state';
+import { PageHeader } from '@/components/office/page-header';
+import { SectionShell } from '@/components/office/section-shell';
 import { Button } from '@/components/ui/button';
 import OfficeLayout from '@/layouts/office-layout';
 import office from '@/routes/office';
 import type { BreadcrumbItem } from '@/types';
 
 // Office Primitives
-import { PageHeader } from '@/components/office/page-header';
-import { SectionShell } from '@/components/office/section-shell';
-import { EmptyState } from '@/components/office/empty-state';
 
 type Props = {
     policyId: number;

@@ -1,6 +1,21 @@
 import { Link, router } from '@inertiajs/react';
-import { Home, LogIn, LogOut, Ruler, ShoppingBag, Shirt, ShoppingCart, Percent, FileText, User, Menu } from 'lucide-react';
+import {
+    Home,
+    LogIn,
+    LogOut,
+    Ruler,
+    ShoppingBag,
+    Shirt,
+    ShoppingCart,
+    Percent,
+    FileText,
+    User,
+    Menu,
+} from 'lucide-react';
+import { motion } from 'motion/react';
 import { useState } from 'react';
+import { useMemo } from 'react';
+import type { ReactNode } from 'react';
 import { CustomerNotificationPopover } from '@/components/customer-notification-popover';
 import {
     AlertDialog,
@@ -13,16 +28,19 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { login, logout } from '@/routes';
 import customer from '@/routes/customer';
 import office from '@/routes/office';
 import type { SharedPageProps } from '@/types/auth';
-import { motion } from 'motion/react';
-import { useMemo } from 'react';
-import type { ReactNode } from 'react';
 
 type MobileBarProps = {
     currentUrl: string;
@@ -262,7 +280,10 @@ export function CustomerMobileBottomBar({
                 title="Menu Akun"
             />
 
-            <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+            <AlertDialog
+                open={showLogoutDialog}
+                onOpenChange={setShowLogoutDialog}
+            >
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Konfirmasi Logout</AlertDialogTitle>
@@ -272,7 +293,9 @@ export function CustomerMobileBottomBar({
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Batal</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => router.post(logout())}>
+                        <AlertDialogAction
+                            onClick={() => router.post(logout())}
+                        >
                             Ya, Keluar
                         </AlertDialogAction>
                     </AlertDialogFooter>

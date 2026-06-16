@@ -1,4 +1,5 @@
 import { Form, Head, Link } from '@inertiajs/react';
+import { Ruler, ShoppingBag, History, User } from 'lucide-react';
 import {
     index as customersIndex,
     show as showCustomer,
@@ -12,16 +13,15 @@ import {
 import { show as showOrder } from '@/actions/App/Http/Controllers/Office/OrderController';
 import { FlashMessage } from '@/components/flash-message';
 import InputError from '@/components/input-error';
+import { EmptyState } from '@/components/office/empty-state';
+import { PageHeader } from '@/components/office/page-header';
+import { PremiumCard } from '@/components/office/premium-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PageHeader } from '@/components/office/page-header';
-import { PremiumCard } from '@/components/office/premium-card';
-import { EmptyState } from '@/components/office/empty-state';
 import OfficeLayout from '@/layouts/office-layout';
 import type { BreadcrumbItem } from '@/types';
-import { Ruler, ShoppingBag, History, User } from 'lucide-react';
 
 type Measurement = {
     id: number;

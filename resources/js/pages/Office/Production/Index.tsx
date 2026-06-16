@@ -2,19 +2,19 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Inbox, ClipboardList } from 'lucide-react';
 import DashboardController from '@/actions/App/Http/Controllers/Office/DashboardController';
 import { FlashMessage } from '@/components/flash-message';
+import { EmptyState } from '@/components/office/empty-state';
+import { FilterBar } from '@/components/office/filter-bar';
+import { PageHeader } from '@/components/office/page-header';
+import { PremiumCard } from '@/components/office/premium-card';
+import { StatusBadge } from '@/components/office/status-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import OfficeLayout from '@/layouts/office-layout';
+import { cn } from '@/lib/utils';
 import office from '@/routes/office';
 import type { BreadcrumbItem } from '@/types';
-import { cn } from '@/lib/utils';
 
 // Office Primitives
-import { PageHeader } from '@/components/office/page-header';
-import { FilterBar } from '@/components/office/filter-bar';
-import { StatusBadge } from '@/components/office/status-badge';
-import { EmptyState } from '@/components/office/empty-state';
-import { PremiumCard } from '@/components/office/premium-card';
 
 type Props = {
     filters: {

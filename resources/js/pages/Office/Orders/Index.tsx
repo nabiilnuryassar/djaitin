@@ -6,11 +6,11 @@ import {
     index as ordersIndex,
     show as showOrder,
 } from '@/actions/App/Http/Controllers/Office/OrderController';
+import { FlashMessage } from '@/components/flash-message';
 import { EmptyState } from '@/components/office/empty-state';
 import { FilterBar } from '@/components/office/filter-bar';
 import { PageHeader } from '@/components/office/page-header';
 import { StatusBadge } from '@/components/office/status-badge';
-import { FlashMessage } from '@/components/flash-message';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

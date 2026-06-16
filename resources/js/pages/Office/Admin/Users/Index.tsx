@@ -1,8 +1,14 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { useState } from 'react';
 import { Inbox } from 'lucide-react';
+import { useState } from 'react';
 import DashboardController from '@/actions/App/Http/Controllers/Office/DashboardController';
 import { FlashMessage } from '@/components/flash-message';
+import { DataTable, DataTableHead, DataTableBody, DataTableCell, DataTableHeaderCell } from '@/components/office/data-table';
+import { EmptyState } from '@/components/office/empty-state';
+import { FilterBar } from '@/components/office/filter-bar';
+import { PageHeader } from '@/components/office/page-header';
+import { OfficePagination } from '@/components/office/pagination';
+import { StatusBadge } from '@/components/office/status-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,12 +24,6 @@ import office from '@/routes/office';
 import type { BreadcrumbItem } from '@/types';
 
 // Office Primitives
-import { PageHeader } from '@/components/office/page-header';
-import { FilterBar } from '@/components/office/filter-bar';
-import { StatusBadge } from '@/components/office/status-badge';
-import { EmptyState } from '@/components/office/empty-state';
-import { DataTable, DataTableHead, DataTableBody, DataTableCell, DataTableHeaderCell } from '@/components/office/data-table';
-import { OfficePagination } from '@/components/office/pagination';
 
 type PaginationLink = {
     url: string | null;

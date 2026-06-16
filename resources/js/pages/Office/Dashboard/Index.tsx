@@ -17,12 +17,12 @@ import {
     index as ordersIndex,
     show as showOrder,
 } from '@/actions/App/Http/Controllers/Office/OrderController';
+import { FlashMessage } from '@/components/flash-message';
 import { EmptyState } from '@/components/office/empty-state';
 import { KpiTile } from '@/components/office/kpi-tile';
 import { PageHeader } from '@/components/office/page-header';
 import { PremiumCard } from '@/components/office/premium-card';
 import { StatusBadge } from '@/components/office/status-badge';
-import { FlashMessage } from '@/components/flash-message';
 import { Button } from '@/components/ui/button';
 import OfficeLayout from '@/layouts/office-layout';
 import { cn } from '@/lib/utils';

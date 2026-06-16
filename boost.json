@@ -5,12 +5,15 @@
         "gemini",
         "opencode"
     ],
+    "cloud": false,
     "guidelines": true,
     "herd_mcp": false,
     "mcp": true,
     "nightwatch_mcp": false,
     "sail": false,
     "skills": [
+        "fortify-development",
+        "laravel-best-practices",
         "wayfinder-development",
         "pest-testing",
         "inertia-react-development",
