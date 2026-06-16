@@ -101,7 +101,7 @@ class DemoSeeder extends Seeder
             ['name' => 'Katun Premium'],
             [
                 'description' => 'Bahan lembut untuk kebutuhan harian',
-                'price_per_meter' => 75000,
+                'price_adjustment' => 15000,
                 'is_active' => true,
             ]
         );
@@ -110,7 +110,7 @@ class DemoSeeder extends Seeder
             ['name' => 'Drill Premium'],
             [
                 'description' => 'Bahan kuat untuk seragam dan jaket',
-                'price_per_meter' => 85000,
+                'price_adjustment' => 25000,
                 'is_active' => true,
             ]
         );
@@ -119,7 +119,7 @@ class DemoSeeder extends Seeder
             ['name' => 'Linen Exclusive'],
             [
                 'description' => 'Bahan premium untuk kemeja eksklusif',
-                'price_per_meter' => 120000,
+                'price_adjustment' => 30000,
                 'is_active' => true,
             ]
         );
