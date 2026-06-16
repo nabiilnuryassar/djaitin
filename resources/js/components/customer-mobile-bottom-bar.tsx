@@ -1,6 +1,7 @@
 import { Link, router } from '@inertiajs/react';
 import {
     ClipboardList,
+    CreditCard,
     FileText,
     Home,
     LogIn,

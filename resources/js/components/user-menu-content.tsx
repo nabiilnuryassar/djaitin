@@ -1,6 +1,7 @@
 import { Link, router } from '@inertiajs/react';
 import { LogOut, Settings } from 'lucide-react';
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -71,25 +72,34 @@ export function UserMenuContent({ user }: Props) {
                 </Link>
             </DropdownMenuItem>
 
-            <AlertDialog
-                open={showLogoutDialog}
-                onOpenChange={setShowLogoutDialog}
-            >
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Konfirmasi Logout</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Apakah Anda yakin ingin keluar dari akun Anda?
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Batal</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleLogout}>
-                            Ya, Keluar
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            {typeof document !== 'undefined' &&
+                createPortal(
+                    <AlertDialog
+                        open={showLogoutDialog}
+                        onOpenChange={setShowLogoutDialog}
+                    >
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                    Konfirmasi Logout
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Apakah Anda yakin ingin keluar dari akun
+                                    Anda?
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>
+                                    Batal
+                                </AlertDialogCancel>
+                                <AlertDialogAction onClick={handleLogout}>
+                                    Ya, Keluar
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>,
+                    document.body,
+                )}
         </>
     );
 }

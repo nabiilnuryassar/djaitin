@@ -12,7 +12,7 @@ import {
     Users,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
-import { NavMain } from '@/components/nav-main';
+import { NavGroup } from '@/components/nav-group';
 import { NavUser } from '@/components/nav-user';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -31,8 +31,7 @@ import type { SharedPageProps } from '@/types/auth';
 export function AppSidebar() {
     const { auth } = usePage<SharedPageProps>().props;
     const role = auth.user?.role;
-
-    const mainNavItems: NavItem[] = [
+    const operasionalItems: NavItem[] = [
         {
             title: 'Dashboard',
             href: office.dashboard(),
@@ -63,6 +62,9 @@ export function AppSidebar() {
             href: office.customers.index(),
             icon: Users,
         },
+    ];
+
+    const reportingItems: NavItem[] = [
         {
             title: 'Laporan',
             href: office.reports.index(),
@@ -75,8 +77,10 @@ export function AppSidebar() {
         },
     ];
 
+    const adminItems: NavItem[] = [];
+
     if (role === 'admin' || role === 'owner') {
-        mainNavItems.push(
+        adminItems.push(
             {
                 title: 'Pengguna',
                 href: office.admin.users.index(),
@@ -113,9 +117,12 @@ export function AppSidebar() {
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
-
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavGroup title="Operasional" items={operasionalItems} />
+                <NavGroup title="Reporting" items={reportingItems} />
+                {adminItems.length > 0 && (
+                    <NavGroup title="Administrasi" items={adminItems} />
+                )}
             </SidebarContent>
 
             <SidebarFooter>
