@@ -126,30 +126,42 @@ class DemoSeeder extends Seeder
 
         // Products (Ready-to-Wear)
         Product::updateOrCreate(
-            ['name' => 'Kemeja Batik Classic'],
+            ['sku' => 'RTW-KBC-001'],
             [
+                'name' => 'Kemeja Batik Classic',
                 'description' => 'Kemeja batik modern untuk pria',
-                'price' => 350000,
+                'category' => 'Ready-to-Wear',
+                'size' => 'M',
+                'base_price' => 350000,
+                'selling_price' => 350000,
                 'stock' => 50,
                 'is_active' => true,
             ]
         );
 
         Product::updateOrCreate(
-            ['name' => 'Kemeja Casual'],
+            ['sku' => 'RTW-KCC-001'],
             [
+                'name' => 'Kemeja Casual',
                 'description' => 'Kemeja kasual untuk aktivitas sehari-hari',
-                'price' => 275000,
+                'category' => 'Ready-to-Wear',
+                'size' => 'L',
+                'base_price' => 275000,
+                'selling_price' => 275000,
                 'stock' => 75,
                 'is_active' => true,
             ]
         );
 
         Product::updateOrCreate(
-            ['name' => 'Seragam Kantor'],
+            ['sku' => 'RTW-SKR-001'],
             [
+                'name' => 'Seragam Kantor',
                 'description' => 'Seragam formal untuk kebutuhan korporat',
-                'price' => 325000,
+                'category' => 'Ready-to-Wear',
+                'size' => 'XL',
+                'base_price' => 325000,
+                'selling_price' => 325000,
                 'stock' => 100,
                 'is_active' => true,
             ]
