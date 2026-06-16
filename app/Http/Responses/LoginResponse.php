@@ -4,6 +4,7 @@ namespace App\Http\Responses;
 
 use App\Enums\UserRole;
 use Illuminate\Http\RedirectResponse;
+use Inertia\Inertia;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 
 class LoginResponse implements LoginResponseContract
@@ -18,6 +19,6 @@ class LoginResponse implements LoginResponseContract
             default => route('home'),
         };
 
-        return redirect()->intended($target)->with('success', 'Selamat datang kembali! Anda berhasil masuk.');
+        return Inertia::location($target);
     }
 }
