@@ -24,8 +24,8 @@ export default function CustomerHome() {
     const { auth } = usePage<{ auth: { user: User | null } }>().props;
     const dashboardHref =
         auth.user?.role === 'customer'
-            ? customer.dashboard()
-            : office.dashboard();
+            ? customer.dashboard.url()
+            : office.dashboard.url();
 
     return (
         <CustomerLayout>

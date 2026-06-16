@@ -290,13 +290,13 @@ export default function CustomerDashboard({
                             Privacy Policy
                         </Link>
                         <Link
-                            href={customer.profile.edit({
+                            href={customer.profile.edit.url({
                                 query: { section: 'profile' },
                             })}
                         >
                             Terms of Service
                         </Link>
-                        <Link href={customer.dashboard()}>Contact Support</Link>
+                        <Link href={customer.dashboard.url()}>Contact Support</Link>
                     </div>
                 </footer>
             </div>

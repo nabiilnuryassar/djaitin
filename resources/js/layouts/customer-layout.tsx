@@ -162,10 +162,10 @@ export default function CustomerLayout({
                                     variant="outline"
                                     className="border-[#DBEAFE] bg-white text-[#1B5EC5] hover:bg-[#EFF4FF] hover:text-[#1B5EC5]"
                                 >
-                                    <Link href={login()}>Masuk</Link>
+                                    <Link href={login.url()}>Masuk</Link>
                                 </Button>
                                 <Button asChild>
-                                    <Link href={register()}>Daftar</Link>
+                                    <Link href={register.url()}>Daftar</Link>
                                 </Button>
                             </>
                         )}
