@@ -1,0 +1,1 @@
+import{c as s,j as o}from"./app-De8f6c39.js";import{a as i}from"./premium-card-B9yq-r1b.js";function l(m){const e=s.c(2),{children:r}=m;let t;return e[0]!==r?(t=o.jsx(i,{className:"mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between",children:r}),e[0]=r,e[1]=t):t=e[1],t}export{l as F};

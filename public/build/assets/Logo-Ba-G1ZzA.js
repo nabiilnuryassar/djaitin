@@ -1,0 +1,1 @@
+import{c,j as r}from"./app-De8f6c39.js";import{c as a}from"./utils-HZ9GRipD.js";import{l as m}from"./logo-djaitin-transparan-BdKtg1rr.js";function f(i){const o=c.c(4),{className:e}=i;let t;o[0]!==e?(t=a("size-10 object-contain",e),o[0]=e,o[1]=t):t=o[1];let s;return o[2]!==t?(s=r.jsx("img",{alt:"djaitin logo",className:t,src:m}),o[2]=t,o[3]=s):s=o[3],s}export{f as L};
