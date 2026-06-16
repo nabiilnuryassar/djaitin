@@ -18,6 +18,6 @@ class LoginResponse implements LoginResponseContract
             default => route('home'),
         };
 
-        return redirect()->intended($target);
+        return redirect()->intended($target)->with('success', 'Selamat datang kembali! Anda berhasil masuk.');
     }
 }

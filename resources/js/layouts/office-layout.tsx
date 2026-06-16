@@ -1,3 +1,4 @@
+import { AppToaster } from '@/components/app-toaster';
 import { useForceLightTheme } from '@/hooks/use-force-light-theme';
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
 import type { AppLayoutProps } from '@/types';
@@ -10,8 +11,11 @@ export default function OfficeLayout({
     useForceLightTheme();
 
     return (
-        <AppLayoutTemplate breadcrumbs={breadcrumbs} {...props}>
-            {children}
-        </AppLayoutTemplate>
+        <>
+            <AppToaster />
+            <AppLayoutTemplate breadcrumbs={breadcrumbs} {...props}>
+                {children}
+            </AppLayoutTemplate>
+        </>
     );
 }

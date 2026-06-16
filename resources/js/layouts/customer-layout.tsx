@@ -1,10 +1,20 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { LogOut } from 'lucide-react';
-import type { PropsWithChildren } from 'react';
+import { useState } from 'react';
+import { AppToaster } from '@/components/app-toaster';
 import { CustomerMobileBottomBar } from '@/components/customer-mobile-bottom-bar';
 import { CustomerNotificationPopover } from '@/components/customer-notification-popover';
-import { FlashMessage } from '@/components/flash-message';
 import { Logo } from '@/components/Logo';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { useForceLightTheme } from '@/hooks/use-force-light-theme';
 import { login, logout, register } from '@/routes';
@@ -14,11 +24,11 @@ import type { SharedPageProps } from '@/types/auth';
 
 type NavigationItem = {
     label: string;
-    href: ReturnType<typeof customer.home>;
+    href: string;
     match: string;
 };
 
-export default function CustomerLayout({ children }: PropsWithChildren) {
+export default function CustomerLayout({ children }: { children: React.ReactNode }) {
     useForceLightTheme();
 
     const page = usePage<SharedPageProps>();
@@ -27,6 +37,8 @@ export default function CustomerLayout({ children }: PropsWithChildren) {
     const isCustomer = user?.role === 'customer';
     const unreadNotificationsCount = page.props.unread_notifications_count ?? 0;
     const recentNotifications = page.props.recent_notifications ?? [];
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+
     const customerNavigation: NavigationItem[] = [
         {
             label: 'Beranda',
@@ -66,8 +78,15 @@ export default function CustomerLayout({ children }: PropsWithChildren) {
         },
     ];
 
+    const handleLogout = () => {
+        setShowLogoutDialog(false);
+        router.post(logout().url);
+    };
+
     return (
         <div className="min-h-screen bg-[#eef3fb] bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.12),_transparent_32%),linear-gradient(180deg,_#f7f9fe_0%,_#eef3fb_100%)] pb-[env(safe-area-inset-bottom)] text-[#0F172A]">
+            <AppToaster />
+            
             <header className="sticky top-0 z-20 border-b border-white/60 bg-white/78 backdrop-blur-xl">
                 <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -121,7 +140,7 @@ export default function CustomerLayout({ children }: PropsWithChildren) {
                                 <button
                                     type="button"
                                     className="inline-flex size-10 items-center justify-center rounded-full border border-[#dbe4f5] bg-white text-slate-500 transition hover:bg-[#f3f7ff] hover:text-[#1B5EC5]"
-                                    onClick={() => router.post(logout().url)}
+                                    onClick={() => setShowLogoutDialog(true)}
                                 >
                                     <LogOut className="size-4" />
                                 </button>
@@ -151,7 +170,6 @@ export default function CustomerLayout({ children }: PropsWithChildren) {
             </header>
 
             <div className="mx-auto max-w-7xl px-6 py-8 pb-28 md:pb-8">
-                <FlashMessage />
                 <div className="mt-2">{children}</div>
             </div>
 
@@ -159,6 +177,23 @@ export default function CustomerLayout({ children }: PropsWithChildren) {
                 currentUrl={currentUrl}
                 pageProps={page.props}
             />
+
+            <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Konfirmasi Logout</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Apakah Anda yakin ingin keluar dari akun Anda? Anda perlu login kembali untuk mengakses fitur.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleLogout}>
+                            Ya, Keluar
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

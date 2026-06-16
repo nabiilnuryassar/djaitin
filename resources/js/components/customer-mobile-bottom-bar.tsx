@@ -1,34 +1,28 @@
 import { Link, router } from '@inertiajs/react';
-import {
-    ClipboardList,
-    CreditCard,
-    Home,
-    LogIn,
-    LogOut,
-    MapPin,
-    Ruler,
-    ShoppingBag,
-    ShoppingCart,
-    Shirt,
-    UserCircle2,
-} from 'lucide-react';
-import { motion } from 'motion/react';
-import { useMemo, useState } from 'react';
-import type { ReactNode } from 'react';
+import { Home, LogIn, LogOut, Ruler, ShoppingBag, Shirt, ShoppingCart, Percent, FileText, User, Menu } from 'lucide-react';
+import { useState } from 'react';
 import { CustomerNotificationPopover } from '@/components/customer-notification-popover';
-import { Button } from '@/components/ui/button';
 import {
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-} from '@/components/ui/sheet';
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { login, logout, register } from '@/routes';
+import { login, logout } from '@/routes';
 import customer from '@/routes/customer';
 import office from '@/routes/office';
 import type { SharedPageProps } from '@/types/auth';
+import { motion } from 'motion/react';
+import { useMemo } from 'react';
+import type { ReactNode } from 'react';
 
 type MobileBarProps = {
     currentUrl: string;
@@ -115,6 +109,7 @@ export function CustomerMobileBottomBar({
     pageProps,
 }: MobileBarProps) {
     const [openGroup, setOpenGroup] = useState<ParentKey>(null);
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false);
     const user = pageProps.auth.user;
     const isCustomer = user?.role === 'customer';
     const unreadNotificationsCount = pageProps.unread_notifications_count ?? 0;
@@ -232,7 +227,7 @@ export function CustomerMobileBottomBar({
                                 type="button"
                                 variant="outline"
                                 className="w-full justify-start border-[#DBEAFE] bg-white text-[#1B5EC5] hover:bg-[#EFF4FF] hover:text-[#1B5EC5]"
-                                onClick={() => router.post(logout().url)}
+                                onClick={() => setShowLogoutDialog(true)}
                             >
                                 <LogOut className="size-4" />
                                 Keluar
@@ -266,6 +261,23 @@ export function CustomerMobileBottomBar({
                 unreadNotificationsCount={unreadNotificationsCount}
                 title="Menu Akun"
             />
+
+            <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Konfirmasi Logout</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Apakah Anda yakin ingin keluar dari akun Anda?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => router.post(logout())}>
+                            Ya, Keluar
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 }
