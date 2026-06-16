@@ -64,28 +64,28 @@ type GroupedNavItem = {
 const transactionItems: GroupedNavItem[] = [
     {
         label: 'Katalog',
-        href: customer.catalog.index(),
+        href: customer.catalog.index.url(),
         description: 'Browse produk aktif ready-to-wear per kategori dan size.',
         icon: ShoppingBag,
         match: '/app/catalog',
     },
     {
         label: 'Keranjang',
-        href: customer.cart.index(),
+        href: customer.cart.index.url(),
         description: 'Review item RTW yang sudah siap di-checkout.',
         icon: ShoppingCart,
         match: '/app/cart',
     },
     {
         label: 'Pesanan',
-        href: customer.orders.index(),
+        href: customer.orders.index.url(),
         description: 'Pantau progres pesanan, detail item, dan tagihan.',
         icon: ClipboardList,
         match: '/app/orders',
     },
     {
         label: 'Pembayaran',
-        href: customer.payments.index(),
+        href: customer.payments.index.url(),
         description: 'Lihat transfer pending dan unggah bukti pembayaran.',
         icon: CreditCard,
         match: '/app/payments',
@@ -95,7 +95,7 @@ const transactionItems: GroupedNavItem[] = [
 const accountItems: GroupedNavItem[] = [
     {
         label: 'Ukuran',
-        href: customer.profile.edit({
+        href: customer.profile.edit.url({
             query: { section: 'measurements' },
         }),
         description: 'Simpan measurement pribadi untuk order berikutnya.',
@@ -105,7 +105,7 @@ const accountItems: GroupedNavItem[] = [
     },
     {
         label: 'Alamat',
-        href: customer.profile.edit({
+        href: customer.profile.edit.url({
             query: { section: 'addresses' },
         }),
         description: 'Kelola alamat pengiriman dan alamat default.',
@@ -115,7 +115,7 @@ const accountItems: GroupedNavItem[] = [
     },
     {
         label: 'Profil',
-        href: customer.profile.edit({
+        href: customer.profile.edit.url({
             query: { section: 'profile' },
         }),
         description: 'Perbarui data akun customer yang sedang aktif.',
@@ -136,10 +136,10 @@ export function CustomerMobileBottomBar({
     const unreadNotificationsCount = pageProps.unread_notifications_count ?? 0;
     const recentNotifications = pageProps.recent_notifications ?? [];
 
-    const homeHref = isCustomer ? customer.dashboard() : customer.home();
+    const homeHref = isCustomer ? customer.dashboard.url() : customer.home.url();
     const tailorHref = isCustomer
-        ? customer.tailor.configure()
-        : customer.services.tailor();
+        ? customer.tailor.configure.url()
+        : customer.services.tailor.url();
 
     const activeGroup = useMemo(() => {
         if (currentUrl === '/app' || currentUrl === customer.dashboard.url()) {

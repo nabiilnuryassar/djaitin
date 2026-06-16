@@ -97,8 +97,8 @@ export default function CustomerLayout({
                         <Link
                             href={
                                 isCustomer
-                                    ? customer.dashboard()
-                                    : customer.home()
+                                    ? customer.dashboard.url()
+                                    : customer.home.url()
                             }
                             className="inline-flex items-center gap-3 rounded-2xl bg-[#162044] px-3 py-2 text-white shadow-[0_18px_40px_rgba(15,23,42,0.16)]"
                         >
