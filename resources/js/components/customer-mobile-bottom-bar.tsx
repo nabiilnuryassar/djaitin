@@ -6,6 +6,7 @@ import {
     Home,
     LogIn,
     LogOut,
+    MapPin,
     Menu,
     Percent,
     Ruler,
