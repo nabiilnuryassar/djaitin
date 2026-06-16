@@ -33,7 +33,7 @@ class CartItemController extends Controller
             $request->integer('qty'),
         );
 
-        return to_route('customer.cart.index')
+        return back()
             ->with('success', 'Produk berhasil ditambahkan ke keranjang.');
     }
 

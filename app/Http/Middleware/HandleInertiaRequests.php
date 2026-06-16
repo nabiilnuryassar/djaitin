@@ -82,6 +82,9 @@ class HandleInertiaRequests extends Middleware
                 'transfer_notes' => config('djaitin.payment.transfer_notes', []),
                 'support_contact' => config('djaitin.payment.support_contact'),
             ],
+            'cart_item_count' => $isCustomer
+                ? $user->cart?->items()->sum('qty') ?? 0
+                : 0,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

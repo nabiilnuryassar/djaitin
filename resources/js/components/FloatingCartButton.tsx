@@ -22,9 +22,6 @@ export function FloatingCartButton({
         }
     }, [isAnimating]);
 
-    if (itemCount === 0) {
-        return null;
-    }
 
     return (
         <Link

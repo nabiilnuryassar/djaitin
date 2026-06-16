@@ -58,7 +58,10 @@ export default function CustomerCatalogIndex({
     sizes,
     products,
 }: Props) {
-    const { auth } = usePage<{ auth: { user: User | null } }>().props;
+    const { auth, cart_item_count } = usePage<{
+        auth: { user: User | null };
+        cart_item_count: number;
+    }>().props;
     const isCustomer = auth.user?.role === 'customer';
     const filterForm = useForm({
         category: filters.category,
@@ -81,7 +84,7 @@ export default function CustomerCatalogIndex({
         );
     };
 
-    const [cartItemCount, setCartItemCount] = useState(0);
+    const [cartItemCount, setCartItemCount] = useState(cart_item_count ?? 0);
     const [isAddingToCart, setIsAddingToCart] = useState(false);
 
     const addToCart = (productId: number) => {
