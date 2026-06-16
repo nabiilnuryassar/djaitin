@@ -81,7 +81,6 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
     const getInitials = useInitials();
     const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
     const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-    const router = useRouter();
 
     const handleLogout = () => {
         setShowLogoutDialog(false);
@@ -260,6 +259,7 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
                                     onLogoutClick={() => setShowLogoutDialog(true)}
                                 />
                             </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </div>
             </div>

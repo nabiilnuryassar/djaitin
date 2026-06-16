@@ -43,6 +43,8 @@ import {
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { login, logout, register } from '@/routes';
+import customer from '@/routes/customer';
+import office from '@/routes/office';
 import type { SharedPageProps } from '@/types/auth';
 
 type MobileBarProps = {
@@ -54,7 +56,7 @@ type ParentKey = 'account' | 'transactions' | null;
 
 type GroupedNavItem = {
     label: string;
-    href: ReturnType<typeof customer.home>;
+    href: string;
     description: string;
     icon: typeof Home;
     match: string;
@@ -310,7 +312,7 @@ export function CustomerMobileBottomBar({
 
 type BottomLinkProps = {
     active: boolean;
-    href: ReturnType<typeof customer.home>;
+    href: string;
     icon: typeof Home;
     label: string;
 };
