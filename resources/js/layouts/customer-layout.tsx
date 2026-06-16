@@ -151,7 +151,7 @@ export default function CustomerLayout({
                             </>
                         ) : user ? (
                             <Button asChild>
-                                <Link href={office.dashboard()}>
+                                <Link href={office.dashboard.url()}>
                                     Buka Office
                                 </Link>
                             </Button>

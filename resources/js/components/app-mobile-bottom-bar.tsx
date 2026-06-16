@@ -15,7 +15,7 @@ import tailor from '@/routes/office/orders/tailor';
 const navigationItems = [
     {
         label: 'Dashboard',
-        href: office.dashboard(),
+        href: office.dashboard.url(),
         icon: LayoutDashboard,
         isActive: (currentUrl: string) =>
             currentUrl === office.home.url() ||
@@ -23,21 +23,21 @@ const navigationItems = [
     },
     {
         label: 'Pesanan',
-        href: office.orders.index(),
+        href: office.orders.index.url(),
         icon: ClipboardList,
         isActive: (currentUrl: string) =>
             currentUrl.startsWith(office.orders.index.url()),
     },
     {
         label: 'Pembayaran',
-        href: office.payments.index(),
+        href: office.payments.index.url(),
         icon: CreditCard,
         isActive: (currentUrl: string) =>
             currentUrl.startsWith(office.payments.index.url()),
     },
     {
         label: 'Pelanggan',
-        href: office.customers.index(),
+        href: office.customers.index.url(),
         icon: Users,
         isActive: (currentUrl: string) =>
             currentUrl.startsWith(office.customers.index.url()),

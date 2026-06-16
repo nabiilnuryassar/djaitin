@@ -258,7 +258,7 @@ export function CustomerMobileBottomBar({
                         </div>
                     ) : user ? (
                         <Button asChild className="w-full justify-start">
-                            <Link href={office.dashboard()}>Buka Office</Link>
+                            <Link href={office.dashboard.url()}>Buka Office</Link>
                         </Button>
                     ) : (
                         <div className="grid gap-2">

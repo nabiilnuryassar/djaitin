@@ -34,32 +34,32 @@ export function AppSidebar() {
     const operasionalItems: NavItem[] = [
         {
             title: 'Dashboard',
-            href: office.dashboard(),
+            href: office.dashboard.url(),
             icon: LayoutDashboard,
         },
         {
             title: 'Pesanan',
-            href: office.orders.index(),
+            href: office.orders.index.url(),
             icon: ClipboardList,
         },
         {
             title: 'Produksi',
-            href: office.production.index(),
+            href: office.production.index.url(),
             icon: PackageCheck,
         },
         {
             title: 'Pengiriman',
-            href: office.shipping.index(),
+            href: office.shipping.index.url(),
             icon: Archive,
         },
         {
             title: 'Pembayaran',
-            href: office.payments.index(),
+            href: office.payments.index.url(),
             icon: CreditCard,
         },
         {
             title: 'Pelanggan',
-            href: office.customers.index(),
+            href: office.customers.index.url(),
             icon: Users,
         },
     ];
@@ -67,12 +67,12 @@ export function AppSidebar() {
     const reportingItems: NavItem[] = [
         {
             title: 'Laporan',
-            href: office.reports.index(),
+            href: office.reports.index.url(),
             icon: ScrollText,
         },
         {
             title: 'Audit Log',
-            href: office.auditLog.index(),
+            href: office.auditLog.index.url(),
             icon: Shield,
         },
     ];
@@ -83,22 +83,22 @@ export function AppSidebar() {
         adminItems.push(
             {
                 title: 'Pengguna',
-                href: office.admin.users.index(),
+                href: office.admin.users.index.url(),
                 icon: Users,
             },
             {
                 title: 'Produk RTW',
-                href: office.admin.products.index(),
+                href: office.admin.products.index.url(),
                 icon: PackageCheck,
             },
             {
                 title: 'Master Data',
-                href: office.admin.garmentModels.index(),
+                href: office.admin.garmentModels.index.url(),
                 icon: Layers3,
             },
             {
                 title: 'Diskon Loyalitas',
-                href: office.admin.discounts.index(),
+                href: office.admin.discounts.index.url(),
                 icon: Tag,
             },
         );
@@ -110,7 +110,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={office.dashboard()} prefetch>
+                            <Link href={office.dashboard.url()} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
