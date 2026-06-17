@@ -20,7 +20,7 @@ test('production board exposes quick status and stage controls', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->component('Office/Production/Index')
             ->has('orders.data', 1)
-            ->has('quickStatuses')
+            ->has('orders.data.0.allowed_statuses')
             ->where('can.update_status', true)
             ->where('can.update_stage', true)
             ->where('orders.data.0.order_type', 'convection')

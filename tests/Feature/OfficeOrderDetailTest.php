@@ -17,5 +17,6 @@ test('office order detail exposes required sections', function (): void {
             ->has('statuses')
             ->has('productionStages')
             ->has('can')
+            ->whereType('csrf_token', 'string')
         );
 });

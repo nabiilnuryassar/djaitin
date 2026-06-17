@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Office;
 use App\Enums\OrderAttachmentType;
 use App\Enums\OrderStatus;
 use App\Enums\OrderType;
+use App\Enums\PaymentStatus;
 use App\Enums\ProductionStage;
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Office\StoreOrderAttachmentRequest;
 use App\Http\Requests\Office\StoreTailorOrderRequest;
@@ -17,6 +19,7 @@ use App\Models\GarmentModel;
 use App\Models\Order;
 use App\Models\OrderAttachment;
 use App\Models\Payment;
+use App\Models\User;
 use App\Services\AttachmentService;
 use App\Services\ConvectionOrderService;
 use App\Services\LoyaltyService;
@@ -202,7 +205,7 @@ class OrderController extends Controller
                     'refunded_at' => $payment->refunded_at?->format('Y-m-d H:i'),
                     'refunded_by_name' => $payment->refundedBy?->name,
                     'refund_reason' => $payment->refund_reason,
-                    'can_print_receipt' => $payment->status === \App\Enums\PaymentStatus::Verified,
+                    'can_print_receipt' => $payment->status === PaymentStatus::Verified,
                 ])->values(),
                 'attachments' => $order->attachments
                     ->sortByDesc('created_at')
@@ -223,24 +226,25 @@ class OrderController extends Controller
                     'created_at' => $audit->created_at?->format('Y-m-d H:i'),
                 ]),
             ],
-            'statuses' => $this->statusOptions(),
+            'statuses' => $this->statusOptions($order, $request->user()),
             'productionStages' => collect(ProductionStage::cases())->map(fn (ProductionStage $stage): array => [
                 'value' => $stage->value,
                 'label' => str($stage->value)->replace('_', ' ')->title()->value(),
             ])->values(),
             'can' => [
-                'update_status' => $request->user()?->can('updateStatus', $order) ?? false,
-                'update_production_stage' => $request->user()?->can('updateStatus', $order) ?? false,
+                'update_status' => ($request->user()?->can('updateStatus', $order) ?? false)
+                    && $this->statusOptions($order, $request->user()) !== [],
+                'update_production_stage' => $request->user()?->can('updateProductionStage', $order) ?? false,
                 'record_payment' => $request->user()?->can('create', Payment::class) ?? false,
                 'upload_attachment' => $request->user()?->canAccessOffice() ?? false,
 
                 'verify_payment' => $request->user()?->hasAnyRole([
-                    \App\Enums\UserRole::Kasir,
-                    \App\Enums\UserRole::Admin,
+                    UserRole::Kasir,
+                    UserRole::Admin,
                 ]) ?? false,
-                'reject_payment' => $request->user()?->hasRole(\App\Enums\UserRole::Admin) ?? false,
-                'refund_payment' => $request->user()?->hasRole(\App\Enums\UserRole::Admin) ?? false,
-                'print_nota' => $order->payments->contains(fn ($payment) => $payment->status === \App\Enums\PaymentStatus::Verified),
+                'reject_payment' => $request->user()?->hasRole(UserRole::Admin) ?? false,
+                'refund_payment' => $request->user()?->hasRole(UserRole::Admin) ?? false,
+                'print_nota' => $order->payments->contains(fn ($payment) => $payment->status === PaymentStatus::Verified),
             ],
         ]);
     }
@@ -314,13 +318,13 @@ class OrderController extends Controller
     /**
      * @return array<int, array{value: string, label: string}>
      */
-    protected function statusOptions(): array
+    protected function statusOptions(Order $order, ?User $user): array
     {
-        return collect(OrderStatus::cases())
-            ->reject(fn (OrderStatus $status): bool => in_array($status, [
-                OrderStatus::Draft,
-                OrderStatus::AwaitingPrice,
-            ], true))
+        if ($user === null) {
+            return [];
+        }
+
+        return collect($this->orderStatusService->allowedTargets($order, $user))
             ->map(fn (OrderStatus $status): array => [
                 'value' => $status->value,
                 'label' => str($status->value)->replace('_', ' ')->title()->value(),

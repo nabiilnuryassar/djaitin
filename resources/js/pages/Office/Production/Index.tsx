@@ -32,12 +32,12 @@ type Props = {
             due_date: string | null;
             overdue: boolean;
             outstanding_amount: number;
+            allowed_statuses: Array<{ value: string; label: string }>;
         }>;
     };
     statuses: Array<{ value: string; label: string }>;
     orderTypes: Array<{ value: string; label: string }>;
     productionStages: Array<{ value: string; label: string }>;
-    quickStatuses: Array<{ value: string; label: string }>;
     can: {
         update_stage: boolean;
         update_status: boolean;
@@ -54,7 +54,6 @@ export default function ProductionIndex({
     orders,
     orderTypes,
     productionStages,
-    quickStatuses,
     statuses,
     can,
 }: Props) {
@@ -196,7 +195,8 @@ export default function ProductionIndex({
                                     </div>
 
                                     <div className="grid gap-4 xl:min-w-[430px] xl:grid-cols-2">
-                                        {can.update_status ? (
+                                        {can.update_status &&
+                                        order.allowed_statuses.length > 0 ? (
                                             <form
                                                 {...office.orders.status.form(
                                                     order.id,
@@ -215,14 +215,14 @@ export default function ProductionIndex({
                                                     <select
                                                         name="status"
                                                         defaultValue={
-                                                            order.status
+                                                            order
+                                                                .allowed_statuses[0]
+                                                                .value
                                                         }
                                                         className="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-brand-ink cursor-pointer"
                                                     >
-                                                        {quickStatuses.map(
-                                                            (
-                                                                status,
-                                                            ) => (
+                                                        {order.allowed_statuses.map(
+                                                            (status) => (
                                                                 <option
                                                                     key={
                                                                         status.value

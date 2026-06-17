@@ -14,7 +14,7 @@ class UpdateProductionStageRequest extends FormRequest
         /** @var Order $order */
         $order = $this->route('order');
 
-        return $this->user()?->can('updateStatus', $order) ?? false;
+        return $this->user()?->can('updateProductionStage', $order) ?? false;
     }
 
     public function rules(): array

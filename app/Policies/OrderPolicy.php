@@ -34,11 +34,27 @@ class OrderPolicy
         ]);
     }
 
-    public function updateStatus(User $user, Order $order): bool
+    public function updateStatus(User $user, ?Order $order = null): bool
     {
         return $user->hasAnyRole([
             UserRole::Kasir,
             UserRole::Produksi,
+            UserRole::Admin,
+        ]);
+    }
+
+    public function updateProductionStage(User $user, ?Order $order = null): bool
+    {
+        return $user->hasAnyRole([
+            UserRole::Produksi,
+            UserRole::Admin,
+        ]);
+    }
+
+    public function cancel(User $user, Order $order): bool
+    {
+        return $user->hasAnyRole([
+            UserRole::Kasir,
             UserRole::Admin,
         ]);
     }

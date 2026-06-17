@@ -7,12 +7,17 @@ use App\Enums\OrderType;
 use App\Enums\ProductionStage;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Services\OrderStatusService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ProductionController extends Controller
 {
+    public function __construct(
+        protected OrderStatusService $orderStatusService,
+    ) {}
+
     public function index(Request $request): Response
     {
         $this->authorize('viewAny', Order::class);
@@ -45,6 +50,12 @@ class ProductionController extends Controller
                 'due_date' => optional($order->due_date)?->toDateString(),
                 'overdue' => optional($order->due_date)?->isPast() ?? false,
                 'outstanding_amount' => (float) $order->outstanding_amount,
+                'allowed_statuses' => $request->user() === null ? [] : collect(
+                    $this->orderStatusService->allowedTargets($order, $request->user())
+                )->map(fn (OrderStatus $item): array => [
+                    'value' => $item->value,
+                    'label' => str($item->value)->replace('_', ' ')->title()->value(),
+                ])->values()->all(),
             ]);
 
         return Inertia::render('Office/Production/Index', [
@@ -68,19 +79,9 @@ class ProductionController extends Controller
                     'value' => $item->value,
                     'label' => str($item->value)->replace('_', ' ')->title()->value(),
                 ])->values(),
-            'quickStatuses' => collect(OrderStatus::cases())
-                ->reject(fn (OrderStatus $item): bool => in_array($item->value, [
-                    OrderStatus::Draft->value,
-                    OrderStatus::PendingPayment->value,
-                    OrderStatus::AwaitingPrice->value,
-                ], true))
-                ->map(fn (OrderStatus $item): array => [
-                    'value' => $item->value,
-                    'label' => str($item->value)->replace('_', ' ')->title()->value(),
-                ])->values(),
             'can' => [
-                'update_stage' => $request->user()?->canAccessOffice() ?? false,
-                'update_status' => $request->user()?->canAccessOffice() ?? false,
+                'update_stage' => $request->user()?->can('updateProductionStage', Order::class) ?? false,
+                'update_status' => $request->user()?->can('updateStatus', Order::class) ?? false,
             ],
         ]);
     }

@@ -31,6 +31,9 @@ import type { SharedPageProps } from '@/types/auth';
 export function AppSidebar() {
     const { auth } = usePage<SharedPageProps>().props;
     const role = auth.user?.role;
+    const canHandlePayments =
+        role === 'kasir' || role === 'admin' || role === 'owner';
+
     const operasionalItems: NavItem[] = [
         {
             title: 'Dashboard',
@@ -47,16 +50,20 @@ export function AppSidebar() {
             href: office.production.index.url(),
             icon: PackageCheck,
         },
-        {
-            title: 'Pengiriman',
-            href: office.shipping.index.url(),
-            icon: Archive,
-        },
-        {
-            title: 'Pembayaran',
-            href: office.payments.index.url(),
-            icon: CreditCard,
-        },
+        ...(canHandlePayments
+            ? [
+                  {
+                      title: 'Pengiriman',
+                      href: office.shipping.index.url(),
+                      icon: Archive,
+                  },
+                  {
+                      title: 'Pembayaran',
+                      href: office.payments.index.url(),
+                      icon: CreditCard,
+                  },
+              ]
+            : []),
         {
             title: 'Pelanggan',
             href: office.customers.index.url(),
@@ -64,18 +71,22 @@ export function AppSidebar() {
         },
     ];
 
-    const reportingItems: NavItem[] = [
-        {
-            title: 'Laporan',
-            href: office.reports.index.url(),
-            icon: ScrollText,
-        },
-        {
-            title: 'Audit Log',
-            href: office.auditLog.index.url(),
-            icon: Shield,
-        },
-    ];
+    const reportingItems: NavItem[] = [];
+
+    if (role === 'admin' || role === 'owner') {
+        reportingItems.push(
+            {
+                title: 'Laporan',
+                href: office.reports.index.url(),
+                icon: ScrollText,
+            },
+            {
+                title: 'Audit Log',
+                href: office.auditLog.index.url(),
+                icon: Shield,
+            },
+        );
+    }
 
     const adminItems: NavItem[] = [];
 
@@ -119,7 +130,9 @@ export function AppSidebar() {
             </SidebarHeader>
             <SidebarContent>
                 <NavGroup title="Operasional" items={operasionalItems} />
-                <NavGroup title="Reporting" items={reportingItems} />
+                {reportingItems.length > 0 && (
+                    <NavGroup title="Reporting" items={reportingItems} />
+                )}
                 {adminItems.length > 0 && (
                     <NavGroup title="Administrasi" items={adminItems} />
                 )}

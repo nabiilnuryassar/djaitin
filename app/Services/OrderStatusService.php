@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use App\Enums\OrderType;
 use App\Enums\PaymentStatus;
 use App\Enums\ProductionStage;
+use App\Enums\UserRole;
 use App\Models\Order;
 use App\Models\User;
 use App\Notifications\OrderInProgressNotification;
@@ -72,6 +73,18 @@ class OrderStatusService
             ]);
         }
 
+        if ($order->status->isTerminal()) {
+            throw ValidationException::withMessages([
+                'status' => "Order dengan status {$order->status->value} sudah final dan tidak bisa diubah.",
+            ]);
+        }
+
+        if (! $order->status->canTransitionTo($targetStatus)) {
+            throw ValidationException::withMessages([
+                'status' => "Status tidak bisa langsung berpindah dari {$order->status->value} ke {$targetStatus->value}.",
+            ]);
+        }
+
         if ($targetStatus === OrderStatus::InProgress && $order->order_type === OrderType::Tailor) {
             $minimumRatio = (float) config('djaitin.tailor.minimum_dp_ratio', 0.5);
             $paidRatio = $order->total_amount > 0
@@ -96,6 +109,32 @@ class OrderStatusService
                 'status' => 'Order tidak bisa ditutup selama masih ada sisa pembayaran.',
             ]);
         }
+    }
+
+    /**
+     * Status tujuan yang sah untuk user ini: irisan state machine & wewenang role.
+     *
+     * @return array<int, OrderStatus>
+     */
+    public function allowedTargets(Order $order, User $user): array
+    {
+        return array_values(array_filter(
+            $order->status->allowedTransitions(),
+            fn (OrderStatus $target): bool => $this->roleCanTarget($user, $target),
+        ));
+    }
+
+    public function roleCanTarget(User $user, OrderStatus $target): bool
+    {
+        if ($user->hasAnyRole([UserRole::Kasir, UserRole::Admin])) {
+            return true;
+        }
+
+        if ($user->hasRole(UserRole::Produksi)) {
+            return $target === OrderStatus::Done;
+        }
+
+        return false;
     }
 
     public function updateProductionStage(

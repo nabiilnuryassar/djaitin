@@ -1,4 +1,4 @@
-import { Form, Head, useForm } from '@inertiajs/react';
+import { Form, Head, useForm, usePage } from '@inertiajs/react';
 import { Inbox } from 'lucide-react';
 import { useState } from 'react';
 import DashboardController from '@/actions/App/Http/Controllers/Office/DashboardController';
@@ -167,6 +167,7 @@ export default function OrdersShow({
         Props['order']['attachments'][number] | null
     >(null);
 
+    const { csrf_token: csrfToken } = usePage<{ csrf_token: string }>().props;
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: DashboardController() },
         { title: 'Pesanan', href: ordersIndex() },
@@ -373,10 +374,15 @@ export default function OrdersShow({
                                         >
                                             {({ processing, errors }) => (
                                                 <>
+                                                    <input
+                                                        type="hidden"
+                                                        name="_token"
+                                                        value={csrfToken}
+                                                    />
                                                     <select
                                                         name="status"
                                                         defaultValue={
-                                                            order.status
+                                                            statuses[0]?.value
                                                         }
                                                         className="h-10 rounded-xl border border-border bg-white px-3 text-sm text-brand-ink cursor-pointer"
                                                     >
@@ -410,6 +416,16 @@ export default function OrdersShow({
                                                 </>
                                             )}
                                         </Form>
+                                    </div>
+                                )}
+
+                                {!can.update_status && (
+                                    <div className="border-t border-border/70 pt-4 mt-4">
+                                        <h4 className="text-sm font-semibold text-brand-ink mb-2">Status Pesanan</h4>
+                                        <p className="text-sm text-muted-foreground">
+                                            Tidak ada perpindahan status yang
+                                            tersedia untuk Anda pada order ini.
+                                        </p>
                                     </div>
                                 )}
                             </PremiumCard>
@@ -485,6 +501,11 @@ export default function OrdersShow({
                                             >
                                                 {({ processing }) => (
                                                     <>
+                                                        <input
+                                                            type="hidden"
+                                                            name="_token"
+                                                            value={csrfToken}
+                                                        />
                                                         <select
                                                             name="production_stage"
                                                             defaultValue={

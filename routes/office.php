@@ -79,24 +79,26 @@ Route::controller(ShippingController::class)
 
 Route::put('shipments/{shipment}', [ShippingController::class, 'update'])->name('shipments.update');
 
-Route::controller(ReportController::class)
-    ->prefix('reports')
-    ->name('reports.')
-    ->group(function (): void {
-        Route::get('/', 'index')->name('index');
-        Route::get('export', 'export')->name('export');
-    });
+Route::middleware('role:admin,owner')->group(function (): void {
+    Route::controller(ReportController::class)
+        ->prefix('reports')
+        ->name('reports.')
+        ->group(function (): void {
+            Route::get('/', 'index')->name('index');
+            Route::get('export', 'export')->name('export');
+        });
 
-Route::get('audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
+    Route::get('audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
 
-Route::prefix('admin')
-    ->name('admin.')
-    ->group(function (): void {
-        Route::resource('users', UserController::class)->except(['show', 'create', 'edit']);
-        Route::resource('products', ProductController::class)->except(['show', 'create', 'edit']);
-        Route::resource('garment-models', GarmentModelController::class)->except(['show', 'create', 'edit']);
-        Route::resource('fabrics', FabricController::class)->except(['show', 'create', 'edit']);
-        Route::resource('couriers', CourierController::class)->except(['show', 'create', 'edit']);
-        Route::get('discounts', [DiscountPolicyController::class, 'index'])->name('discounts.index');
-        Route::put('discounts/{policy}', [DiscountPolicyController::class, 'update'])->name('discounts.update');
-    });
+    Route::prefix('admin')
+        ->name('admin.')
+        ->group(function (): void {
+            Route::resource('users', UserController::class)->except(['show', 'create', 'edit']);
+            Route::resource('products', ProductController::class)->except(['show', 'create', 'edit']);
+            Route::resource('garment-models', GarmentModelController::class)->except(['show', 'create', 'edit']);
+            Route::resource('fabrics', FabricController::class)->except(['show', 'create', 'edit']);
+            Route::resource('couriers', CourierController::class)->except(['show', 'create', 'edit']);
+            Route::get('discounts', [DiscountPolicyController::class, 'index'])->name('discounts.index');
+            Route::put('discounts/{policy}', [DiscountPolicyController::class, 'update'])->name('discounts.update');
+        });
+});

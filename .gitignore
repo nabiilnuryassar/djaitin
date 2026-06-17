@@ -30,3 +30,5 @@ yarn-error.log
 # Test artifacts (stored outside repo)
 tests/automation/screenshots/
 tests/automation/test-report.json
+database/dumps/
+*.sql
